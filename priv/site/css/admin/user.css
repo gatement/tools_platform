@@ -1,0 +1,36 @@
+#usersTitle{
+	font-weight:bold;
+	font-style: italic;
+}
+
+#usersTable{
+	display: none;
+}
+
+.enabled{
+	width: 70px;
+}
+
+.admin{
+	width: 52px;
+}
+
+.note{
+	width: 44px;
+}
+
+.word{
+	width: 43px;
+}
+
+.sport{
+	width: 52px;
+}
+
+.gallery{
+	width: 70px;
+}
+
+.last_login{
+	width: 161px;
+}

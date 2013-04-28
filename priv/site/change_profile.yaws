@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Change Profile - JohnsonTools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/change_profile.css" />
+			<script type="text/javascript" src="/js/lib/jquery.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.validate.min.js"></script>
+			<script type="text/javascript" src="/js/change_profile.js"></script>
+		</head>
+		<body>
+			<h3>Change Password</h3>
+			<div id="content">
+				<form action="/user/update" method="post">
+					<div>
+						<label for="id" class="fieldTitle"> User </label>
+						<input class="textbox required" disabled="disabled" type="text" id="id" name="id"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									UserId = (Arg#arg.state)#arg_state.user_id,
+									{html, io_lib:format("value=\"~s\"", [UserId])}.
+							</erl> />
+					</div>
+					<div>
+						<label for="name" class="fieldTitle"> Nick Name </label>
+						<input class="textbox required" type="text" id="name" name="name"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									UserId = (Arg#arg.state)#arg_state.user_id,
+									User = model_user:get(UserId),
+									{html, io_lib:format("value=\"~s\"", [User#jt_user.name])}.
+							</erl> />
+					</div>
+					<div>
+						<label for="email" class="fieldTitle"> Email </label>
+						<input class="textbox required email" type="text" id="email" name="email"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									UserId = (Arg#arg.state)#arg_state.user_id,
+									User = model_user:get(UserId),
+									{html, io_lib:format("value=\"~s\"", [User#jt_user.email])}.
+							</erl> />
+					</div>
+					<div class="padding">
+						<input id="submit" type="submit" value="Save" />
+					</div>
+					<div class="padding">
+						<span class="msg">
+							<erl>
+								out(Arg) ->	
+									QueryVals = yaws_api:parse_query(Arg),
+									Msg = case proplists:get_value("msg", QueryVals) of
+										undefined -> "";
+										Val -> Val
+									end,
+									{html, Msg}.
+							</erl>
+						</span>
+					</div>
+					<div class="padding">
+						<a href="/">Home</a>
+					</div>
+				</form>
+			</div>
+		</body>
+	</html>

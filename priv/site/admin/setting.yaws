@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Setting - Admin - JohnsonTools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/admin/setting.css" />
+			<script type="text/javascript" src="/js/lib/jquery.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.validate.min.js"></script>
+			<script type="text/javascript" src="/js/admin/setting.js"></script>
+		</head>
+		<body>
+			<h3>Global Setting</h3>
+			<div id="content">
+				<form action="/setting/update" method="post">
+					<div>
+						<label for="email" class="fieldTitle"> Email </label>
+						<input class="textbox required email" type="text" id="email" name="email"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									Val = model_setting:get(?SETTING_EMAIL),
+									{html, io_lib:format("value=\"~s\"", [Val])}.
+							</erl> />
+					</div>
+					<div>
+						<label for="email_password" class="fieldTitle"> Email Password </label>
+						<input class="textbox required" type="password" id="email_password" name="email_password"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									Val = model_setting:get(?SETTING_EMAIL_PASSWORD),
+									{html, io_lib:format("value=\"~s\"", [Val])}.
+							</erl> />
+					</div>
+					<div>
+						<label for="site_url" class="fieldTitle"> Site Url </label>
+						<input class="textbox required" type="text" id="site_url" name="site_url"
+							<erl>
+								-include("jt.hrl").
+								out(Arg) ->
+									Val = model_setting:get(?SETTING_SITE_URL),
+									{html, io_lib:format("value=\"~s\"", [Val])}.
+							</erl> />
+					</div>
+					<div class="padding">
+						<input id="submit" type="submit" value="Save" />
+					</div>
+					<div class="padding">
+						<span class="msg">
+							<erl>
+								out(Arg) ->	
+									QueryVals = yaws_api:parse_query(Arg),
+									Msg = case proplists:get_value("msg", QueryVals) of
+										undefined -> "";
+										Val -> Val
+									end,
+									{html, Msg}.
+							</erl>
+						</span>
+					</div>
+					<div class="padding">
+						<a href="/">Home</a>
+					</div>
+				</form>
+			</div>
+		</body>
+	</html>

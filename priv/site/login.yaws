@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Login - JohnsonTools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/login.css" />
+			<script type="text/javascript" src="/js/lib/jquery.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.validate.min.js"></script>
+			<script type="text/javascript" src="/js/login.js"></script>
+		</head>
+		<body>
+			<h3>Login</h3>
+			<div id="content">
+				<form id="loginForm" method="post" action="/user/login">
+					<div>				 	
+						<input type="hidden" id="target_url" name="target_url"
+							<erl>
+								out(Arg) ->							
+									QueryVals = yaws_api:parse_query(Arg),
+									TargetUrl = case proplists:get_value("target_url", QueryVals) of
+										undefined -> "";
+										Val -> Val
+									end,
+									{html, io_lib:format("value=\"~s\"", [TargetUrl])}.
+							</erl> />
+						<label for="id" class="fieldTitle"> User </label>					 	
+						<input class="textbox required" type="text" id="id" name="id"
+							<erl>
+								out(Arg) ->							
+									QueryVals = yaws_api:parse_query(Arg),
+									Id = case proplists:get_value("id", QueryVals) of
+										undefined -> "";
+										Val -> Val
+									end,
+									{html, io_lib:format("value=\"~s\"", [Id])}.
+							</erl> />
+					</div>
+					<div>
+						<label for="pwd" class="fieldTitle"> Password </label>
+						<input class="textbox required" type="password" id="pwd" name="pwd" value="" />
+					</div>
+					<div class="padding">
+						<input id="submit" type="submit" value="Login" />
+					</div>
+					<div class="padding">
+						<span class="msg">
+							<erl>
+								out(Arg) ->	
+									QueryVals = yaws_api:parse_query(Arg),
+									Msg = case proplists:get_value("msg", QueryVals) of
+										undefined -> "";
+										Val -> Val
+									end,
+									{html, Msg}.
+							</erl>
+						</span>
+					</div>
+					<div class="padding">
+						<a href="/register.yaws">Register</a>
+						<a href="/forgot_password.yaws" class="forgotPassword">Forgot password</a>
+					</div>
+				</form>
+			</div>
+		</body>
+	</html>

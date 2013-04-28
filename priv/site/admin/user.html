@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Users - Admin - JohnsonTools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/admin/user.css" />
+			<script type="text/javascript" src="/js/lib/jquery.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+			<script type="text/javascript" src="/js/admin/user.js"></script>
+		</head>
+		<body>
+			<h3>Users</h3>
+			<div id="content">
+				<div>
+					<input id="searchVal" type="text" value="" />
+					<input id="searchBtn" type="button" value="search" />
+					<a href="/">Home</a>
+				</div>
+				<hr/>
+				<table id="usersTable" border="0">
+			        <thead>
+			            <tr id="usersTitle">
+			                <td class="id">Id</td>
+			                <td class="name">Name</td>
+			                <td class="email">Email</td>
+			                <td class="enabled">Enabled</td>
+			                <td class="admin">Admin</td>
+			                <td class="note">Note</td>
+			                <td class="word">Word</td>
+			                <td class="sport">Sport</td>
+			                <td class="gallery">Gallery</td>
+			                <td class="last_login">LastLogin</td>
+			                <td class="action">Action</td>
+			            </tr>
+			        </thead>
+			        <tbody id="users"></tbody>
+			    </table>
+			</div>
+
+		
+			<script id="userTemplate" type="text/x-jquery-tmpl">
+				<tr class="user">
+					<td><span>${id}</span></td>
+					<td><span>${name}</span></td>
+					<td><span>${email}</span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if enabled === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if admin === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if note === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if word === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if sport === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if gallery === true}}checked="checked"{{/if}} /></span></td>
+					<td><span>${last_login}</span></td>
+					<td><a href="/admin/user_edit.yaws?id=${id}" target="_blank">edit</a></td>
+				</tr>
+			</script>
+		</body>
+	</html>
