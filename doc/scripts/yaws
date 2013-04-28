@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# yaws http server
+#
+/usr/local/bin/yaws --daemon --mnesiadir '/var/mnesia'
