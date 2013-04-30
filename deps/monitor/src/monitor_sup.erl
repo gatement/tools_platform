@@ -1,9 +1,11 @@
--module(sc_sup).
+-module(monitor_sup).
 -behaviour(supervisor).
 %% API
 -export([start_link/0]).
 %% Supervisor callbacks
 -export([init/1]).
+%% Helper macro for declaring children of supervisor
+-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
 
 %% ===================================================================
@@ -15,10 +17,7 @@ start_link() ->
 
 
 init([]) ->
-    Server = {sc_server, {sc_server, start, []},
-              permanent, 2000, worker, [sc_server]},
-
-    {ok, {{one_for_one, 10, 1}, [Server]}}.
+    {ok, { {one_for_one, 5, 10}, []} }.
 
 
 %% ===================================================================

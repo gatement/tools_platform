@@ -1,4 +1,4 @@
--module(mon_app).
+-module(session_cleaner_app).
 -behaviour(application).
 %% application callbacks
 -export([start/2, stop/1]).
@@ -9,7 +9,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    case mon_sup:start_link() of
+    case session_cleaner_sup:start_link() of
         {ok, Pid} ->
             {ok, Pid};
         Other ->

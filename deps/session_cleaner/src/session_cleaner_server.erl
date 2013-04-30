@@ -1,4 +1,4 @@
--module(sc_server).
+-module(session_cleaner_server).
 %% API
 -export([start/0, run/0, clean_up/0]).
 

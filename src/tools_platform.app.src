@@ -1,0 +1,11 @@
+{application, tools_platform,
+ [
+  {description, "tools platform"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.

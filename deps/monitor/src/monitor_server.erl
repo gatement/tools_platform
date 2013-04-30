@@ -1,4 +1,4 @@
--module(mon_server).
+-module(monitor_server).
 -behaviour(gen_server).
 %% API
 -export([start_link/0]).
