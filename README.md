@@ -3,8 +3,6 @@ tools_platform
 
 A platform that runs multiform tools.
 
-- Build the source code 
-Go to the root folder, open an erlang(erl) session and then type "make:all()."
+- Build: rebar get-deps compile
 
-- Setup database
-Startup the site(yaws) with interactive mode, exec "nm_schema:up().". 
+- Setup database: startup the site(yaws) with interactive mode, then exec "nm_schema:up().". 
