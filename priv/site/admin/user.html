@@ -29,6 +29,7 @@
 			                <td class="word">Word</td>
 			                <td class="sport">Sport</td>
 			                <td class="gallery">Gallery</td>
+			                <td class="monitor">Monitor</td>
 			                <td class="last_login">LastLogin</td>
 			                <td class="action">Action</td>
 			            </tr>
@@ -49,6 +50,7 @@
 					<td><span><input type="checkbox" disabled="disabled" {{if word === true}}checked="checked"{{/if}} /></span></td>
 					<td><span><input type="checkbox" disabled="disabled" {{if sport === true}}checked="checked"{{/if}} /></span></td>
 					<td><span><input type="checkbox" disabled="disabled" {{if gallery === true}}checked="checked"{{/if}} /></span></td>
+					<td><span><input type="checkbox" disabled="disabled" {{if monitor === true}}checked="checked"{{/if}} /></span></td>
 					<td><span>${last_login}</span></td>
 					<td><a href="/admin/user_edit.yaws?id=${id}" target="_blank">edit</a></td>
 				</tr>

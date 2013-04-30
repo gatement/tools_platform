@@ -1,0 +1,13 @@
+body {
+	padding: 0;
+	margin: 3px;
+}
+
+#refreshInteval{
+	width: 60px;
+}
+
+#hr{
+	padding: 0;
+	margin-top: 5px;
+}

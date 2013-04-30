@@ -145,6 +145,7 @@ out(Arg, ["update_all"]) ->
 	Word = erlang:list_to_atom(proplists:get_value("word", Vals, "false")),
 	Sport = erlang:list_to_atom(proplists:get_value("sport", Vals, "false")),
 	Gallery = erlang:list_to_atom(proplists:get_value("gallery", Vals, "false")),
+	Monitor = erlang:list_to_atom(proplists:get_value("monitor", Vals, "false")),
 
 	ReturnFunc = fun(Msg) ->
 		EncodedMsg = yaws_api:url_encode(Msg),
@@ -163,6 +164,7 @@ out(Arg, ["update_all"]) ->
 			model_usr_preference:set(UserId, ?USR_PREFERENCE_WORD_ENABLED, Word),
 			model_usr_preference:set(UserId, ?USR_PREFERENCE_SPORT_ENABLED, Sport),
 			model_usr_preference:set(UserId, ?USR_PREFERENCE_GALLERY_ENABLED, Gallery),
+			model_usr_preference:set(UserId, ?USR_PREFERENCE_MONITOR_ENABLED, Monitor),
 
 			Msg = "Save succeeded.",
 			ReturnFunc(Msg)

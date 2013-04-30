@@ -12,10 +12,11 @@
 -define(USR_PREFERENCE_WORD_ENABLED, "word").
 -define(USR_PREFERENCE_SPORT_ENABLED, "sport").
 -define(USR_PREFERENCE_GALLERY_ENABLED, "gallery").
+-define(USR_PREFERENCE_MONITOR_ENABLED, "monitor").
 
 %% runing records ==============================
 -record(arg_state, {session_id, user_id, user_name, other}).
--record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, sport, gallery}).
+-record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, sport, gallery, monitor}).
 -record(user_autocomplete_item, {label, value}).
 
 %% database tables =============================

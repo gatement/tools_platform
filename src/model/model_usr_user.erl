@@ -193,15 +193,16 @@ search(ContainStr) ->
 			enabled=User#usr_user.enabled,
 			admin=User#usr_user.admin,
 			last_login= case User#usr_user.last_login of undefined -> ""; LastLogin -> tools:datetime_string('yyyy-MM-dd hh:mm:ss', LastLogin) end,
-			note = model_user_preference:get(User#usr_user.id, ?USR_PREFERENCE_NOTE_ENABLED),
-			word = model_user_preference:get(User#usr_user.id, ?USR_PREFERENCE_WORD_ENABLED),
-			sport = model_user_preference:get(User#usr_user.id, ?USR_PREFERENCE_SPORT_ENABLED),
-			gallery = model_user_preference:get(User#usr_user.id, ?USR_PREFERENCE_GALLERY_ENABLED)
+			note = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_NOTE_ENABLED),
+			word = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_WORD_ENABLED),
+			sport = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_SPORT_ENABLED),
+			gallery = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_GALLERY_ENABLED),
+			monitor = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_MONITOR_ENABLED)
 		} || User <- Users].
 
 
 is_admin(UserId) ->
-	User = model_user:get(UserId),
+	User = model_usr_user:get(UserId),
 	User#usr_user.admin.
 
 

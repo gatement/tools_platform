@@ -16,7 +16,7 @@
 						<label for="id" class="fieldTitle"> User </label>
 						<input class="textbox required" disabled="disabled" type="text" id="id" name="id"
 							<erl>
-								-include("jt.hrl").
+								-include("tools_platform.hrl").
 								out(Arg) ->
 									UserId = (Arg#arg.state)#arg_state.user_id,
 									{html, io_lib:format("value=\"~s\"", [UserId])}.
@@ -26,22 +26,22 @@
 						<label for="name" class="fieldTitle"> Nick Name </label>
 						<input class="textbox required" type="text" id="name" name="name"
 							<erl>
-								-include("jt.hrl").
+								-include("tools_platform.hrl").
 								out(Arg) ->
 									UserId = (Arg#arg.state)#arg_state.user_id,
-									User = model_user:get(UserId),
-									{html, io_lib:format("value=\"~s\"", [User#jt_user.name])}.
+									User = model_usr_user:get(UserId),
+									{html, io_lib:format("value=\"~s\"", [User#usr_user.name])}.
 							</erl> />
 					</div>
 					<div>
 						<label for="email" class="fieldTitle"> Email </label>
 						<input class="textbox required email" type="text" id="email" name="email"
 							<erl>
-								-include("jt.hrl").
+								-include("tools_platform.hrl").
 								out(Arg) ->
 									UserId = (Arg#arg.state)#arg_state.user_id,
-									User = model_user:get(UserId),
-									{html, io_lib:format("value=\"~s\"", [User#jt_user.email])}.
+									User = model_usr_user:get(UserId),
+									{html, io_lib:format("value=\"~s\"", [User#usr_user.email])}.
 							</erl> />
 					</div>
 					<div class="padding">

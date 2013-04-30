@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Johnson Tools</title>
+		<title>Tools</title>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<link type="text/css" rel="stylesheet" href="/css/index.css" />
 		<script type="text/javascript" src="/js/index.js"></script>
 	</head>
 	<body>
-		<h2>Johnson Tools</h2>
+		<h2>Tools</h2>
 			Welcome, 
 			<erl>
-				-include("jt.hrl").
+				-include("tools_platform.hrl").
 				out(Arg) ->
 					UserId = (Arg#arg.state)#arg_state.user_id,
 					UserName = (Arg#arg.state)#arg_state.user_name,
@@ -18,7 +18,6 @@
 					{html, UserId ++ "(" ++ UserName ++ ")"}.
 			</erl>.
 
-			<a id="about" href="#" onclick="return about();">about</a>
 			<a href="/change_password.yaws">change password</a>
 			<a href="/change_profile.yaws">change profile</a>
 			<a id="logout" href="/user/logout">logout</a>
@@ -26,10 +25,10 @@
 		<hr/>
 
 		<erl>
-			-include("jt.hrl").
+			-include("tools_platform.hrl").
 			out(Arg) ->
 				UserId = (Arg#arg.state)#arg_state.user_id,
-				IsAdmin = model_user:is_admin(UserId),
+				IsAdmin = model_usr_user:is_admin(UserId),
 				if
 					IsAdmin =:= true ->
 						AdminHtml = "<a href=\"/admin/setting.yaws\">setting</a>"
@@ -44,12 +43,13 @@
 		<div id="content">
 			<ul>
 				<erl>
-				-include("jt.hrl").
+				-include("tools_platform.hrl").
 				out(Arg) ->
 					UserId = (Arg#arg.state)#arg_state.user_id,
-					NoteEnabled = model_user_preference:get(UserId, ?USER_PREFERENCE_NOTE_ENABLED),
-					WordEnabled = model_user_preference:get(UserId, ?USER_PREFERENCE_WORD_ENABLED),
-					GalleryEnabled = model_user_preference:get(UserId, ?USER_PREFERENCE_GALLERY_ENABLED),
+					NoteEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_NOTE_ENABLED),
+					WordEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_WORD_ENABLED),
+					GalleryEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_GALLERY_ENABLED),
+					MonitorEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_MONITOR_ENABLED),
 					if
 						NoteEnabled =:= true ->
 							NoteHtml = "<li class=\"tool\"><a href=\"/note.html\">note</a></li>";
@@ -68,43 +68,17 @@
 						true -> 
 							GalleryHtml = ""
 					end,
-					Html = NoteHtml ++ WordHtml ++ GalleryHtml,
+					if
+						MonitorEnabled =:= true ->
+							MonitorHtml = "<li class=\"tool\"><a href=\"/tools/monitor.html\">monitor</a></li>";
+						true -> 
+							MonitorHtml = ""
+					end,
+					Html = NoteHtml ++ WordHtml ++ GalleryHtml ++ MonitorHtml,
 					{html, Html}.
 				</erl>
 			</ul>
-			<erl>
-				-include("jt.hrl").
-				out(Arg) ->
-					UserId = (Arg#arg.state)#arg_state.user_id,
-					SportEnabled = model_user_preference:get(UserId, ?USER_PREFERENCE_SPORT_ENABLED),
-					if
-						SportEnabled =:= true ->
-							Html = "<ul style=\"display:block;\">";
-						true -> 
-							Html = "<ul style=\"display:none;\">"
-					end,
-					{html, Html}.
-			</erl>
-				<li>sports index, 
-				counter: <span class="sportIndex">				
-					<erl>
-					-include("jt.hrl").
-					out(Arg) ->
-						UserId = (Arg#arg.state)#arg_state.user_id,
-						Html = erlang:integer_to_list(rest_sport:sport_index_counter(UserId)) ++ "%",
-						{html, Html}.
-					</erl>
-				</span>
-				timer: <span class="sportIndex">				
-					<erl>
-						-include("jt.hrl").
-						out(Arg) ->
-							UserId = (Arg#arg.state)#arg_state.user_id,
-							Html = erlang:integer_to_list(rest_sport:sport_index_timer(UserId)) ++ "%",
-							{html, Html}.
-					</erl>
-				</span></li>
-			</ul>
+
 		</div>
 	</body>
 </html>

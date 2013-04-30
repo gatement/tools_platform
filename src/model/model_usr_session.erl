@@ -49,7 +49,7 @@ delete_by_user(UserId) ->
 	{atomic, Sessions} = mnesia:transaction(Fun),
 
 	DelFun = fun(Session) -> 
-			model_session:delete(Session#usr_session.id) 
+			model_usr_session:delete(Session#usr_session.id) 
 	end,
 	lists:foreach(DelFun, Sessions),
 
@@ -79,7 +79,7 @@ exist(Id) ->
 
 
 update_last_active(Id) ->
-	case model_session:get(Id) of
+	case model_usr_session:get(Id) of
 		[] -> 
 			error;
 		[Session] ->
@@ -102,7 +102,7 @@ clear_old(Ttl) ->
 						X#usr_session.last_active < OldTime])),
 
 		DelFun = fun(Session) -> 
-			model_session:delete(Session#usr_session.id) 
+			model_usr_session:delete(Session#usr_session.id) 
 		end,
 		lists:foreach(DelFun, Sessions)
 	end,

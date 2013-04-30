@@ -52,9 +52,9 @@ init_base_data() ->
 		                        admin = true}),
 
 	% default gbl_setting
-	model_setting:set(?GBL_SETTING_EMAIL, "gatement@gmail.com"),
-	model_setting:set(?GBL_SETTING_EMAIL_PASSWORD, "_fake_email_password_"),
-	model_setting:set(?GBL_SETTING_SITE_URL, "https://tools.johnson.uicp.net"),
+	model_gbl_setting:set(?GBL_SETTING_EMAIL, "gatement@gmail.com"),
+	model_gbl_setting:set(?GBL_SETTING_EMAIL_PASSWORD, "_fake_email_password_"),
+	model_gbl_setting:set(?GBL_SETTING_SITE_URL, "https://tools.johnson.uicp.net"),
 
 	ok.
 	

@@ -25,7 +25,7 @@ arg_rewrite(Arg) ->
 			% if request to the admin path, must be an Administrator
 			case string:str(string:to_lower(RequestPath), "/admin/") of
 				1 -> 
-					case model_user:is_admin(UserId) of
+					case model_usr_user:is_admin(UserId) of
 						true -> 
 							Arg#arg
 							{

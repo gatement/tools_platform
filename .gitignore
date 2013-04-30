@@ -1,6 +1,6 @@
 .eunit
-deps
 *.o
 *.beam
 *.plt
 *.*~
+log.csv
