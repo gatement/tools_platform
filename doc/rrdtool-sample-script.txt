@@ -1,0 +1,14 @@
+rrdtool create ping_johnsonlau_net.rrd --start N  --step 10 DS:loss:GAUGE:600:U:U  DS:time:GAUGE:10:U:U RRA:AVERAGE:0.5:1:17856
+rrdtool create ping_163_com.rrd --start N  --step 10 DS:loss:GAUGE:600:U:U  DS:time:GAUGE:10:U:U RRA:AVERAGE:0.5:1:17856
+
+
+rrdtool update ping_johnsonlau_net.rrd --template loss:time 1350176908:10:233
+rrdtool update ping_163_com.rrd --template loss:time 1350176908:10:233
+
+rrdtool update ping_johnsonlau_net.rrd --template loss:time N:10:233
+rrdtool update ping_163_com.rrd --template loss:time N:5:253
+
+
+rrdtool graph ping_loss.png --start "20130430 02:30" --end "20130430 02:40" DEF:myloss1=ping_johnsonlau_net.rrd:loss:AVERAGE DEF:myloss2=ping_163_com.rrd:loss:AVERAGE LINE2:myloss1#00FF00:"johnsonlau.net" LINE2:myloss2#FF0000:"www.163.com"
+
+rrdtool graph ping_time.png --start "20130430 02:40" --end "20130430 02:40" DEF:mytime1=ping_johnsonlau_net.rrd:time:AVERAGE DEF:mytime2=ping_163_com.rrd:time:AVERAGE LINE2:mytime1#00FF00:"johnsonlau.net" LINE2:mytime2#FF0000:"www.163.com"
