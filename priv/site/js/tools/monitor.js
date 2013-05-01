@@ -19,7 +19,7 @@ $(document).ready(function()
 
 	window.ajaxContainer = {}; // store ajax request
 	window.autoRefreshIntervalId = 0;
-	window.autoRefreshInterval = 90000;
+	window.autoRefreshInterval = 10000; // in millisecond
 
 	show_button_click();
 });
@@ -63,13 +63,11 @@ function refreshImages(showSpiner)
 
 function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 {
-	var agentId = $("#agentIdField").val();
+	var $memory_container = $("#memoryContainer");
+	var $cpu_container = $("#cpuContainer");
 
-	var $time_container = $("#timeContainer");
-	var $loss_container = $("#lossContainer");
-
-	$time_container.text("");
-	$loss_container.text("");
+	$memory_container.text("");
+	$cpu_container.text("");
 
 	if(showSpiner)
 	{
@@ -90,79 +88,79 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 			top: 30, // Top position relative to parent in px
 			left: -9 // Left position relative to parent in px
 		};
-		var time_spinner = new Spinner(opts).spin($time_container[0]);
-		var loss_spinner = new Spinner(opts).spin($loss_container[0]);
+		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
+		var cpu_spinner = new Spinner(opts).spin($cpu_container[0]);
 	}
 
-	if(window.ajaxContainer["time"])
+	if(window.ajaxContainer["memory"])
 	{
-		window.ajaxContainer["time"].abort();
+		window.ajaxContainer["memory"].abort();
 	}
-	window.ajaxContainer["time"] = $.ajax({
-		url: "/statistic/ping/time",
+	window.ajaxContainer["memory"] = $.ajax({
+		url: "/monitor/rrd/graph/memory",
 		type: "POST",
-		data: { agentId: agentId, fromDateTime: fromDateTime, toDateTime: toDateTime },
+		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
 		success: function(data, textStatus, jqXHR)
 		{
 			if(data.success)
 			{
-				$time_container.html("<img src=\"" + data.data.url + "\" />");
+				$memory_container.html("<img src=\"" + data.data.url + "\" />");
 				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
 			}
 			else
 			{
-				$time_container.html("<label style=\"color: Red\">(failed)</label>");
+				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
 			if(textStatus !== "abort")
 			{
-				$time_container.html("<label style=\"color: Red\">(failed)</label>");
+				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		complete: function(jqXHR, textStatus)
 		{
 			if(showSpiner)
 			{
-				time_spinner.stop();
+				memory_spinner.stop();
 			}	
 		}
 	});
 
-	if(window.ajaxContainer["loss"])
+	if(window.ajaxContainer["cpu"])
 	{
-		window.ajaxContainer["loss"].abort();
+		window.ajaxContainer["cpu"].abort();
 	}
-	window.ajaxContainer["loss"] = $.ajax({
-		url: "/statistic/ping/loss",
+	window.ajaxContainer["cpu"] = $.ajax({
+		url: "/monitor/rrd/graph/cpu",
 		type: "POST",
-		data: { agentId: agentId, fromDateTime: fromDateTime, toDateTime: toDateTime },
+		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
 		success: function(data, textStatus, jqXHR)
 		{
 			if(data.success)
 			{
-				$loss_container.html("<img src=\"" + data.data.url + "\" />");
+				$cpu_container.html("<img src=\"" + data.data.url + "\" />");
 				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
 			}
 			else
 			{
-				$loss_container.html("<label style=\"color: Red\">(failed)</label>");
+				$cpu_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
 			if(textStatus !== "abort")
 			{
-				$loss_container.html("<label style=\"color: Red\">(failed)</label>");
+				$cpu_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		complete: function(jqXHR, textStatus)
 		{
 			if(showSpiner)
 			{
-				loss_spinner.stop();
-			}	
+				cpu_spinner.stop();
+			}
 		}
 	});
 
