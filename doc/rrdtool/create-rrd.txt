@@ -1,2 +1,5 @@
-rrdtool create ping_johnsonlau_net.rrd --start N  --step 10 DS:loss:GAUGE:600:U:U  DS:time:GAUGE:10:U:U RRA:AVERAGE:0.5:1:17856
-rrdtool create ping_163_com.rrd --start N  --step 10 DS:loss:GAUGE:600:U:U  DS:time:GAUGE:10:U:U RRA:AVERAGE:0.5:1:17856
+rrdtool create monitor.rrd --start N --step 10 DS:memory:GAUGE:10:U:U RRA:AVERAGE:0.9:1:133920
+
+rrdtool update monitor.rrd --template memory N:23
+
+rrdtool graph monitor.png --start "20130501 09:40" --end "20130501 10:00" DEF:memory=monitor.rrd:memory:AVERAGE LINE2:memory#FF0000:"memory(%)"
