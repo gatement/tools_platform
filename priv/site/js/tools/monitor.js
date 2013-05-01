@@ -19,7 +19,7 @@ $(document).ready(function()
 
 	window.ajaxContainer = {}; // store ajax request
 	window.autoRefreshIntervalId = 0;
-	window.autoRefreshInterval = 10000; // in millisecond
+	window.autoRefreshInterval = 30000; // in millisecond
 
 	show_button_click();
 });
@@ -39,7 +39,7 @@ function refresh_button_click()
 
 function auto_refresh_change()
 {
-	var checked = $("#autoRefreshCheckbox").attr("checked");
+	var checked = document.getElementById("autoRefreshCheckbox").checked;
 	if(checked)
 	{
 		window.autoRefreshIntervalId = window.setInterval(function() { refreshImages(false) }, window.autoRefreshInterval);
@@ -89,7 +89,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 			left: -9 // Left position relative to parent in px
 		};
 		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
-		var cpu_spinner = new Spinner(opts).spin($cpu_container[0]);
+		//var cpu_spinner = new Spinner(opts).spin($cpu_container[0]);
 	}
 
 	if(window.ajaxContainer["memory"])
@@ -128,7 +128,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		}
 	});
 
-	if(window.ajaxContainer["cpu"])
+	/*if(window.ajaxContainer["cpu"])
 	{
 		window.ajaxContainer["cpu"].abort();
 	}
@@ -162,7 +162,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 				cpu_spinner.stop();
 			}
 		}
-	});
+	});*/
 
 	return false;
 }
