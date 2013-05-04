@@ -5,7 +5,7 @@
 {monitor, [	
     {run_interval, 10}, % in seconds
     {log_file_name, "/app/tools_platform/priv/logs/monitor.csv"},
-    {rrdtool_exe, "/dev/rrdtool144-bin/rrdtool.exe"},
+    {rrdtool_exe, "/usr/bin/rrdtool"},
     {rrd_file_name, "/app/rrdtool/tools_platform/monitor.rrd"}
 ]},
 {session_cleaner, [
