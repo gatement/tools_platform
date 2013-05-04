@@ -7,3 +7,5 @@ log.csv
 ebin
 deps
 local.config
+logs
+rrdtool_img
