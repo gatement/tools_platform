@@ -1,4 +1,7 @@
-[
+[{sasl, [
+	{sasl_error_logger, {file, "./priv/logs/sasl.log" }},
+	{errlog_type, error}
+]},
 {monitor, [	
     {run_interval, 10}, % in seconds
     {log_file_name, "./priv/logs/monitor.csv"},
