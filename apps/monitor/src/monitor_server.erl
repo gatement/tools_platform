@@ -25,20 +25,18 @@ init([]) ->
 	Interal = Interal0 * 1000,
 
 	{ok, LogFileName} = application:get_env(log_file_name),
-
 	{ok, RrdFileName} = application:get_env(rrd_file_name),
 	{ok, RrdtoolExe} = application:get_env(rrdtool_exe),
 
 	filelib:ensure_dir(LogFileName),
-
 	FileExists = filelib:is_file(LogFileName),
-
-	{ok, LogFile} = file:open(LogFileName, [append]),
-	
+	{ok, LogFile} = file:open(LogFileName, [append]),	
 	case FileExists of
 		false -> write_header(LogFile);
 		_ -> ok
 	end,
+
+	cpu_sup:avg1(), % call it for a first time, so the next call will be exact.
 
     State = #state{log_file = LogFile, interval = Interal, rrdtool_exe = RrdtoolExe, rrd_file = RrdFileName},
     error_logger:info_msg("monitor was started.~n"),
@@ -76,17 +74,22 @@ code_change(_OldVsn, State, _Extra) ->
 %% ===================================================================
 
 write_header(LogFile) ->
-	Data = "Time, MemTotal(MB), MemAlloc(MB), MaxEPAlloc(KB)\n",
+	Data = "Time, MemTotal(B), MemAlloc(B), MaxEPAlloc(B), NProcs, CpuLoad, CpuUtil(%)\n",
 	write_data(LogFile, Data).
 
 
 write_status(LogFile, RrdtoolExe, RrdFileName) ->
 	{MemTotal, MemAllocated,{_Pid, MaxPidAllocated}} = memsup:get_memory_data(),
+	NProcs = cpu_sup:nprocs(),
+	CpuLoad = cpu_sup:avg1(),
+	CpuUtil = cpu_sup:util(),
 
-	Data = io_lib:format("~s, ~p, ~p, ~p~n", [tools:datetime_string('yyyyMMdd_hhmmss'), MemTotal/1024/1024, MemAllocated/1024/1024, MaxPidAllocated/1024]),
+	Data = io_lib:format("~s, ~p, ~p, ~p, ~p, ~p, ~p~n", 
+		[tools:datetime_string('yyyyMMdd_hhmmss'), MemTotal, MemAllocated, MaxPidAllocated, NProcs, CpuLoad, CpuUtil]),
 	write_data(LogFile, Data),
 
-	rrdtool:update(RrdtoolExe, RrdFileName, "mem", erlang:round(MemAllocated*100/MemTotal)).
+	ValStr = io_lib:format("~p:~p:~p", [MemAllocated*100/MemTotal, CpuLoad/256, CpuUtil*100]),
+	rrdtool:update(RrdtoolExe, RrdFileName, "mem:cpu_load:cpu_util", ValStr).
 
 
 write_data(LogFile, Data) ->
