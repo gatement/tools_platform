@@ -79,16 +79,25 @@ write_header(LogFile) ->
 
 
 write_status(LogFile, RrdtoolExe, RrdFileName) ->
-	{MemTotal, MemAllocated,{_Pid, MaxPidAllocated}} = memsup:get_memory_data(),
-	NProcs = cpu_sup:nprocs(),
-	CpuLoad = cpu_sup:avg1(),
-	CpuUtil = cpu_sup:util(),
+	{MemTotal, MemAllocated, {_Pid, MaxPidAllocated}} = memsup:get_memory_data(),
+
+	case os:type() of
+		{unix,linux} ->
+			NProcs = cpu_sup:nprocs(),
+			CpuLoad = cpu_sup:avg1(),
+			CpuUtil = cpu_sup:util();
+		_ ->
+			NProcs = 0,
+			CpuLoad = 0,
+			CpuUtil = 0
+	end,
 
 	Data = io_lib:format("~s, ~p, ~p, ~p, ~p, ~p, ~p~n", 
 		[tools:datetime_string('yyyyMMdd_hhmmss'), MemTotal, MemAllocated, MaxPidAllocated, NProcs, CpuLoad, CpuUtil*100]),
 	write_data(LogFile, Data),
 
 	ValStr = io_lib:format("~p:~p:~p", [MemAllocated*100/MemTotal, CpuLoad/256, CpuUtil*100]),
+	%ValStr = io_lib:format("~p:~p:~p", [erlang:round(MemAllocated*100/MemTotal), erlang:round(CpuLoad/256), erlang:round(CpuUtil*100)]),
 	rrdtool:update(RrdtoolExe, RrdFileName, "mem:cpu_load:cpu_util", ValStr).
 
 
