@@ -85,7 +85,7 @@ write_status(LogFile, RrdtoolExe, RrdFileName) ->
 	CpuUtil = cpu_sup:util(),
 
 	Data = io_lib:format("~s, ~p, ~p, ~p, ~p, ~p, ~p~n", 
-		[tools:datetime_string('yyyyMMdd_hhmmss'), MemTotal, MemAllocated, MaxPidAllocated, NProcs, CpuLoad, CpuUtil]),
+		[tools:datetime_string('yyyyMMdd_hhmmss'), MemTotal, MemAllocated, MaxPidAllocated, NProcs, CpuLoad, CpuUtil*100]),
 	write_data(LogFile, Data),
 
 	ValStr = io_lib:format("~p:~p:~p", [MemAllocated*100/MemTotal, CpuLoad/256, CpuUtil*100]),

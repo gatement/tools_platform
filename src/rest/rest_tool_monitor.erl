@@ -31,27 +31,27 @@ out(Arg) ->
 %% Local Functions
 %% ===================================================================
 out(Arg, ["rrd", "graph", "memory"], _UserId) ->
-	PostVals = yaws_api:parse_post(Arg),
-	From = proplists:get_value("fromDateTime", PostVals),
-	To = proplists:get_value("toDateTime", PostVals),
+	out_rrd_graph(Arg, mem);
 
-	Url = rrdtool_graph(mem, From, To),
+out(Arg, ["rrd", "graph", "cpu_load"], _UserId) ->
+	out_rrd_graph(Arg, cpu_load);
 
-	Result = [{"success", true}, {"data", {struct, [{"url", Url}]}}],
-	{content, "application/json", json2:encode({struct, Result})};
-
-out(Arg, ["rrd", "graph", "cpu"], _UserId) ->
-	PostVals = yaws_api:parse_post(Arg),
-	From = proplists:get_value("fromDateTime", PostVals),
-	To = proplists:get_value("toDateTime", PostVals),
-
-	Url = rrdtool_graph(cpu, From, To),
-
-	Result = [{"success", true}, {"data", {struct, [{"url", Url}]}}],
-	{content, "application/json", json2:encode({struct, Result})};
+out(Arg, ["rrd", "graph", "cpu_util"], _UserId) ->
+	out_rrd_graph(Arg, cpu_util);
 
 out(_Arg, _, _) ->
 	{status, 404}.
+
+
+out_rrd_graph(Arg, Type) ->
+	PostVals = yaws_api:parse_post(Arg),
+	From = proplists:get_value("fromDateTime", PostVals),
+	To = proplists:get_value("toDateTime", PostVals),
+
+	Url = rrdtool_graph(Type, From, To),
+
+	Result = [{"success", true}, {"data", {struct, [{"url", Url}]}}],
+	{content, "application/json", json2:encode({struct, Result})}.
 
 
 rrdtool_graph(Type, Start, End) ->
@@ -66,15 +66,19 @@ rrdtool_graph(Type, Start, End) ->
 	Definitions = case Type of
 		mem ->
 			[io_lib:format("DEF:memory=~s:mem:AVERAGE", [RrdFileName])];
-		cpu ->
-			[io_lib:format("DEF:cpu=~s:cpu:AVERAGE", [RrdFileName])]
+		cpu_load ->
+			[io_lib:format("DEF:cpu_load=~s:cpu_load:AVERAGE", [RrdFileName])];
+		cpu_util ->
+			[io_lib:format("DEF:cpu_util=~s:cpu_util:AVERAGE", [RrdFileName])]
 	end,
 
 	GraphElements = case Type of
 		mem ->
 			["LINE2:memory#FF0000:\"memory(%)\""];
-		cpu ->
-			["LINE2:cpu#FF0000:\"cpu(%)\""]
+		cpu_load ->
+			["LINE2:cpu_load#FF0000:\"cpu load(/256)\""];
+		cpu_util ->
+			["LINE2:cpu_util#FF0000:\"cpu util(%)\""]
 	end,
 
 	rrdtool:graph(RrdtoolExe, AbsFileName, Start, End, Definitions, GraphElements),

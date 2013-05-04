@@ -62,7 +62,8 @@ function refreshImages(showSpiner)
 function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 {
 	var $memory_container = $("#memoryContainer");
-	var $cpu_container = $("#cpuContainer");
+	var $cpuLoad_container = $("#cpuLoadContainer");
+	var $cpuUtil_container = $("#cpuUtilContainer");
 
 	if(showSpiner)
 	{
@@ -87,8 +88,10 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 
 		$memory_container.text("");
 		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
-		//$cpu_container.text("");
-		//var cpu_spinner = new Spinner(opts).spin($cpu_container[0]);
+		$cpuLoad_container.text("");
+		var cpuLoad_spinner = new Spinner(opts).spin($cpuLoad_container[0]);
+		$cpuUtil_container.text("");
+		var cpuUtil_spinner = new Spinner(opts).spin($cpuUtil_container[0]);
 	}
 
 	if(window.ajaxContainer["memory"])
@@ -129,43 +132,83 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		}
 	});
 
-	/*if(window.ajaxContainer["cpu"])
+
+	if(window.ajaxContainer["cpuLoad"])
 	{
-		window.ajaxContainer["cpu"].abort();
+		window.ajaxContainer["cpuLoad"].abort();
 	}
-	window.ajaxContainer["cpu"] = $.ajax({
-		url: "/monitor/rrd/graph/cpu",
+	window.ajaxContainer["cpuLoad"] = $.ajax({
+		url: "/monitor/rrd/graph/cpu_load",
 		type: "POST",
 		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
 		success: function(data, textStatus, jqXHR)
 		{
-			$cpu_container.text("");
+			$cpuLoad_container.text("");
 			if(data.success)
 			{
-				$cpu_container.html("<img src=\"" + data.data.url + "\" />");
+				$cpuLoad_container.html("<img src=\"" + data.data.url + "\" />");
 				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
 			}
 			else
 			{
-				$cpu_container.html("<label style=\"color: Red\">(failed)</label>");
+				$cpuLoad_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
 			if(textStatus !== "abort")
 			{
-				$cpu_container.text("");
-				$cpu_container.html("<label style=\"color: Red\">(failed)</label>");
+				$cpuLoad_container.text("");
+				$cpuLoad_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
 		complete: function(jqXHR, textStatus)
 		{
 			if(showSpiner)
 			{
-				cpu_spinner.stop();
+				cpuLoad_spinner.stop();
 			}
 		}
-	});*/
+	});
+
+
+	if(window.ajaxContainer["cpuUtil"])
+	{
+		window.ajaxContainer["cpuUtil"].abort();
+	}
+	window.ajaxContainer["cpuUtil"] = $.ajax({
+		url: "/monitor/rrd/graph/cpu_util",
+		type: "POST",
+		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
+		success: function(data, textStatus, jqXHR)
+		{
+			$cpuUtil_container.text("");
+			if(data.success)
+			{
+				$cpuUtil_container.html("<img src=\"" + data.data.url + "\" />");
+				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
+			}
+			else
+			{
+				$cpuUtil_container.html("<label style=\"color: Red\">(failed)</label>");
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			if(textStatus !== "abort")
+			{
+				$cpuUtil_container.text("");
+				$cpuUtil_container.html("<label style=\"color: Red\">(failed)</label>");
+			}
+		},
+		complete: function(jqXHR, textStatus)
+		{
+			if(showSpiner)
+			{
+				cpuUtil_spinner.stop();
+			}
+		}
+	});
 
 	return false;
 }
