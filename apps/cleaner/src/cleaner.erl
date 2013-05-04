@@ -1,4 +1,4 @@
--module(session_cleaner).
+-module(cleaner).
 -export([start/0]).
 
 
@@ -7,7 +7,7 @@
 %% ===================================================================
 
 start() ->
-	application:start(session_cleaner).
+	application:start(cleaner).
 
 
 %% ===================================================================

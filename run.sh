@@ -1,1 +1,1 @@
-erl -pa /app/tools_platform/ebin /app/tools_platform/apps/monitor/ebin /app/tools_platform/apps/session_cleaner/ebin  /usr/local/lib/yaws/ebin -config local -mnesia dir '"/app/mnesia/tools_platform"' -s tools_platform
+erl -pa /app/tools_platform/ebin /app/tools_platform/apps/monitor/ebin /app/tools_platform/apps/cleaner/ebin  /usr/local/lib/yaws/ebin -config local -mnesia dir '"/app/mnesia/tools_platform"' -s tools_platform

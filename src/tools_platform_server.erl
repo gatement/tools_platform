@@ -27,7 +27,7 @@ run() ->
     GconfList = [{id, Id},
                  {logdir, LogDir},
 		 {include_dir, [ParentDir ++ "/include"]},
-		 {runmods, [session_cleaner, monitor]}],
+		 {runmods, [cleaner, monitor]}],
     SconfList = [{port, Port},
                  {listen, {0,0,0,0}},
                  {docroot, DocRoot},
