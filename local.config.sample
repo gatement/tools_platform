@@ -1,12 +1,12 @@
 [{sasl, [
-	{sasl_error_logger, {file, "./priv/logs/sasl.log" }},
+	{sasl_error_logger, {file, "/app/tools_platform/priv/logs/sasl.log" }},
 	{errlog_type, error}
 ]},
 {monitor, [	
     {run_interval, 10}, % in seconds
-    {log_file_name, "./priv/logs/monitor.csv"},
+    {log_file_name, "/app/tools_platform/priv/logs/monitor.csv"},
     {rrdtool_exe, "/dev/rrdtool144-bin/rrdtool.exe"},
-    {rrd_file_name, "/app/rrdtool/monitor.rrd"}
+    {rrd_file_name, "/app/rrdtool/tools_platform/monitor.rrd"}
 ]},
 {session_cleaner, [
     {run_interval, 60}, % in seconds
