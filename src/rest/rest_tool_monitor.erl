@@ -76,7 +76,7 @@ rrdtool_graph(Type, Start, End) ->
 		mem ->
 			["LINE2:memory#FF0000:\"memory(%)\""];
 		cpu_load ->
-			["LINE2:cpu_load#FF0000:\"cpu load(/256)\""];
+			["LINE2:cpu_load#FF0000:\"cpu load\""];
 		cpu_util ->
 			["LINE2:cpu_util#FF0000:\"cpu util(%)\""]
 	end,
