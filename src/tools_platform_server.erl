@@ -20,7 +20,7 @@ run() ->
     {ok, ParentDir} = application:get_env(parent_dir), 
 
     LogDir = ParentDir ++ "/priv/logs",
-    filelib:ensure_dir(LogDir),
+    filelib:ensure_dir(LogDir ++ "/"),
 
     Id = "tools_platform",
     DocRoot = ParentDir ++ "/priv/site",
