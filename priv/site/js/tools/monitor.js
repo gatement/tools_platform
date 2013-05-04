@@ -39,9 +39,9 @@ function refresh_button_click()
 
 function auto_refresh_change()
 {	
-        window.clearInterval(window.autoRefreshIntervalId);
+    window.clearInterval(window.autoRefreshIntervalId);
 	
-        var checked = document.getElementById("autoRefreshCheckbox").checked;
+    var checked = document.getElementById("autoRefreshCheckbox").checked;
 	if(checked)
 	{
 		window.autoRefreshIntervalId = window.setInterval(function() { refreshImages(false) }, parseInt($("#autoRefreshIntervalTextbox").val())*1000);
@@ -64,11 +64,9 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 	var $memory_container = $("#memoryContainer");
 	var $cpu_container = $("#cpuContainer");
 
-	$memory_container.text("");
-	$cpu_container.text("");
-
 	if(showSpiner)
 	{
+
 		var opts = {
 			lines: 10, // The number of lines to draw
 			length: 3, // The length of each line
@@ -86,7 +84,10 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 			top: 30, // Top position relative to parent in px
 			left: -9 // Left position relative to parent in px
 		};
+
+		$memory_container.text("");
 		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
+		//$cpu_container.text("");
 		//var cpu_spinner = new Spinner(opts).spin($cpu_container[0]);
 	}
 
@@ -100,6 +101,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
 		success: function(data, textStatus, jqXHR)
 		{
+			$memory_container.text("");
 			if(data.success)
 			{
 				$memory_container.html("<img src=\"" + data.data.url + "\" />");
@@ -114,6 +116,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		{
 			if(textStatus !== "abort")
 			{
+				$memory_container.text("");
 				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
@@ -136,6 +139,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
 		success: function(data, textStatus, jqXHR)
 		{
+			$cpu_container.text("");
 			if(data.success)
 			{
 				$cpu_container.html("<img src=\"" + data.data.url + "\" />");
@@ -150,6 +154,7 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 		{
 			if(textStatus !== "abort")
 			{
+				$cpu_container.text("");
 				$cpu_container.html("<label style=\"color: Red\">(failed)</label>");
 			}
 		},
