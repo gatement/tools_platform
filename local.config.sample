@@ -1,4 +1,15 @@
-[{tools_platform,[
+[
+{monitor, [	
+    {run_interval, 10}, % in seconds
+    {log_file_name, "./priv/logs/monitor.csv"},
+    {rrdtool_exe, "/dev/rrdtool144-bin/rrdtool.exe"},
+    {rrd_file_name, "/app/rrdtool/monitor.rrd"}
+]},
+{session_cleaner, [
+    {run_interval, 60}, % in seconds
+    {user_session_timeout, 57600} % in seconds, = 16hr	
+]},
+{tools_platform,[
 	{port, 88},
 	{local_ip, "192.168.1.10"},
   	{parent_dir, "/app/tools_platform"}

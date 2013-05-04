@@ -19,10 +19,13 @@ run() ->
     {ok, Port} = application:get_env(port), 
     {ok, ParentDir} = application:get_env(parent_dir), 
 
+    LogDir = ParentDir ++ "/priv/logs",
+    filelib:ensure_dir(LogDir),
+
     Id = "tools_platform",
     DocRoot = ParentDir ++ "/priv/site",
     GconfList = [{id, Id},
-                 {logdir, ParentDir ++ "/priv/log"},
+                 {logdir, LogDir},
 		 {include_dir, [ParentDir ++ "/include"]},
 		 {runmods, [session_cleaner, monitor]}],
     SconfList = [{port, Port},

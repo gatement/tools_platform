@@ -1,1 +1,0 @@
-this folder is for holding generated rrdtool images.

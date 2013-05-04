@@ -29,8 +29,12 @@ init([]) ->
 	{ok, RrdFileName} = application:get_env(rrd_file_name),
 	{ok, RrdtoolExe} = application:get_env(rrdtool_exe),
 
+	filelib:ensure_dir(LogFileName),
+
 	FileExists = filelib:is_file(LogFileName),
+
 	{ok, LogFile} = file:open(LogFileName, [append]),
+	
 	case FileExists of
 		false -> write_header(LogFile);
 		_ -> ok
