@@ -97,7 +97,6 @@ write_status(LogFile, RrdtoolExe, RrdFileName) ->
 	write_data(LogFile, Data),
 
 	ValStr = io_lib:format("~p:~p:~p", [MemAllocated*100/MemTotal, CpuLoad/256, CpuUtil*100]),
-	%ValStr = io_lib:format("~p:~p:~p", [erlang:round(MemAllocated*100/MemTotal), erlang:round(CpuLoad/256), erlang:round(CpuUtil*100)]),
 	rrdtool:update(RrdtoolExe, RrdFileName, "mem:cpu_load:cpu_util", ValStr).
 
 
