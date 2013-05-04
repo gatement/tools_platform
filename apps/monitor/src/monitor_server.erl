@@ -36,7 +36,13 @@ init([]) ->
 		_ -> ok
 	end,
 
-	cpu_sup:avg1(), % call it for a first time, so the next call will be exact.
+	%% call it for a first time, so the next call will be exact.
+	case os:type() of
+		{unix,linux} ->
+			cpu_sup:util();
+		_ ->
+			do_nothing
+	end,
 
     State = #state{log_file = LogFile, interval = Interal, rrdtool_exe = RrdtoolExe, rrd_file = RrdFileName},
     error_logger:info_msg("monitor was started.~n"),
