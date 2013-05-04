@@ -37,8 +37,3 @@ body {
 	font-size: small;
 	margin-bottom: 30px;
 }
-#memoryContainer, #cpuContainer
-{
-	margin-top: 10px;
-	min-height:160px;
-}
