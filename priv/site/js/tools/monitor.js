@@ -15,11 +15,11 @@ $(document).ready(function()
 
 	$("#showBtn").click(show_button_click);
 	$("#refreshBtn").click(refresh_button_click);
-	$("#autoRefreshCheckbox").change(auto_refresh_change);
+	$("#autoRefreshCheckbox").change(auto_refresh_change);	
+        $("#autoRefreshIntervalTextbox").change(auto_refresh_change);
 
 	window.ajaxContainer = {}; // store ajax request
 	window.autoRefreshIntervalId = 0;
-	window.autoRefreshInterval = 30000; // in millisecond
 
 	show_button_click();
 });
@@ -38,15 +38,13 @@ function refresh_button_click()
 }
 
 function auto_refresh_change()
-{
-	var checked = document.getElementById("autoRefreshCheckbox").checked;
+{	
+        window.clearInterval(window.autoRefreshIntervalId);
+	
+        var checked = document.getElementById("autoRefreshCheckbox").checked;
 	if(checked)
 	{
-		window.autoRefreshIntervalId = window.setInterval(function() { refreshImages(false) }, window.autoRefreshInterval);
-	}
-	else
-	{
-		window.clearInterval(window.autoRefreshIntervalId)
+		window.autoRefreshIntervalId = window.setInterval(function() { refreshImages(false) }, parseInt($("#autoRefreshIntervalTextbox").val())*1000);
 	}
 }
 

@@ -2,10 +2,16 @@
  [
   {description, "tools platform"},
   {vsn, "0.1.0"},
-  {registered, []},
+  {registered, [tools_session_sup]},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+		  mnesia
                  ]},
-  {env, []}
+  {env, [
+  	{port, 88},
+	{local_ip, "192.168.1.10"},
+  	{parent_dir, "/app/tools_platform"}
+	]},
+  {mod, {tools_platform_app, []}}
  ]}.

@@ -1,1 +1,1 @@
-yaws -i --conf "./yaws.conf" --mnesiadir '"c:/app/mnesia/tools_platform"'
+erl -pa ../tools_platform/ebin ./apps/monitor/ebin ./apps/session_cleaner/ebin  C:/dev/Yaws/ebin -config local -mnesia dir '"/app/mnesia/tools_platform"' -s tools_platform

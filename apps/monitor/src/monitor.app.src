@@ -1,0 +1,18 @@
+{application, monitor,
+ [
+  {description, "tools_platform monitor tool"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, [
+    {run_interval, 10}, % in seconds
+    {log_file_name, "./log.csv"},
+    {rrdtool_exe, "/dev/rrdtool144-bin/rrdtool.exe"},
+    {rrd_file_name, "/app/rrdtool/monitor.rrd"}
+  ]},
+  {mod, {monitor_app, []}}
+ ]}.
+
