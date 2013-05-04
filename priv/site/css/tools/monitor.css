@@ -29,11 +29,6 @@ body {
 }
 .lastUpdateContainer
 {
-	margin-top: 30px;
+	margin-top: 3px;
 	font-size: small;
-}
-.chartTitle
-{
-	font-size: small;
-	margin-bottom: 30px;
 }

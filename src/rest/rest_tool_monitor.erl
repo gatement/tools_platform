@@ -74,11 +74,11 @@ rrdtool_graph(Type, Start, End) ->
 
 	GraphElements = case Type of
 		mem ->
-			["LINE2:memory#FF0000:\"memory(%)\""];
+			["LINE2:memory#00F000:\"memory (unit %)\""];
 		cpu_load ->
-			["LINE2:cpu_load#FF0000:\"cpu load\""];
+			["LINE2:cpu_load#FF0000:\"cpu load (unit 1)\""];
 		cpu_util ->
-			["LINE2:cpu_util#FF0000:\"cpu util(%)\""]
+			["LINE2:cpu_util#0000FF:\"cpu util (unit %)\""]
 	end,
 
 	rrdtool:graph(RrdtoolExe, AbsFileName, Start, End, Definitions, GraphElements),

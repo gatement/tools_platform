@@ -61,9 +61,9 @@ function refreshImages(showSpiner)
 
 function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 {
-	var $memory_container = $("#memoryContainer");
 	var $cpuLoad_container = $("#cpuLoadContainer");
 	var $cpuUtil_container = $("#cpuUtilContainer");
+	var $memory_container = $("#memoryContainer");
 
 	if(showSpiner)
 	{
@@ -86,51 +86,13 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 			left: -9 // Left position relative to parent in px
 		};
 
-		$memory_container.text("");
-		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
 		$cpuLoad_container.text("");
 		var cpuLoad_spinner = new Spinner(opts).spin($cpuLoad_container[0]);
 		$cpuUtil_container.text("");
 		var cpuUtil_spinner = new Spinner(opts).spin($cpuUtil_container[0]);
+		$memory_container.text("");
+		var memory_spinner = new Spinner(opts).spin($memory_container[0]);
 	}
-
-	if(window.ajaxContainer["memory"])
-	{
-		window.ajaxContainer["memory"].abort();
-	}
-	window.ajaxContainer["memory"] = $.ajax({
-		url: "/monitor/rrd/graph/memory",
-		type: "POST",
-		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
-		success: function(data, textStatus, jqXHR)
-		{
-			$memory_container.text("");
-			if(data.success)
-			{
-				$memory_container.html("<img src=\"" + data.data.url + "\" />");
-				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
-			}
-			else
-			{
-				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
-			}
-		},
-		error: function(jqXHR, textStatus, errorThrown)
-		{
-			if(textStatus !== "abort")
-			{
-				$memory_container.text("");
-				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
-			}
-		},
-		complete: function(jqXHR, textStatus)
-		{
-			if(showSpiner)
-			{
-				memory_spinner.stop();
-			}	
-		}
-	});
 
 
 	if(window.ajaxContainer["cpuLoad"])
@@ -207,6 +169,45 @@ function updateRRDToolImage(fromDateTime, toDateTime, showSpiner)
 			{
 				cpuUtil_spinner.stop();
 			}
+		}
+	});
+	
+
+	if(window.ajaxContainer["memory"])
+	{
+		window.ajaxContainer["memory"].abort();
+	}
+	window.ajaxContainer["memory"] = $.ajax({
+		url: "/monitor/rrd/graph/memory",
+		type: "POST",
+		data: { fromDateTime: fromDateTime, toDateTime: toDateTime },
+		success: function(data, textStatus, jqXHR)
+		{
+			$memory_container.text("");
+			if(data.success)
+			{
+				$memory_container.html("<img src=\"" + data.data.url + "\" />");
+				$("#lastUpdated").text("Last updated: " + $.utils.getTimeStr());
+			}
+			else
+			{
+				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			if(textStatus !== "abort")
+			{
+				$memory_container.text("");
+				$memory_container.html("<label style=\"color: Red\">(failed)</label>");
+			}
+		},
+		complete: function(jqXHR, textStatus)
+		{
+			if(showSpiner)
+			{
+				memory_spinner.stop();
+			}	
 		}
 	});
 
