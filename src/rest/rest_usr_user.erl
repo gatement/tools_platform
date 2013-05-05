@@ -303,14 +303,7 @@ retrieve_password(To, NewPwd) ->
 
 
 set_user_default_preference(UserId) -> 
-	% enable note
+	%% enable note
 	model_usr_preference:set(UserId, ?USR_PREFERENCE_NOTE_ENABLED, true),
-
-	% user default note category
-	%model_note_category:create(#jt_note_category{
-	%								user_id = UserId,
-	%								name = "default", 
-	%								is_default = true
-	%						}),
 
 	ok.

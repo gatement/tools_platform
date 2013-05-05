@@ -26,6 +26,8 @@
 -record(arg_state, {session_id, user_id, user_name, other}).
 -record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, sport, gallery, monitor}).
 -record(user_autocomplete_item, {label, value}).
+-record(note_category, {id, name, permission, is_default, display_order}).
+-record(note_share, {id, category_id, user_id, user_name, share_type}).
 
 
 %% database tables =============================
@@ -39,3 +41,8 @@
 
 %% word --------------------
 -record(wrd_word, {id, user_id, word, pronunciation, translation, display_order, last_updated}).
+
+%% word --------------------
+-record(nte_note, {id, category_id, note, left, top, width, height, color, z_index, last_updated}).
+-record(nte_category, {id, user_id, name, is_default, display_order}).
+-record(nte_share, {id, category_id, user_id, share_type}).

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Note - Tools</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="//code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+		<link type="text/css" rel="stylesheet" href="/css/tools/note.css" />
+		<script type="text/javascript" src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="//code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" src="/js/tools/note.js"></script>
+	</head>
+	<body>
+		<div id="toolsbar">
+			<div id="errormsg"></div>
+			<div id="add" class="bar_button" title="add a note"></div>
+			<div id="tile_notes" class="bar_button" title="tile notes"></div>
+			<div id="list_notes" class="bar_button" title="list notes"></div>
+			<div id="list_left" class="bar_button" title="list notes on the left"></div>
+			<div id="list_right" class="bar_button" title="list notes on the right"></div>
+			<div id="list_top" class="bar_button" title="list notes on the top"></div>
+			<div id="list_bottom" class="bar_button" title="list notes on the bottom"></div>
+			<div id="categoryMgmt" class="bar_button" title="category management"></div>
+			<div class="bar_select" title="category">
+				<select id="noteCategory"></select>
+			</div>
+			<div id="shareMgmt" class="bar_button" title="share management"></div>
+			<div id="logout" class="bar_button" title="logout"></div>
+			<div id="homepage" class="bar_button" title="homepage"></div>
+			<div id="about" class="bar_button" title="about"></div>
+			<div id="refresh" class="bar_button" title="refresh"></div>
+		</div>
+		
+		<hr id="hr"/>
+		
+		<div id="notes"></div>
+
+
+
+		<div id="categoryMgmtDialog" title="Category Management" style="display:none;">
+			<div id="categoryMgmtAddContainer">
+				<input id="categoryMgmtAddTextbox" class="categoryMgmtTextbox" type="text" />
+				<label class="categoryMgmtDefaultCheckboxLabel"><input id="categoryMgmtAddDefaultCheckbox" type="checkbox"/>default</label>
+				<input id="categoryMgmtAddButton" class="categoryMgmtButton" type="button" value="Add" />
+			</div>
+			<div id="categoryMgmtList">
+			</div>
+		</div>
+
+		<div id="shareMgmtDialog" title="Category Share" style="display:none;">
+			<div id="shareMgmtAddContainer">
+				<input id="shareMgmtAddTextbox" class="shareMgmtTextbox" type="text" />
+				<select id="shareMgmtAddSelect" class="shareMgmtSelect">
+					<option value="r">readonly</option>
+					<option value="rw">readwrite</option>
+				</select>
+				<input id="shareMgmtAddButton" class="shareMgmtButton" type="button" value="Add" />
+			</div>
+			<div id="shareMgmtList">
+			</div>
+		</div>
+
+		<div id="noteCategoryDialog" title="Note Category" style="display:none;">
+			<select id="noteCategorySelect">
+			</select>
+		</div>
+		
+
+
+		<script id="noteTemplate" type="text/x-jquery-tmpl">
+			<div id="${id}" class="note color${color}" style="top:${top}px;left:${left}px;width:${width}px;height:${height}px;z-index:${z_index};">
+				<div class="header colortitle${color}">
+					<div class="buttons">
+						<div class="note_button note_left_button category_button" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color1" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color2" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color3" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color4" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color5" style="display:none;"></div>
+						<div class="note_button note_left_button color_button color6" style="display:none;"></div>
+						<div class="note_button note_right_button maximize_button" style="display:none;"></div>
+						<div class="note_button note_right_button minimize_button" style="display:none;"></div>
+						<div class="note_button note_right_button delete_button" style="display:none;"></div>
+					</div>
+					<div class="note_right_button writing_icon" title="editing" style="display:none;"></div>
+				</div>
+		        {{if permission == 'r'}}
+		        	<textarea class="body color${color}" readonly="readonly">${note}</textarea>
+		        {{else}}
+		        	<textarea class="body color${color}">${note}</textarea>
+		        {{/if}}				
+			</div>
+		</script>
+		
+		<script id="categoryMgmtListItemTemplate" type="text/x-jquery-tmpl">
+			<div class="categoryMgmtListItem">
+				<input class="categoryMgmtListItemTextbox categoryMgmtTextbox" type="text" data-id="${id}" value="${name}" />
+				<label class="categoryMgmtDefaultCheckboxLabel"><input class="categoryMgmtListItemDefaultCheckbox" type="checkbox" {{if is_default}}checked="checked"{{/if}}/>default</label>
+				<input class="categoryMgmtListItemSaveButton categoryMgmtButton" type="button" value="Save" />
+				<input class="categoryMgmtListItemDeleteButton categoryMgmtButton" type="button" value="Delete" />
+				<input class="categoryMgmtListItemUpButton categoryMgmtButton" type="button" value="↑" />
+				<input class="categoryMgmtListItemDownButton categoryMgmtButton" type="button" value="↓" />
+			</div>
+		</script>
+		
+		<script id="shareMgmtListItemTemplate" type="text/x-jquery-tmpl">
+			<div class="shareMgmtListItem">
+				<input class="shareMgmtListItemTextbox categoryMgmtTextbox" type="text" value="${user_id}(${user_name})" data-share-id="${id}" data-user-id="${user_id}" readonly="readonly" />
+				<select class="shareMgmtSelect">
+					<option value="r" {{if share_type === 'r'}}selected="selected"{{/if}}>readonly</option>
+					<option value="rw" {{if share_type === 'rw'}}selected="selected"{{/if}}>readwrite</option>
+				</select>
+				<input class="shareMgmtListItemSaveButton shareMgmtButton" type="button" value="Save" />
+				<input class="shareMgmtListItemDeleteButton shareMgmtButton" type="button" value="Delete" />
+			</div>
+		</script>
+
+	</body>
+	</html>

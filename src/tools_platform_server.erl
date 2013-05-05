@@ -24,10 +24,12 @@ run() ->
 
     Id = "tools_platform",
     DocRoot = ParentDir ++ "/priv/site",
+    
     GconfList = [{id, Id},
                  {logdir, LogDir},
 		 {include_dir, [ParentDir ++ "/include"]},
 		 {runmods, [cleaner, monitor]}],
+
     SconfList = [{port, Port},
                  {listen, {0,0,0,0}},
                  {docroot, DocRoot},
@@ -37,7 +39,8 @@ run() ->
 			    {"/user/", rest_usr_user},
 			    {"/setting/", rest_gbl_setting},
                 {"/monitor/", rest_tool_monitor},
-                {"/word/", rest_tool_word}
+                {"/word/", rest_tool_word},
+                {"/note/", rest_tool_note}
 			   ]}],
 
 
