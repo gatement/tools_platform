@@ -11,8 +11,10 @@
 up() ->
 
 	%% == initialization functions =====================
-	create_base_schema(),
-	init_base_data(),
+	%create_base_schema(),
+	%init_base_data(),
+
+	create_word_schema(),
 
 	%% == lowing function is not for initialization ====
 	ok.
@@ -24,23 +26,15 @@ up() ->
 
 create_base_schema() ->
 	mnesia:start(),
-
-	% table schema
 	mnesia:change_table_copy_type(schema, node(), disc_copies),
 
-	% table gbl_setting
 	mnesia:create_table(gbl_setting, [{attributes, record_info(fields, gbl_setting)}, {disc_copies, [node()]}]),
-
-	% table usr_user
 	mnesia:create_table(usr_user, [{attributes, record_info(fields, usr_user)}, {disc_copies, [node()]}]),
-
-	% table usr_preference
-	mnesia:create_table(usr_preference, [{attributes, record_info(fields, usr_preference)}, {disc_copies, [node()]}]),
-	
-	% table usr_session
+	mnesia:create_table(usr_preference, [{attributes, record_info(fields, usr_preference)}, {disc_copies, [node()]}]),	
 	mnesia:create_table(usr_session, [{attributes, record_info(fields, usr_session)}, {disc_copies, [node()]}]),
 	
 	ok.
+
 
 init_base_data() ->
 	% user admin
@@ -58,6 +52,12 @@ init_base_data() ->
 
 	ok.
 	
+
+create_word_schema() ->
+	mnesia:create_table(wrd_word, [{attributes, record_info(fields, wrd_word)}, {disc_copies, [node()]}]),
+
+	ok.
+
 
 %% ===================================================================
 %% migration update

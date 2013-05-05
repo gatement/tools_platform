@@ -1,0 +1,46 @@
+.content{
+	width: 450px;
+	 margin: 0 auto;
+}
+.alignRight{
+	text-align: right;
+}
+#add_word{
+	width: 443px;
+    height: 120px;
+}
+#add_submit{
+	height: 60px;
+	width: 450px;
+}
+#message{
+	color: red;
+}
+#showWordTitle{
+	padding-right: 27px;
+}
+#wordListDiv{
+	clear: both;
+}
+.wordListItem{
+	padding: 5px;
+	border: 1px solid #CCCCCC;
+	margin: 0 0 5px 0;
+}
+.odd {
+	background-color: #CCFF99;
+}
+.even{
+	background-color: #FFFFCC;
+}
+.wordItem_word{
+	font-weight: bold;
+	color: blue;
+}
+.wordItem_pronunciation{
+	color: green;
+}
+.saveSortingDiv{
+	text-align: right;
+}
+

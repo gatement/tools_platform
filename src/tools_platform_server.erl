@@ -36,12 +36,11 @@ run() ->
                  {appmods, [
 			    {"/user/", rest_usr_user},
 			    {"/setting/", rest_gbl_setting},
-			    {"/monitor/", rest_tool_monitor}
+                {"/monitor/", rest_tool_monitor},
+                {"/word/", rest_tool_word}
 			   ]}],
 
 
     {ok, SCList, GC, ChildSpecs} = yaws_api:embedded_start_conf(DocRoot, SconfList, GconfList, Id),
     [supervisor:start_child(tools_platform_sup, Ch) || Ch <- ChildSpecs],
     yaws_api:setconf(GC, SCList).
-
-

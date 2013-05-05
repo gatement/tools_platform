@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Word - Tools</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="/css/tools/word.css" />
+		<script type="text/javascript" src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="//code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.cookie.js"></script>
+		<script type="text/javascript" src="/js/tools/word.js"></script>
+	</head>
+	<body>		
+		<div class="content">		
+			<div id="loginInfoDiv" class="alignRight">
+				Welcome, 
+				<span>
+					<erl>
+						-include("tools_platform.hrl").
+						out(Arg) ->
+							UserId = (Arg#arg.state)#arg_state.user_id,
+							UserName = (Arg#arg.state)#arg_state.user_name,
+
+							{html, UserId ++ "(" ++ UserName ++ ")"}.
+					</erl>
+				</span>
+				<a href="/user/logout">logout</a>
+				<a href="/">home</a>
+			</div>
+			
+			
+			<div id="addWordDiv">		
+				<textarea id="add_word" name="add_word"></textarea>
+				<input type="button" value="save" id="add_submit" />
+			     <input type="hidden" id="add_id" value="" />
+				<label id="message"></label>
+			</div>
+			
+			
+			<div id="wordListOptionsDiv">
+					<input type="checkbox" id="show_word" name="show_word" checked="checked" />
+					<label for="show_word" id="showWordTitle">Show Word </label>
+					<input type="checkbox" id="show_translation" name="show_translation"
+						checked="checked" />
+					<label for="show_translation"> Show Translation </label>
+			</div>
+			
+			<div class="saveSortingDiv">
+				<a href="javascript:void(0);" class="save_sorting_button">save sequence</a>
+			</div>
+			
+			<div id="wordListDiv">
+			</div>
+
+			<div class="saveSortingDiv">
+				<a href="javascript:void(0);" class="save_sorting_button">save sequence</a>
+			</div>
+		</div>
+
+
+		<script id="wordItemTemplate" type="text/x-jquery-tmpl">
+		{{if $.inArray($data, $item.dataSource) % 2 == 0}}
+			<div class="wordListItem odd">
+		{{else}}
+			<div class="wordListItem even">
+		{{/if}}
+				<div class="wordItem_word_pronunciation">
+					<span class="wordItem_word">${word}</span>
+					<span class="wordItem_pronunciation">${pronunciation}</span>
+				</div>
+				<div class="wordItem_translation">${translation}</div>
+				<div class="alignRight">
+					<a href="javascript:void(0);" class="edit_button">edit</a>
+					<a href="javascript:void(0);" class="remove_button">remove</a>
+				</div>
+		        <input type="hidden" class="wordItemId" value="${id}" />
+			</div>
+		</script>
+
+	</body>
+	</html>

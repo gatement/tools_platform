@@ -52,19 +52,19 @@
 					MonitorEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_MONITOR_ENABLED),
 					if
 						NoteEnabled =:= true ->
-							NoteHtml = "<li class=\"tool\"><a href=\"/note.html\">note</a></li>";
+							NoteHtml = "<li class=\"tool\"><a href=\"/tools/note.html\">note</a></li>";
 						true -> 
 							NoteHtml = ""
 					end,
 					if
 						WordEnabled =:= true ->
-							WordHtml = "<li class=\"tool\"><a href=\"/word.yaws\">word</a></li>";
+							WordHtml = "<li class=\"tool\"><a href=\"/tools/word.yaws\">word</a></li>";
 						true -> 
 							WordHtml = ""
 					end,
 					if
 						GalleryEnabled =:= true ->
-							GalleryHtml = "<li class=\"tool\"><a href=\"/gallery.html\">gallery</a></li>";
+							GalleryHtml = "<li class=\"tool\"><a href=\"/tools/gallery.html\">gallery</a></li>";
 						true -> 
 							GalleryHtml = ""
 					end,
