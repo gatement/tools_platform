@@ -225,7 +225,6 @@ body {
 
 /*== categoryMgmtDialog =================================================*/
 #categoryMgmtDialog{
-	z-index: 290000;
 }
 #ui-dialog-title-categoryMgmtDialog{
 	font-size: 12px;
@@ -257,7 +256,6 @@ body {
 }
 /*== shareMgmtDialog =================================================*/
 #shareMgmtDialog{
-	z-index: 290000;
 }
 .ui-autocomplete{
 	font-size: 12px;
@@ -293,7 +291,6 @@ body {
 
 /*== noteCategoryDialog =================================================*/
 #noteCategoryDialog{
-	z-index: 290000;
 }
 #ui-dialog-title-noteCategoryDialog{
 	font-size: 12px;
