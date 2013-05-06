@@ -232,15 +232,23 @@ out(Arg, ["password", "update"]) ->
 
 
 out(Arg, ["list"]) ->
-	Vals = yaws_api:parse_query(Arg),	
-	ContainStr = proplists:get_value("term", Vals),
-	Max = 20,
+	UserId = (Arg#arg.state)#arg_state.user_id,		
+	IsAdmin = model_usr_user:is_admin(UserId),
+	case IsAdmin of
+		true ->
+			Vals = yaws_api:parse_query(Arg),	
+			ContainStr = proplists:get_value("term", Vals),
+			Max = 20,
 
-	ExceptUserId = (Arg#arg.state)#arg_state.user_id,
-	Users = model_usr_user:list(ContainStr, Max, ExceptUserId),
+			ExceptUserId = (Arg#arg.state)#arg_state.user_id,
+			Users = model_usr_user:list(ContainStr, Max, ExceptUserId),
 
-	ReturnUsers = [{struct, tools:record_to_list(User, record_info(fields, user_autocomplete_item))} || User <- Users],
-    {content, "application/json", json2:encode({array, ReturnUsers})};
+			ReturnUsers = [{struct, tools:record_to_list(User, record_info(fields, user_autocomplete_item))} || User <- Users],
+			{content, "application/json", json2:encode({array, ReturnUsers})};
+
+		false -> 
+			{status, 404}
+	end;
 
 
 out(Arg, ["search"]) ->

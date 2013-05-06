@@ -67,10 +67,6 @@ if(!tp)
 		$("#logout").click(function(){me.logout()});
 		$("#about").click(function(){me.about()});
 		$("#homepage").click(function(){me.homepage()});
-
-		$("#shareMgmtAddTextbox").autocomplete({
-			source: "/user/list"
-		});
 	};
 
 	$.extend(Note.prototype, {

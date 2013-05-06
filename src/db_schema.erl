@@ -14,7 +14,7 @@ up() ->
 	%create_base_schema(),
 	%init_base_data(),
 
-	%create_word_schema(),
+	create_word_schema(),
 
 	create_note_schema(),
 
