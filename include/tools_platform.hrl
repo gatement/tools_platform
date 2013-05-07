@@ -46,3 +46,4 @@
 -record(nte_note, {id, category_id, note, left, top, width, height, color, z_index, last_updated}).
 -record(nte_category, {id, user_id, name, is_default, display_order}).
 -record(nte_share, {id, category_id, user_id, share_type}).
+-record(nte_history, {id, note_id, note, datetime}).

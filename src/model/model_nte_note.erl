@@ -11,8 +11,8 @@
 		update_note_position/3, 
 		update_note_z_index/2, 
 		update_note_color/2,
-		update_note_content/2,
 		update_note_content/3,
+		update_note_content/4,
 		move_to_category/2,
 		update_note_category/2]).
 
@@ -140,20 +140,21 @@ update_note_color(Id, Color) ->
 	end.
 
 
-update_note_content(Id, Content) -> 
+update_note_content(Id, Content, UserId) -> 
 	case model_nte_note:get(Id) of
 		error -> 
 			error;
 		Note ->
 			Fun = fun() ->
+			   	model_nte_history:create(Note#nte_note.id, Note#nte_note.note, UserId),
 				mnesia:write(Note#nte_note{note = Content, last_updated = tools:epoch_milli_seconds()})
 			end,
-			mnesia:transaction(Fun), 
+			mnesia:transaction(Fun),
 			ok
 	end.
 
 
-update_note_content(Id, Content, LastUpdated) -> 
+update_note_content(Id, Content, LastUpdated, UserId) -> 
 	case model_nte_note:get(Id) of
 		error -> 
 			error;
@@ -162,6 +163,7 @@ update_note_content(Id, Content, LastUpdated) ->
 			Fun = fun() ->
 				if
 					Note#nte_note.last_updated < LastUpdated ->
+	                    model_nte_history:create(Note#nte_note.id, Note#nte_note.note, UserId),
 						mnesia:write(Note#nte_note{note = Content, last_updated = tools:epoch_milli_seconds()}),
 						ok;
 					true -> ignore

@@ -208,7 +208,7 @@ out(Arg, ["note", "update", "content"], UserId) ->
                 none -> [{"success", false}, {"data", "You don't have permission to update this note."}];
                 r -> [{"success", false}, {"data", "You don't have permission to update this note."}];
                 _ ->
-                    case model_nte_note:update_note_content(NoteId, Content) of
+                    case model_nte_note:update_note_content(NoteId, Content, UserId) of
                         error ->
                             [{"success", false}, {"data", "Failed to update note content."}];
                         _ ->
@@ -544,7 +544,7 @@ out(Arg, ["update"], UserId) ->
 		    case model_nte_share:get_permission_by_note_id(UserId, NoteId) of
 				none -> no_permission;
 				r -> no_permission;
-		        _ -> model_nte_note:update_note_content(NoteId, NoteContent, erlang:list_to_integer(LastUpdated))
+		        _ -> model_nte_note:update_note_content(NoteId, NoteContent, erlang:list_to_integer(LastUpdated), UserId)
 		    end;
 		false ->
 			% create

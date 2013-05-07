@@ -11,8 +11,8 @@
 up() ->
 
 	%% == initialization functions =====================
-	%create_base_schema(),
-	%init_base_data(),
+	create_base_schema(),
+	init_base_data(),
 
 	create_word_schema(),
 
@@ -65,6 +65,7 @@ create_note_schema() ->
 	mnesia:create_table(nte_note, [{attributes, record_info(fields, nte_note)}, {disc_copies, [node()]}]),
 	mnesia:create_table(nte_category, [{attributes, record_info(fields, nte_category)}, {disc_copies, [node()]}]),
 	mnesia:create_table(nte_share, [{attributes, record_info(fields, nte_share)}, {disc_copies, [node()]}]),
+	mnesia:create_table(nte_history, [{attributes, record_info(fields, nte_history)}, {disc_copies, [node()]}]),
 
 	ok.
 
