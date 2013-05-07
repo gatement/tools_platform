@@ -194,9 +194,9 @@ move_to_category(FromCategoryId, ToCategoryId) ->
 	end,
 	{atomic, Notes} = mnesia:transaction(Fun),
 
-	UpdateFun = fun(Category) ->
+	UpdateFun = fun(Model) ->
 		mnesia:transaction(fun() -> 
-			mnesia:write(Category#nte_note{category_id=ToCategoryId})
+			mnesia:write(Model#nte_note{category_id=ToCategoryId})
 		end)
 	end,
 	lists:foreach(UpdateFun, Notes),

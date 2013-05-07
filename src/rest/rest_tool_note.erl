@@ -513,6 +513,27 @@ out(Arg, ["share", "delete"], UserId) ->
     {content, "application/json", json2:encode({struct, Result})};
 
 
+%% ==== share ========================================================
+
+out(Arg, ["history", "list"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	NoteId = proplists:get_value("note_id", Vals),
+
+    Result = case model_nte_share:get_permission_by_note_id(UserId, NoteId) of
+                none -> [{"success", false}, {"data", "Don't have permission."}];
+                r -> [{"success", false}, {"data", "Don't have permission."}];
+                _ ->
+                    case model_nte_history:list(NoteId) of
+                        error ->
+                            [{"success", false}, {"data", "Failed."}];
+                        NoteHistoris ->
+				            HistoryList = [{struct, tools:record_to_list(NoteHistory, record_info(fields, nte_history))} || NoteHistory <- NoteHistoris],
+				            [{"success", true}, {"data", {array, HistoryList}}]
+                    end
+            end,
+
+    {content, "application/json", json2:encode({struct, Result})};
+
 
 %% ===================================================================
 %% Mobile specific API

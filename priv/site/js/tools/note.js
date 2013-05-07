@@ -586,6 +586,11 @@ if(!tp)
 			this.send_msg("/note/category/mine/list", data, successFunc, errorFunc);
 		},
 
+		load_note_history: function() 
+		{
+			var me = this;
+		},
+
 		update_category: function(event) 
 		{
 			var me = this;
@@ -864,6 +869,19 @@ if(!tp)
 		{
 			this.load_note_categories();
 			$("#noteCategoryDialog").dialog({modal: true, width: 230, minWidth: 230, minHeight: 80, position: [x, y]});
+		},
+
+		open_note_history_dialog: function(noteId)
+		{
+			if(this.get_current_category_permission() === "owner")
+			{
+				this.load_note_history(noteId);
+				$("#noteHistoryDialog").dialog({modal: true, width: 500, minWidth: 500});
+			}
+			else
+			{
+				window.alert("You don't have permission to view note history.");
+			}
 		},
 
 		get_current_category_permission: function()
@@ -1476,6 +1494,14 @@ if(!tp)
 					me.delete_note(noteId);
 				}
 			});
+			
+
+			$(".history_button").unbind().click(function(event)
+			{
+				var $note = $(event.target).parent().parent().parent();
+				var noteId = $note.attr("id");
+				me.open_note_history_dialog(noteId);
+			});
 
 
 			$(".body").unbind().focus(function(event) 
@@ -1499,6 +1525,7 @@ if(!tp)
 
 					$note.find(".color_button").show();
 					$note.find(".delete_button").show();
+					$note.find(".history_button").show();
 
 					// update z_inex
 					var noteId = $note.attr("id");

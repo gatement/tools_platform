@@ -216,6 +216,9 @@ body {
 .delete_button{
 	background: url("../images/icons_note.png") no-repeat scroll -64px 0 transparent;	
 }
+.history_button{
+	background: url("../images/icons_note.png") no-repeat scroll -256px 0 transparent;	
+}
 .writing_icon{
 	width:16px;
 	height:16px;
