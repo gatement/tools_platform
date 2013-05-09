@@ -18,14 +18,22 @@ if(!tp)
 		this.currentNoteId = "";
 
 		this.arrangeNotes = {};
+
 		this.arrangeNotes.defaultLeft = 5;
 		this.arrangeNotes.defaultTop = 39;
+
 		this.arrangeNotes.defaultWidth = 220;
 		this.arrangeNotes.defaultHeight = 170;
-		this.arrangeNotes.defaultHalfHeight = 65;
+
+		this.arrangeNotes.defaultMinHeight = 18;
+		this.arrangeNotes.defaultMinWidth = 190;
+
 		this.arrangeNotes.defaultActualWidth = 240;
 		this.arrangeNotes.defaultActualHeight = 203;
-		this.arrangeNotes.defaultActualHalfHeight = 98;
+
+		this.arrangeNotes.defaultActualMinWidth = 210;
+		this.arrangeNotes.defaultActualMinHeight = 51;
+
 		this.arrangeNotes.increaseStepLeft = 10;
 		this.arrangeNotes.increaseStepTop = 10;
 		this.arrangeNotes.horizontalGap = 4;
@@ -43,6 +51,7 @@ if(!tp)
 			$("#add").click(function(){me.add_note()});
 			$("#tile_notes").click(function(){me.tile_notes_locally()});
 			$("#list_notes").click(function(){me.list_notes_locally()});
+			$("#list_small_notes").click(function(){me.list_small_notes_locally()});
 			$("#list_left").click(function(){me.list_left_locally()});
 			$("#list_right").click(function(){me.list_right_locally()});
 			$("#list_top").click(function(){me.list_top_locally()});
@@ -586,9 +595,26 @@ if(!tp)
 			this.send_msg("/note/category/mine/list", data, successFunc, errorFunc);
 		},
 
-		load_note_history: function() 
+		load_note_history: function(noteId) 
 		{
 			var me = this;
+
+			var $noteHistoryList = $("#noteHistoryList");			
+			$noteHistoryList.empty();
+
+			var data = {note_id: noteId};
+
+			var successFunc = function(data) 
+			{
+				for(var i = 0; i < data.length; i++)
+				{
+					$("#noteHistoryListItemTemplate").tmpl(data[i]).appendTo($noteHistoryList);
+				}
+			};
+
+			var errorFunc = function(data) { };
+
+			this.send_msg("/note/history/list", data, successFunc, errorFunc);
 		},
 
 		update_category: function(event) 
@@ -977,6 +1003,51 @@ if(!tp)
 			}
 		},
 
+		list_small_notes_locally: function()
+		{
+			// get note array
+			var notes=[];
+			$notes = $(".note");
+			for(var i = 0; i < $notes.length; i++)
+			{
+				var note = $notes[i];
+				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
+			}
+
+			// sort note array
+			notes = this.sort_notes_by_z_index_desc(notes);
+
+			// set note position/size values
+			var left = 0;
+			var top = 0;
+			var width = 0;
+			var height = 0;
+
+			for(var i = 0; i < notes.length; i++)
+			{
+				left = this.get_list_small_notes_left(i);
+				top = this.get_list_small_notes_top(i);
+			    width = this.arrangeNotes.defaultMinWidth;
+			    height = this.arrangeNotes.defaultMinHeight;
+
+				var note = notes[i];
+				note.left = left;
+				note.top = top;
+				note.width = width;
+				note.height = height;
+
+				// update UI
+				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+			}
+
+			// save the position and size if have permission
+			var permission = this.get_current_category_permission();
+			if(permission === "owner" || permission === "rw")
+			{
+				this.arrange_notes(notes);
+			}
+		},
+
 		list_left_locally: function()
 		{
 			// get note array
@@ -1015,11 +1086,11 @@ if(!tp)
 
 			left = this.arrangeNotes.defaultLeft;
 			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultHalfHeight;
+			height = this.arrangeNotes.defaultMinHeight;
 
 			for(var i = 1; i < notes.length; i++)
 			{
-				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualHalfHeight + this.arrangeNotes.verticalGap) * (i - 1);
+				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
 	
 				var note = notes[i];
 				note.left = left;
@@ -1077,11 +1148,11 @@ if(!tp)
 
 			left = this.get_client_width() - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth;
 			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultHalfHeight;
+			height = this.arrangeNotes.defaultMinHeight;
 
 			for(var i = 1; i < notes.length; i++)
 			{
-				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualHalfHeight + this.arrangeNotes.verticalGap) * (i - 1);
+				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
 	
 				var note = notes[i];
 				note.left = left;
@@ -1124,9 +1195,9 @@ if(!tp)
 			var emphasizingNote = notes[0];
 
 			left = this.arrangeNotes.defaultLeft;
-			top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualHalfHeight + this.arrangeNotes.verticalGap;
+			top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap;
 			width = this.get_client_width() - this.arrangeNotes.defaultLeft - 20 - this.arrangeNotes.horizontalGap; // 20 is the note horizontal margin+border+padding of the large note
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualHalfHeight - this.arrangeNotes.verticalGap - 33 - this.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding of large note
+			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap - 33 - this.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding of large note
 
 			emphasizingNote.left = left;
 			emphasizingNote.top = top;
@@ -1139,7 +1210,7 @@ if(!tp)
 
 			top = this.arrangeNotes.defaultTop;
 			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultHalfHeight;
+			height = this.arrangeNotes.defaultMinHeight;
 
 			for(var i = 1; i < notes.length; i++)
 			{
@@ -1188,7 +1259,7 @@ if(!tp)
 			left = this.arrangeNotes.defaultLeft;
 			top = this.arrangeNotes.defaultTop;
 			width = this.get_client_width() - this.arrangeNotes.defaultLeft - 20 - this.arrangeNotes.horizontalGap; // 20 is the note horizontal margin+border+padding of the large note
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualHalfHeight - 33 - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding of large note
+			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - 33 - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding of large note
 
 			emphasizingNote.left = left;
 			emphasizingNote.top = top;
@@ -1199,9 +1270,9 @@ if(!tp)
 			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
 			
 
-			top = this.get_client_height() - this.arrangeNotes.defaultActualHalfHeight - this.arrangeNotes.verticalGap;
+			top = this.get_client_height() - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap;
 			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultHalfHeight;
+			height = this.arrangeNotes.defaultMinHeight;
 
 			for(var i = 1; i < notes.length; i++)
 			{
@@ -1262,6 +1333,29 @@ if(!tp)
 			return result;
 		},
 
+		get_list_small_notes_left: function(index)
+		{
+			var result = 0;
+			var noteCountPerRow = this.list_small_notes_count_per_row();
+			var currentColumIndex = 0;
+			
+			for(var i = 0; i <= index; i++)
+			{
+				currentColumIndex = i % noteCountPerRow;
+
+				if(currentColumIndex === 0)
+				{
+					result = this.arrangeNotes.defaultLeft;
+				}
+				else
+				{
+					result += this.arrangeNotes.defaultActualMinWidth + this.arrangeNotes.horizontalGap;
+				}
+			}
+
+			return result;
+		},
+
 		get_list_notes_top: function(index)
 		{
 			var result = 0;
@@ -1285,6 +1379,29 @@ if(!tp)
 			return result;
 		},
 
+		get_list_small_notes_top: function(index)
+		{
+			var result = 0;
+			var noteCountPerRow = this.list_small_notes_count_per_row();
+			
+			for(var i = 0; i <= index; i++)
+			{
+				if(i === 0)
+				{
+					result = this.arrangeNotes.defaultTop;
+				}
+				else
+				{
+					if(i % noteCountPerRow === 0)
+					{
+						result += this.arrangeNotes.verticalGap + this.arrangeNotes.defaultActualMinHeight;
+					}
+				}
+			}
+
+			return result;
+		},
+
 
 		list_notes_count_per_row: function()
 		{
@@ -1295,6 +1412,22 @@ if(!tp)
 			while(width + this.arrangeNotes.horizontalGap + this.arrangeNotes.defaultActualWidth <= clientWidth)
 			{
 				width += this.arrangeNotes.horizontalGap + this.arrangeNotes.defaultActualWidth;
+				result ++;
+			};
+
+			return result;
+		},
+
+
+		list_small_notes_count_per_row: function()
+		{
+			var result = 1;
+			var clientWidth = this.get_client_width();
+			var width = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualMinWidth;
+
+			while(width + this.arrangeNotes.horizontalGap + this.arrangeNotes.defaultActualMinWidth <= clientWidth)
+			{
+				width += this.arrangeNotes.horizontalGap + this.arrangeNotes.defaultActualMinWidth;
 				result ++;
 			};
 
@@ -1443,8 +1576,8 @@ if(!tp)
 
 				var left = me.arrangeNotes.defaultLeft;
 				var top = me.arrangeNotes.defaultTop;
-				var width = me.arrangeNotes.defaultWidth;
-				var height = me.arrangeNotes.defaultHalfHeight;
+				var width = me.arrangeNotes.defaultMinWidth;
+				var height = me.arrangeNotes.defaultMinHeight;
 
 				// update UI
 				$("#"+noteId).animate({left: left, top: top, width: width, height: height});

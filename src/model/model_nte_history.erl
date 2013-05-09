@@ -32,7 +32,17 @@ list(NoteId) ->
 	end,
 
 	{atomic, Models} = mnesia:transaction(Fun),
-	Models.
+
+	% sort by datetime
+	SortFun = fun(A, B) ->
+		if
+			A#nte_history.datetime >= B#nte_history.datetime -> true;
+			true -> false
+		end
+	end,
+	SortedModels = lists:sort(SortFun, Models),
+
+	SortedModels.
 
 
 %% ===================================================================

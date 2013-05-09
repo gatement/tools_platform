@@ -100,6 +100,12 @@ body {
 #list_notes:hover{
 	background-position: -176px -16px;
 }
+#list_small_notes{
+	background-position: -272px 0;
+}
+#list_small_notes:hover{
+	background-position: -272px -16px;
+}
 #list_left{
 	background-position: -192px 0;
 }
@@ -229,9 +235,6 @@ body {
 /*== categoryMgmtDialog =================================================*/
 #categoryMgmtDialog{
 }
-#ui-dialog-title-categoryMgmtDialog{
-	font-size: 12px;
-}
 #categoryMgmtAddContainer{
 	padding-top: 5px;
 	padding-bottom: 5px;
@@ -243,7 +246,6 @@ body {
 }
 .categoryMgmtButton{
 	border: 1px solid #DDDDDD;
-	font-size: 12px !important;
 	height: 23px;
     width: 50px;
     cursor: pointer;
@@ -251,7 +253,6 @@ body {
 .categoryMgmtTextbox{
     border: 1px solid #DDDDDD;
     height: 20px;
-    font-size: 12px !important;
     width: 248px;
 }
 .categoryMgmtDefaultCheckboxLabel{
@@ -261,9 +262,6 @@ body {
 #shareMgmtDialog{
 }
 .ui-autocomplete{
-	font-size: 12px;
-}
-#ui-dialog-title-shareMgmtDialog{
 	font-size: 12px;
 }
 #shareMgmtAddContainer{
@@ -277,7 +275,6 @@ body {
 }
 .shareMgmtButton{
 	border: 1px solid #DDDDDD;
-	font-size: 12px !important;
 	height: 23px;
     width: 50px;
     cursor: pointer;
@@ -285,20 +282,31 @@ body {
 .shareMgmtTextbox{
     border: 1px solid #DDDDDD;
     height: 20px;
-    font-size: 12px !important;
     width: 248px;
-}
-.shareMgmtSelect{
-	font-size: 12px !important;
 }
 
 /*== noteCategoryDialog =================================================*/
 #noteCategoryDialog{
 }
-#ui-dialog-title-noteCategoryDialog{
-	font-size: 12px;
+
+/*== noteHistoryDialog =================================================*/
+#noteHistoryDialog{
 }
-#noteCategorySelect{
-	font-size: 12px !important;
+.noteHistoryDatetime{
+	font-size: 10px;	
+}
+.noteHistoryNote{
+	height: 80px;
+	margin-bottom: 10px;
 }
 
+/*== Dialog =================================================*/
+.ui-dialog-title{
+	font-size: 12px;
+}
+.ui-dialog{
+	z-index: 20000;
+}
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button{
+	font-size: 12px;
+}

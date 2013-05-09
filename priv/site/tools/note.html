@@ -17,6 +17,7 @@
 			<div id="add" class="bar_button" title="add a note"></div>
 			<div id="tile_notes" class="bar_button" title="tile notes"></div>
 			<div id="list_notes" class="bar_button" title="list notes"></div>
+			<div id="list_small_notes" class="bar_button" title="list notes smaller"></div>
 			<div id="list_left" class="bar_button" title="list notes on the left"></div>
 			<div id="list_right" class="bar_button" title="list notes on the right"></div>
 			<div id="list_top" class="bar_button" title="list notes on the top"></div>
@@ -66,8 +67,9 @@
 			</select>
 		</div>
 
-		<div id="noteHistoryDialog" title="Note History" style="display:none;">
-			note history
+		<div id="noteHistoryDialog" title="Note History" style="display:none;">			
+			<div id="noteHistoryList">
+			</div>
 		</div>
 		
 
@@ -117,6 +119,13 @@
 				</select>
 				<input class="shareMgmtListItemSaveButton shareMgmtButton" type="button" value="Save" />
 				<input class="shareMgmtListItemDeleteButton shareMgmtButton" type="button" value="Delete" />
+			</div>
+		</script>
+		
+		<script id="noteHistoryListItemTemplate" type="text/x-jquery-tmpl">
+			<div class="noteHistoryListItem">
+				<div><span class="noteHistoryDatetime">${datetime}</span><hr/></div>
+				<div><textarea style="width:98%;" readonly="readonly" class="noteHistoryNote">${note}</textarea></div>
 			</div>
 		</script>
 
