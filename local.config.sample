@@ -14,7 +14,7 @@
     {rrdtool_img_timeout, 60} % in seconds
 ]},
 {tools_platform,[
-	{port, 88},
+	{port, 8888},
 	{local_ip, "192.168.1.10"},
   	{parent_dir, "/app/tools_platform"}
 ]}].
