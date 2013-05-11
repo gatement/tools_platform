@@ -1,4 +1,4 @@
-%% definition ==================================
+%% definition ===============================================
 %% running definitions ----------
 -define(USR_SESSION_COOKIE_ID, "usr_sid").
 
@@ -22,7 +22,7 @@
 -define(NOTE_DEFAULT_COLOR, 6).
 
 
-%% runing records ==============================
+%% runing records ===========================================
 -record(arg_state, {session_id, user_id, user_name, other}).
 -record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, sport, gallery, monitor}).
 -record(user_autocomplete_item, {label, value}).
@@ -30,7 +30,7 @@
 -record(note_share, {id, category_id, user_id, user_name, share_type}).
 
 
-%% database tables =============================
+%% database tables ===========================================
 %% global ------------------
 -record(gbl_setting, {key, value}).
 
@@ -44,6 +44,6 @@
 
 %% word --------------------
 -record(nte_note, {id, category_id, note, left, top, width, height, color, z_index, last_updated}).
--record(nte_category, {id, user_id, name, is_default, display_order}).
+-record(nte_category, {id, user_id, name, is_default, display_order, attributes}).
 -record(nte_share, {id, category_id, user_id, share_type}).
 -record(nte_history, {id, note_id, note, datetime}).
