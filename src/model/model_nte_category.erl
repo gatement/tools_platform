@@ -2,7 +2,7 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1,
-	     list/2,
+	     list/3,
 	     exist/1,
 	     exist/2,
 	     exist/3,
@@ -49,11 +49,11 @@ create(NoteCategory) ->
 	end.
 
 
-list(UserId, AmendNames) ->
+list(UserId, AmendName, PrefixAll) ->
 	NoteCategories = list(UserId),
 
 	% append [s] to the name if it is shared
-	UpdatedCategories = case AmendNames of
+	UpdatedCategories = case AmendName of
 							true -> 
 								UpdateNameFun = fun(Category) ->
 									case model_nte_share:is_shared(Category#note_category.id) of
@@ -79,7 +79,19 @@ list(UserId, AmendNames) ->
 	end,
 	SortedCategories = lists:sort(SortFun, UpdatedCategories),
 
-	SortedCategories.
+	case PrefixAll of
+		true ->
+			AllCategory = #note_category{
+				id = "0", 
+				name = "[all]", 
+				permission = "r", 
+				is_default = false, 
+				is_trash = false, 
+				display_order = 0},
+			[AllCategory | SortedCategories];
+		_ ->
+			SortedCategories
+	end.
 
 
 exist(Id) ->
@@ -319,7 +331,7 @@ get_trash_category(UserId) ->
 			%% create trash category
 			?MODULE:create(#nte_category{
 					user_id = UserId,
-					name = "Trash", 
+					name = "trash", 
 					is_default = false,
 					attributes = [trash]
 			});

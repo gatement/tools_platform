@@ -81,13 +81,21 @@ out(Arg, ["note", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
 	CategoryId = proplists:get_value("category_id", Vals),
 
-    Result = case model_nte_share:get_permission_by_category_id(UserId, CategoryId) of
+    Result = 
+    case CategoryId of
+    	"0" -> 
+    		Notes = model_nte_note:list_mine(UserId),	
+            NoteList = [{struct, [{"permission", "r"} | tools:record_to_list(Note, record_info(fields, nte_note))]} || Note <- Notes],
+            [{"success", true}, {"data", {array, NoteList}}];
+    	_ ->
+    		case model_nte_share:get_permission_by_category_id(UserId, CategoryId) of
 		        none -> [{"success", false}, {"data", "You don't have permission to load notes from current category."}];
 		        Permission -> 
 		            Notes = model_nte_note:list(CategoryId),
 		            NoteList = [{struct, [{"permission", erlang:atom_to_list(Permission)} | tools:record_to_list(Note, record_info(fields, nte_note))]} || Note <- Notes],
 		            [{"success", true}, {"data", {array, NoteList}}]
-		    end,
+		    end
+	end,
 
 	{content, "application/json", json2:encode({struct, Result})};
 
@@ -326,7 +334,7 @@ out(Arg, ["category", "add"], UserId) ->
 
 
 out(_Arg, ["category", "list"], UserId) -> 
-    NoteCategories = model_nte_category:list(UserId, true) ++ model_nte_share:category_list(UserId),
+    NoteCategories = model_nte_category:list(UserId, true, true) ++ model_nte_share:category_list(UserId),
 
     CategoryList = [{struct, tools:record_to_list(NoteCategory, record_info(fields, note_category))} || NoteCategory <- NoteCategories],
 	Result = [{"success", true}, {"data", {array, CategoryList}}],
@@ -336,9 +344,9 @@ out(_Arg, ["category", "list"], UserId) ->
 
 out(Arg, ["category", "mine", "list"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
-	AppendShareTag = erlang:list_to_atom(proplists:get_value("append_share_tag", Vals)),
+	AmendName = erlang:list_to_atom(proplists:get_value("amend_name", Vals)),
 
-    NoteCategories = model_nte_category:list(UserId, AppendShareTag),
+    NoteCategories = model_nte_category:list(UserId, AmendName, false),
 
     CategoryList = [{struct, tools:record_to_list(NoteCategory, record_info(fields, note_category))} || NoteCategory <- NoteCategories],
 

@@ -6,6 +6,7 @@
 		get/2,
 		exist/1,
 		list/1, 
+		list_mine/1, 
 		delete/1,
 		update_note_size/3, 
 		update_note_position/3, 
@@ -42,6 +43,19 @@ list(CategoryId) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(nte_note),
 				X#nte_note.category_id =:= CategoryId]))
+	end,
+
+	{atomic, Notes} = mnesia:transaction(Fun),
+	Notes.
+
+
+list_mine(UserId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(nte_note),
+						  Y <- mnesia:table(nte_category),
+				X#nte_note.category_id =:= Y#nte_category.id,
+				Y#nte_category.user_id =:= UserId,
+				lists:member(trash, Y#nte_category.attributes) =:= false]))
 	end,
 
 	{atomic, Notes} = mnesia:transaction(Fun),

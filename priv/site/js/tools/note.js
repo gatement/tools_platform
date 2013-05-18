@@ -57,9 +57,27 @@ if(!tp)
 			$("#list_top").click(function(){me.list_top_locally()});
 			$("#list_bottom").click(function(){me.list_bottom_locally()});
 			$("#refresh").click(function(){me.load_notes()});
+
 			$("#noteCategory").change(function()
 			{
 				me.load_notes();
+			});
+
+			$("#search").focus(function()
+			{
+				if($("#search").val() === "input text to search")
+				{
+					$("#search").val("");
+				}
+			}).blur(function()
+			{
+				if($.trim($("#search").val()) === "")
+				{
+					$("#search").val("input text to search");
+				}
+			}).keyup(function()
+			{
+				me.search_notes();
 			});
 
 			$("#categoryMgmt").click(function(){me.open_category_management_dialog()});
@@ -290,6 +308,7 @@ if(!tp)
 			var me = this;
 
 			$("#notes").empty();
+			$("#search").val("input text to search");
 
 			var data = {category_id: $("#noteCategory").val()};
 
@@ -311,6 +330,27 @@ if(!tp)
 			this.send_msg("/note/note/list", data, successFunc, errorFunc);
 		},
 
+		search_notes: function()
+		{
+			var me = this;
+			var key = $("#search").val().toLowerCase();
+
+			var notes=[];
+			$notes = $(".note");
+			for(var i = 0; i < $notes.length; i++)
+			{
+				var $note = $($notes[i]);
+				if($note.find("textarea").val().toLowerCase().indexOf(key) == -1)
+				{
+					$note.hide();
+				}
+				else
+				{
+					$note.show();
+				}
+			}
+		},
+
 		load_categories: function() 
 		{
 			var me = this;
@@ -319,6 +359,7 @@ if(!tp)
 
 			$("#notes").empty();
 			$("#noteCategory").empty();
+			$("#search").val("input text to search");
 
 			var data = {};
 
@@ -539,7 +580,7 @@ if(!tp)
 
 			$categoryMgmtList.empty();
 
-			var data = {append_share_tag: false};
+			var data = {amend_name: false};
 
 			var successFunc = function(data) 
 			{
@@ -565,7 +606,7 @@ if(!tp)
 
 			$("#noteCategorySelect").empty();
 
-			var data = {append_share_tag: true};
+			var data = {amend_name: true};
 
 			var successFunc = function(data) 
 			{
@@ -925,16 +966,7 @@ if(!tp)
 		tile_notes_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_asc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position values
 			var left = this.arrangeNotes.defaultLeft;
@@ -964,17 +996,7 @@ if(!tp)
 
 		list_notes_locally: function()
 		{
-			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1010,16 +1032,7 @@ if(!tp)
 		list_small_notes_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1055,16 +1068,7 @@ if(!tp)
 		list_left_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1117,16 +1121,7 @@ if(!tp)
 		list_right_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1179,16 +1174,7 @@ if(!tp)
 		list_top_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1241,16 +1227,7 @@ if(!tp)
 		list_bottom_locally: function()
 		{
 			// get note array
-			var notes=[];
-			$notes = $(".note");
-			for(var i = 0; i < $notes.length; i++)
-			{
-				var note = $notes[i];
-				notes.push({id: note.id, z_index: parseInt($(note).css("z-index"))});
-			}
-
-			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
+			var notes = this.get_sorted_notes();
 
 			// set note position/size values
 			var left = 0;
@@ -1298,6 +1275,27 @@ if(!tp)
 			{
 				this.arrange_notes(notes);
 			}
+		},
+
+		get_sorted_notes: function()
+		{
+			// get note array
+			var notes=[];
+			$notes = $(".note");
+			for(var i = 0; i < $notes.length; i++)
+			{
+				var note = $notes[i];
+				var $note = $(note);
+				if($note.is(':visible'))
+				{
+					notes.push({id: note.id, z_index: parseInt($note.css("z-index"))});
+				}
+			}
+
+			// sort note array
+			notes = this.sort_notes_by_z_index_desc(notes);
+
+			return notes;
 		},
 
 		sort_notes_by_z_index_asc: function(notes)

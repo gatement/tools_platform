@@ -80,7 +80,14 @@ body {
 	float:left;
 	height:16px;
 	margin-left:2px;
-    cursor: pointer;
+}
+.bar_textbox{
+	float:left;
+	height:16px;
+	margin-left:2px;
+}
+#search:focus{
+	background-color: #fdfdc8;
 }
 #add{
 	background-position: 0 0;
