@@ -17,7 +17,8 @@
 	     count/1,
 	     up/2,
 	     down/2,
-	     get_owner/1
+	     get_owner/1,
+	     get_trash_category/1
 	    ]).
 
 
@@ -29,35 +30,39 @@ create(NoteCategory) ->
 	Id = tools:generate_id(NoteCategory#nte_category.user_id),
 	DisplayOrder = tools:epoch_macro_seconds(),
 
+	Attributes = case NoteCategory#nte_category.attributes of
+		undefined ->
+			[];
+		Attrs ->
+			Attrs
+	end,
+
+	Model = NoteCategory#nte_category{id=Id, display_order=DisplayOrder, attributes = Attributes},
+
 	Fun = fun() ->
-			mnesia:write(NoteCategory#nte_category{id=Id, display_order=DisplayOrder})	  
+			mnesia:write(Model)	  
 	end,
 
 	case mnesia:transaction(Fun) of
-		{atomic, ok} -> ok;
+		{atomic, ok} -> Model;
 		_ -> error
 	end.
 
 
-list(UserId, AppendShareTag) ->
-	Fun = fun() -> 
-		qlc:e(qlc:q([#note_category{id = X#nte_category.id, 
-									name = X#nte_category.name,
-									permission = "owner",
-									is_default = X#nte_category.is_default,
-									display_order = X#nte_category.display_order} 
-						|| X <- mnesia:table(nte_category), 
-						X#nte_category.user_id =:= UserId]))
-	end,
-	{atomic, NoteCategories} = mnesia:transaction(Fun),
+list(UserId, AmendNames) ->
+	NoteCategories = list(UserId),
 
 	% append [s] to the name if it is shared
-	UpdatedCategories = case AppendShareTag of
+	UpdatedCategories = case AmendNames of
 							true -> 
 								UpdateNameFun = fun(Category) ->
 									case model_nte_share:is_shared(Category#note_category.id) of
 										true -> Category#note_category{name=Category#note_category.name ++ "[s]"};
-										false -> Category
+										false -> 
+											case Category#note_category.is_trash of
+												true -> Category#note_category{name = "[" ++ Category#note_category.name ++ "]"};
+												false -> Category
+											end
 									end
 								end,
 								lists:map(UpdateNameFun, NoteCategories);
@@ -78,7 +83,7 @@ list(UserId, AppendShareTag) ->
 
 
 exist(Id) ->
-	case model_nte_category:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> false;
 		_ -> true
 	end.
@@ -119,7 +124,7 @@ update(Id, Name, IsDefault, UserId) ->
 				[Category] ->
 					%if it is default, clear other categories default value under the current user
 					case IsDefault of
-						true -> model_nte_category:clear_is_default(UserId);
+						true -> ?MODULE:clear_is_default(UserId);
 						_ -> ok
 					end,
 
@@ -132,12 +137,16 @@ update(Id, Name, IsDefault, UserId) ->
 
 
 delete(UserId, CategoryId) ->
-	case model_nte_category:get(UserId, CategoryId) of
+	case ?MODULE:get(UserId, CategoryId) of
 		[] -> error;
-		[_Category] ->
-			CategoryCount = model_nte_category:count(UserId),
+		[Category] ->
+			IsTrash = lists:member(trash, Category#nte_category.attributes),
+			CategoryCount = ?MODULE:count(UserId),
 			if 
-				CategoryCount < 2 -> last;
+				IsTrash =:= true ->
+					trash;
+				CategoryCount < 2 -> 
+					last;
 				true ->
 					Fun = fun() ->
 						%delete category
@@ -147,7 +156,7 @@ delete(UserId, CategoryId) ->
 	                    model_nte_share:delete_by_category_id(CategoryId), 
 
 						%move notes to default category
-						DefaultCategoryId = (model_nte_category:get_default_or_any_category(UserId))#nte_category.id,
+						DefaultCategoryId = (?MODULE:get_default_or_any_category(UserId))#nte_category.id,
 						model_nte_note:move_to_category(CategoryId, DefaultCategoryId)
 					end,
 
@@ -201,8 +210,8 @@ get_any_category(UserId) ->
 
 
 get_default_or_any_category(UserId) ->
-	case model_nte_category:get_default_category(UserId) of
-		none ->  model_nte_category:get_any_category(UserId);
+	case ?MODULE:get_default_category(UserId) of
+		none ->  ?MODULE:get_any_category(UserId);
 		Category -> Category
 	end.
 
@@ -227,14 +236,15 @@ clear_is_default(UserId) ->
 count(UserId) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(nte_category), 
-						X#nte_category.user_id =:= UserId]))
+						X#nte_category.user_id =:= UserId,
+						lists:member(trash, X#nte_category.attributes) =:= false]))
 	end,
 	{atomic, Categories} = mnesia:transaction(Fun),
 	erlang:length(Categories).
 
 
 up(UserId, CategoryId) ->
-	case model_nte_category:get(CategoryId) of
+	case ?MODULE:get(CategoryId) of
 		error -> error;
 		Category ->
 			Fun = fun() -> 
@@ -263,7 +273,7 @@ up(UserId, CategoryId) ->
 
 
 down(UserId, CategoryId) ->
-	case model_nte_category:get(CategoryId) of
+	case ?MODULE:get(CategoryId) of
 		error -> error;
 		Category ->
 			Fun = fun() -> 
@@ -291,16 +301,38 @@ down(UserId, CategoryId) ->
 
 
 get_owner(CategoryId) ->
-	case model_nte_category:get(CategoryId) of
+	case ?MODULE:get(CategoryId) of
 		error -> error;
 		Category -> Category#nte_category.user_id
 	end.
 
 
+get_trash_category(UserId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(nte_category),
+						X#nte_category.user_id =:= UserId,
+						lists:member(trash, X#nte_category.attributes) =:= true]))
+	end,
+
+	TrashCategory = case mnesia:transaction(Fun) of
+		{atomic, []} ->
+			%% create trash category
+			?MODULE:create(#nte_category{
+					user_id = UserId,
+					name = "Trash", 
+					is_default = false,
+					attributes = [trash]
+			});
+		{atomic, Categories} ->
+			lists:last(Categories)
+	end,
+
+	TrashCategory.
+
+
 %% ===================================================================
 %% Local Functions
 %% ===================================================================
-
 
 exchange_display_order(Category1, Category2) ->
 	UpdateFun = fun() ->
@@ -309,3 +341,29 @@ exchange_display_order(Category1, Category2) ->
 		mnesia:write(Category2#nte_category{display_order=TempDisplayOrder})
 	end,
 	mnesia:transaction(UpdateFun).
+
+
+list(UserId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([#note_category{id = X#nte_category.id, 
+									name = X#nte_category.name,
+									permission = "owner",
+									is_default = X#nte_category.is_default,
+									display_order = X#nte_category.display_order,
+									is_trash = lists:member(trash, X#nte_category.attributes)} 
+						|| X <- mnesia:table(nte_category), 
+						X#nte_category.user_id =:= UserId]))
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} ->
+			%% create the very first default category
+			?MODULE:create(#nte_category{
+					user_id = UserId,
+					name = "default", 
+					is_default = true
+			}),
+			list(UserId);
+		{atomic, NoteCategories} ->
+			NoteCategories
+	end.

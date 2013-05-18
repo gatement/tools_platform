@@ -7,7 +7,9 @@
 %% ===================================================================
 
 start() ->
-        mnesia:start(),
+    application:start(sasl),
+    mnesia:start(),
+    
 	application:start(tools_platform).
 
 

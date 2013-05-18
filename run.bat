@@ -1,1 +1,1 @@
-erl -pa c:/app/tools_platform/ebin c:/app/tools_platform/apps/monitor/ebin c:/app/tools_platform/apps/cleaner/ebin  C:/dev/Yaws/ebin -config local -mnesia dir '"/app/mnesia/tools_platform"' -s tools_platform
+erl -pa c:/app/tools_platform/ebin c:/app/tools_platform/apps/monitor/ebin c:/app/tools_platform/apps/cleaner/ebin  C:/dev/Yaws/ebin -config local -s tools_platform

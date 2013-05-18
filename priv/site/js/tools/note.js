@@ -671,6 +671,10 @@ if(!tp)
 					{
 						window.alert("You can not delete the last category.");
 					}
+					else if(data === "trash category.")
+					{
+						window.alert("You can not delete the trash category.");
+					}
 					else
 					{
 						me.set_error_msg(data);

@@ -1,10 +1,17 @@
-[{sasl, [
-	{sasl_error_logger, {file, "/app/tools_platform/priv/logs/sasl.log" }},
-	{errlog_type, error}
+[
+{kernel, [
+    {error_logger, {file, "/app/data/tools_platform_kernel.log"}}
+]},
+{sasl, [
+    {sasl_error_logger, {file, "/app/data/tools_platform_sasl.log" }},
+    {errlog_type, error}
+]},
+{mnesia, [
+    {dir, "/app/data/mnesia"}
 ]},
 {monitor, [	
     {run_interval, 10}, % in seconds
-    {log_file_name, "/app/tools_platform/priv/logs/monitor.csv"},
+    {log_file_name, "/app/data/monitor.csv"},
     {rrdtool_exe, "/usr/bin/rrdtool"},
     {rrd_file_name, "/app/rrdtool/tools_platform/monitor.rrd"}
 ]},

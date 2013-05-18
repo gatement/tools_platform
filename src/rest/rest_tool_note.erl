@@ -227,12 +227,28 @@ out(Arg, ["note", "delete"], UserId) ->
                 none -> [{"success", false}, {"data", "You don't have permission to delete this note."}];
                 r -> [{"success", false}, {"data", "You don't have permission to delete this note."}];
                 _ ->
-                    case model_nte_note:delete(NoteId) of
-                        error ->
-                            [{"success", false}, {"data", "Failed to delete note."}];
-                        ok ->
-                            [{"success", true}, {"data", "ok."}]
-                    end
+                	case model_nte_note:get(NoteId) of
+                		#nte_note{category_id = CategoryId} ->
+                			#nte_category{attributes = Attributes} = model_nte_category:get(CategoryId),
+                			case lists:member(trash, Attributes) of
+                				true ->
+                					%% delete it
+  									case model_nte_note:delete(NoteId) of
+				                        error ->
+				                            [{"success", false}, {"data", "Failed to delete note."}];
+				                        ok ->
+				                            [{"success", true}, {"data", "ok."}]
+				                    end;
+				                _ ->
+				                	%% move to trash category
+				                	model_nte_note:move_note_to_trash(NoteId, UserId),
+				                	[{"success", true}, {"data", "ok."}]
+				            end;
+                		_ ->
+                			[{"success", true}, {"data", "ok."}]
+                	end
+
+				                  
             end,
 
     {content, "application/json", json2:encode({struct, Result})};
@@ -299,10 +315,10 @@ out(Arg, ["category", "add"], UserId) ->
 
 	                    NoteCategory = #nte_category{user_id = UserId, name = CategoryName, is_default=IsDefault},
 	                    case model_nte_category:create(NoteCategory) of
-	                        ok ->
-	                            [{"success", true}, {"data", "ok."}];
 	                        error -> 
-	                            [{"success", false}, {"data", "Create category error."}]
+	                            [{"success", false}, {"data", "Create category error."}];
+	                        _Modle ->
+	                            [{"success", true}, {"data", "ok."}]
 	                    end
 	            end,
 
@@ -310,22 +326,10 @@ out(Arg, ["category", "add"], UserId) ->
 
 
 out(_Arg, ["category", "list"], UserId) -> 
-	case model_nte_category:list(UserId, true) of
-		[] ->
-			%% create the very first default category
-			model_nte_category:create(#nte_category{
-					user_id = UserId,
-					name = "default", 
-					is_default = true
-			});
-		_ -> 
-			do_nothing
-	end, 
-
     NoteCategories = model_nte_category:list(UserId, true) ++ model_nte_share:category_list(UserId),
 
     CategoryList = [{struct, tools:record_to_list(NoteCategory, record_info(fields, note_category))} || NoteCategory <- NoteCategories],
-    Result = [{"success", true}, {"data", {array, CategoryList}}],
+	Result = [{"success", true}, {"data", {array, CategoryList}}],
 
 	{content, "application/json", json2:encode({struct, Result})};
 
@@ -377,6 +381,8 @@ out(Arg, ["category", "delete"], UserId) ->
                     [{"success", true}, {"data", CategoryId}];
                 last -> 
                     [{"success", false}, {"data", "last category."}];
+                trash -> 
+                    [{"success", false}, {"data", "trash category."}];
                 error -> 
                     [{"success", false}, {"data", "Delete category error."}]
             end,

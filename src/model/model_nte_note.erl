@@ -14,7 +14,8 @@
 		update_note_content/3,
 		update_note_content/4,
 		move_to_category/2,
-		update_note_category/2]).
+		update_note_category/2,
+		move_note_to_trash/2]).
 
 
 %% ===================================================================
@@ -72,7 +73,7 @@ get(NoteId, CategoryId) ->
 
 
 exist(Id) ->
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> false;
 		_ -> true
 	end.
@@ -89,7 +90,7 @@ delete(Id) ->
 
 
 update_note_size(Id, Width, Height) ->
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 		Note ->
@@ -102,7 +103,7 @@ update_note_size(Id, Width, Height) ->
 
 
 update_note_position(Id, Left, Top) ->
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 		Note ->
@@ -115,7 +116,7 @@ update_note_position(Id, Left, Top) ->
 
 
 update_note_z_index(Id, ZIndex) ->
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 		Note ->
@@ -128,7 +129,7 @@ update_note_z_index(Id, ZIndex) ->
 
 
 update_note_color(Id, Color) ->
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 		Note ->
@@ -141,12 +142,16 @@ update_note_color(Id, Color) ->
 
 
 update_note_content(Id, Content, UserId) -> 
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 		Note ->
 			Fun = fun() ->
-			   	model_nte_history:create(Note#nte_note.id, Note#nte_note.note, UserId),
+				case Note#nte_note.note of
+					undefined -> do_nothing;
+					[] -> do_nothing;
+					_ -> model_nte_history:create(Note#nte_note.id, Note#nte_note.note, UserId)
+				end,
 				mnesia:write(Note#nte_note{note = Content, last_updated = tools:epoch_milli_seconds()})
 			end,
 			mnesia:transaction(Fun),
@@ -155,7 +160,7 @@ update_note_content(Id, Content, UserId) ->
 
 
 update_note_content(Id, Content, LastUpdated, UserId) -> 
-	case model_nte_note:get(Id) of
+	case ?MODULE:get(Id) of
 		error -> 
 			error;
 
@@ -175,7 +180,7 @@ update_note_content(Id, Content, LastUpdated, UserId) ->
 
 
 update_note_category(NoteId, CategoryId) ->	
-	case model_nte_note:get(NoteId) of
+	case ?MODULE:get(NoteId) of
 		error -> 
 			error;
 		Note ->
@@ -202,6 +207,21 @@ move_to_category(FromCategoryId, ToCategoryId) ->
 	lists:foreach(UpdateFun, Notes),
 
 	ok.
+
+
+move_note_to_trash(NoteId, UserId) ->	
+	case ?MODULE:get(NoteId) of
+		error -> 
+			error;
+		Note ->
+			#nte_category{id = TrashCategoryId} = model_nte_category:get_trash_category(UserId),
+
+			Fun = fun() ->
+				mnesia:write(Note#nte_note{category_id = TrashCategoryId})
+			end,
+			mnesia:transaction(Fun), 
+			ok
+	end.
 
 
 %% ===================================================================
