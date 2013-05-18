@@ -18,6 +18,8 @@ up() ->
 
 	create_note_schema(),
 
+	create_gallery_schema(),
+
 	%% == lowing function is not for initialization ====
 	ok.
 
@@ -66,6 +68,13 @@ create_note_schema() ->
 	mnesia:create_table(nte_category, [{attributes, record_info(fields, nte_category)}, {disc_copies, [node()]}]),
 	mnesia:create_table(nte_share, [{attributes, record_info(fields, nte_share)}, {disc_copies, [node()]}]),
 	mnesia:create_table(nte_history, [{attributes, record_info(fields, nte_history)}, {disc_copies, [node()]}]),
+
+	ok.
+
+
+create_gallery_schema() ->
+	mnesia:create_table(gly_item, [{attributes, record_info(fields, gly_item)}, {disc_copies, [node()]}]),
+	mnesia:create_table(gly_share, [{attributes, record_info(fields, gly_share)}, {disc_copies, [node()]}]),
 
 	ok.
 

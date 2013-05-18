@@ -10,3 +10,4 @@ local.config
 logs
 rrdtool_img
 data
+upload

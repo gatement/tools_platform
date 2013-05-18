@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Gallery - JohnsonTools</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="//code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+		<link type="text/css" rel="stylesheet" href="/css/tools/gallery.css" />
+		<script type="text/javascript" src="//code.jquery.com/jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="//code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" src="/js/tools/gallery.js"></script>
+	</head>
+	<body>
+		<div class="toolsbar">
+			<div id="errormsg"></div>
+			<div id="addAlbun" class="bar_button" title="create an album"></div>
+			<div id="upload" class="bar_button" title="upload items"></div>
+			<div id="shareMgmt" class="bar_button" title="share management"></div>
+			<div id="logout" class="bar_button" title="logout"></div>
+			<div id="homepage" class="bar_button" title="homepage"></div>
+			<div id="about" class="bar_button" title="about"></div>
+			<div id="refresh" class="bar_button" title="refresh"></div>
+			<div id="selector" class="bar_button" title="select albums"></div>
+			<div id="back" class="bar_button" title="back to last album"></div>
+			<div id="zoomin" class="bar_button" title="zoom in"></div>
+			<div id="zoomout" class="bar_button" title="zoom out"></div>
+		</div>
+		
+		<hr id="hr"/>
+		<div id="galleryContainer"></div>
+		<div id="infiniteLoading" style="display: none;"></div>
+
+
+		<div id="fineuploaderDialog" title="Upload Items" style="display:none;">
+			<div><input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" /><input id="startUpload" type="button" value="Upload Image" /></div>
+	        <div id="uploadItemsContainer"></div>
+		</div>
+		
+
+		<script id="itemTemplate" type="text/x-jquery-tmpl">
+			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
+		</script>
+
+
+		<script id="uploadItemTemplate" type="text/x-jquery-tmpl">
+			<div class="uploadItem" id="uploadItem${id}">
+				<div class="uploadItemProgress"></div>
+				<div class="uploadItemText"><span class="uploadItemUploadPercentage">0</span>% of ${size} <span class="uploadItemName">[${name}]</span></div>
+			</div>
+		</script>
+	</body>
+</html>
