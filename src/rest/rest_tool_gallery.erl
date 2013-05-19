@@ -8,20 +8,25 @@
 %% ===================================================================
 
 out(Arg) ->
-	UserId = (Arg#arg.state)#arg_state.user_id,
-	GalleryEnabled = model_user_preference:get(UserId, ?USR_PREFERENCE_GALLERY_ENABLED),
-
-	case GalleryEnabled of
+	case erlang:is_record(Arg#arg.state, upload) of
 		true ->
-			case Arg#arg.pathinfo of
-				undefined -> 
-					gallery_html();
-				_ -> 
-					out(Arg, string:tokens(Arg#arg.pathinfo, "/"), UserId)
-			end;
+			multipart(Arg, Arg#arg.state);
+		false ->
+			UserId = (Arg#arg.state)#arg_state.user_id,
+			GalleryEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_GALLERY_ENABLED),
 
-		false -> 
-			{status, 404}
+			case GalleryEnabled of
+				true ->
+					case Arg#arg.pathinfo of
+						undefined -> 
+							gallery_html();
+						_ -> 
+							out(Arg, string:tokens(Arg#arg.pathinfo, "/"), UserId)
+					end;
+
+				false -> 
+					{status, 404}
+			end
 	end.
 
 
@@ -33,7 +38,7 @@ out(Arg, ["album", "add"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
 	AlbumName = proplists:get_value("album_name", Vals),
 
-    model_gallery_item:create_album(AlbumName, UserId),
+    model_gly_item:create_album(AlbumName, UserId),
 
     Result = [{"success", true}],
 	{content, "application/json", json2:encode({struct, Result})};
@@ -45,11 +50,11 @@ out(Arg, ["item", "list"], UserId) ->
 	Height = proplists:get_value("height", Vals),
 
 	ParentId2 = case ParentId of
-		"null" -> undefined;
+		[] -> undefined;
 		ParentId -> ParentId
 	end,
 
-    Items = model_gallery_item:list(UserId, ParentId2),
+    Items = model_gly_item:list(UserId, ParentId2),
 
     MapFun = fun(Item) ->
     	#gallery_item{id = Item#gly_item.id, 
@@ -72,7 +77,7 @@ out(_Arg, ["item", "preview", ItemId, _Height], _UserId) ->
 
 	%HeightInt = erlang:list_to_integer(Height),
 
-    Item = model_gallery_item:get(ItemId),
+    Item = model_gly_item:get(ItemId),
 
 	case Item#gly_item.type of
 		"album" ->
@@ -109,20 +114,9 @@ out(_Arg, ["item", "preview", ItemId, _Height], _UserId) ->
     		end
 	end;
 
-
 out(Arg, ["item", "upload"], _UserId) ->
-	UploadState = (Arg#arg.state)#arg_state.other,
-	case UploadState of
-		undefined ->
-			State = #upload{},
-    		multipart(Arg, State);
-    	_ ->
-    		multipart(Arg, UploadState)
-    end,
-
-	io:format("~p~n~n", [Arg#arg.state]),
-	{html, ""};
-
+	State = #upload{},
+    multipart(Arg, State);
 
 out(_Arg, _, _) ->
 	{status, 404}.
@@ -136,91 +130,71 @@ gallery_html() ->
 	{redirect_local, "/tools/gallery.html"}.
 
 
-err() ->
-    {ehtml,
-     {p, [], "error"}}.
+error() ->
+    {ehtml, {p, [], "error"}}.
 
 
-multipart(A, State) ->
-	io:format("uploading1~n"),
-    Parse = yaws_api:parse_multipart_post(A),
+multipart(Arg, State) ->
+    Parse = yaws_api:parse_multipart_post(Arg),
     case Parse of
         {cont, Cont, Res} ->
-			io:format("uploading2~n"),
-            case addFileChunk(A, Res, State) of
+            case addFileChunk(Arg, Res, State) of
                 {done, Result} ->
-					io:format("uploading2.1~n"),
                     Result;
                 {cont, NewState} ->
-					io:format("uploading2.2~n"),
                     {get_more, Cont, NewState}
             end;
         {result, Res} ->
-			io:format("uploading3~n"),
-            case addFileChunk(A, Res, State#upload{last=true}) of
+            case addFileChunk(Arg, Res, State#upload{last = true}) of
                 {done, Result} ->
-					io:format("uploading3.1~n"),
                     Result;
                 {cont, _} ->
-					io:format("uploading3.2~n"),
-                    err()
+                    error()
             end;
         {error, _Reason} ->
-			io:format("uploading4~n"),
-            err()
+            error()
     end.
 
 
+addFileChunk(Arg, [{part_body, Data}|Res], State) ->
+    addFileChunk(Arg, [{body, Data}|Res], State);
 
-addFileChunk(A, [{part_body, Data}|Res], State) ->
-    addFileChunk(A, [{body, Data}|Res], State);
-
-addFileChunk(_A, [], State) when State#upload.last==true,
-                                 State#upload.filename /= undefined,
-                                 State#upload.fd /= undefined ->
-
+addFileChunk(_Arg, [], State) when State#upload.last == true,
+                                   State#upload.filename /= undefined,
+                                   State#upload.fd /= undefined ->
     file:close(State#upload.fd),
-    %%file:delete([string:strip(?GALLERY_ORIGINAL_FOLDER, right, $/) ++ "/",State#upload.filename]),
-    Res = {ehtml,
-           {p,[], "File upload done"}},
-    {done, Res};
+    Result = {ehtml, {p,[], "File upload done"}},
+    {done, Result};
 
-addFileChunk(_A, [], State) when State#upload.last==true ->
-    {done, err()};
+addFileChunk(_Arg, [], State) when State#upload.last == true ->
+    {done, error()};
 
-addFileChunk(_A, [], State) ->
+addFileChunk(_Arg, [], State) ->
     {cont, State};
 
-addFileChunk(A, [{head, {_Name, Opts}}|Res], State ) ->
-	io:format("uploading5~n"),
+addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State ) ->
     case lists:keysearch("filename", 1, Opts) of
         {value, {_, Fname0}} ->
             Fname = yaws_api:sanitize_file_name(basename(Fname0)),
-
-            %% we must not put the file in the
-            %% docroot, it may execute uploade code if the
-            %% file is a .yaws file !!!!!
-	    {ok, GalleryOriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-	    file:make_dir(GalleryOriginalDir ++ "/"),
-	    case file:open([GalleryOriginalDir, "/", Fname] ,[write]) of
-		{ok, Fd} ->
-		    S2 = State#upload{filename = Fname,
-				      fd = Fd},
-		    addFileChunk(A, Res, S2);
-		_Err ->
-		    {done, err()}
-	    end;
-	false ->
-            addFileChunk(A,Res,State)
+		    {ok, GalleryOriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+		    file:make_dir(GalleryOriginalDir ++ "/"),
+		    case file:open([GalleryOriginalDir, "/", Fname], [write]) of
+				{ok, Fd} ->
+				    S2 = State#upload{filename = Fname, fd = Fd},
+				    addFileChunk(Arg, Res, S2);
+				_Err ->
+				    {done, error()}
+		    end;
+		false ->
+	        addFileChunk(Arg,Res,State)
     end;
 
-addFileChunk(A, [{body, Data}|Res], State) when State#upload.filename /= undefined ->
-	io:format("uploading6~n"),
+addFileChunk(Arg, [{body, Data} | Res], State) when State#upload.filename /= undefined ->
     case file:write(State#upload.fd, Data) of
         ok ->
-            addFileChunk(A, Res, State);
+            addFileChunk(Arg, Res, State);
         _Err ->
-            {done, err()}
+            {done, error()}
     end.
 
 

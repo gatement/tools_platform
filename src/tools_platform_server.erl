@@ -40,7 +40,8 @@ run() ->
 			    {"/setting/", rest_gbl_setting},
                 {"/monitor/", rest_tool_monitor},
                 {"/word/", rest_tool_word},
-                {"/note/", rest_tool_note}
+                {"/note/", rest_tool_note},
+                {"/gallery/", rest_tool_gallery}
 			   ]}],
 
 

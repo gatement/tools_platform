@@ -41,9 +41,11 @@ body {
 .uploadItemText{
 	color: #FFFFFF;
 	margin-top: -23px;
+	font-size: 12px;
+	padding-top: 4px;
 }
 .uploadItemName{
-	color: #AAA;	
+	color: #555;	
 }
 
 /*== gallery content types ==========================================*/
@@ -194,3 +196,14 @@ body {
 	background-position: -192px -16px;
 }
 
+
+/*== Dialog =================================================*/
+.ui-dialog-title{
+	font-size: 12px;
+}
+.ui-dialog{
+	z-index: 20000;
+}
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button{
+	font-size: 12px;
+}

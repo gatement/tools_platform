@@ -85,7 +85,7 @@ if(!tp)
 
 		upload_items: function()
 		{			
-			$("#fineuploaderDialog").dialog({modal: true, zIndex: 200000, width: 620, minWidth: 620, close: function(event, ui) {me.finish_upload();}});			
+			$("#fineuploaderDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.finish_upload();}});			
 		},
 
 		finish_upload: function()
@@ -144,13 +144,9 @@ if(!tp)
 
 		startUpload: function()
 		{
-			this.uploadRetryTimes = 0;
-
 			if(this.currentUploadIndex < document.getElementById('filesToUpload').files.length)
 			{
-				debugger;
 				this.uploadFile();
-				this.currentUploadIndex ++;
 			}
 			else
 			{
@@ -160,13 +156,12 @@ if(!tp)
 
 		endUpload: function()
 		{
-			debugger;
+			this.uploadRetryTimes = 0;
+			this.currentUploadIndex = 0;
 		},
 
 		uploadFile: function()
 		{
-			debugger;
-
 			var me = this;
 
 		    var fd = new FormData();
@@ -183,7 +178,6 @@ if(!tp)
 
 		uploadProgress: function(evt)
 		{
-			debugger;
 			var percentComplete = 0;
 
 		    if (evt.lengthComputable)
@@ -192,36 +186,44 @@ if(!tp)
 		    }
 
 		    $("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemProgress").css("width", percentComplete.toString() + "%");
-		    $("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemUploadPercentage").innerHTML = percentComplete.toString();
+		    $("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemUploadPercentage").html(percentComplete);
 		},
 
 		uploadComplete: function(evt)
 		{
-			debugger;
-			this.uploadRetryTimes = 0;
+ 			$("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemProgress").css("width", "100%");
+		    $("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemUploadPercentage").html(100);
 		    $("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemProgress").addClass("uploadComplete");
+			this.uploadRetryTimes = 0;
+			this.currentUploadIndex ++;
 		    this.startUpload();	
 		},
 
 		uploadFailed: function(evt)
 		{
-			debugger;
-			if(this.uploadRetryTimes < this.uploadMaxRetryTimes)
+			if(this.uploadRetryTimes < this.uploadMaxRetryTimes - 1)
 			{
+				// retry
 				this.uploadRetryTimes ++;
 				this.uploadFile();
 			}
 			else
 			{
+				// give up and upload next file
 		    	$("#uploadItem" + this.currentUploadIndex.toString() + " .uploadItemProgress").addClass("uploadError");
+
+				this.uploadRetryTimes = 0;
+				this.currentUploadIndex ++;
 		    	this.startUpload();	
 			}
 		},
 
 		uploadCanceled: function(evt)
 		{
-			debugger;
-		    alert("The upload has been canceled by the user or the browser dropped the connection.");
+			if(console.log)
+			{
+		    	console.log("The upload has been canceled by the user or the browser dropped the connection.");
+		    }
 		},
 
 
