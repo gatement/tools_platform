@@ -50,7 +50,11 @@ body {
 
 /*== gallery content types ==========================================*/
 .album{	
-	border: 1px solid #C9ECF8;
+	border: 8px solid #C9ECF8;
+}
+.image{	
+}
+.video{
 }
 
 /*== toolsbar =======================================================*/

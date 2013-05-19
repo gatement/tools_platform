@@ -33,8 +33,7 @@ arg_rewrite(Arg) ->
 								{
 									session_id = SessionId,
 									user_id = UserId, 
-									user_name = UserName,
-									other = Arg#arg.state
+									user_name = UserName
 								}
 							};
 						false ->  {status, 404}
@@ -46,8 +45,7 @@ arg_rewrite(Arg) ->
 						{
 							session_id = SessionId,
 							user_id = UserId, 
-							user_name = UserName,
-							other = Arg#arg.state
+							user_name = UserName
 						}
 					}
 			end

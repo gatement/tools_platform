@@ -264,7 +264,19 @@ if(!tp)
 				{
 					for(var i = 0; i < result.data.length; i++)
 					{
-						$("#itemTemplate").tmpl(result.data[i]).appendTo($galleryContainer);
+						item = result.data[i];
+						switch(item.type)
+						{
+							case "album":
+								$("#albumItemTemplate").tmpl(item).appendTo($galleryContainer);
+								break;
+							case "image":
+								$("#imageItemTemplate").tmpl(item).appendTo($galleryContainer);
+								break;
+							case "video":
+								$("#videoItemTemplate").tmpl(item).appendTo($galleryContainer);
+								break;
+						}
 					}
 
 					$(".album").unbind().click(function(event)
@@ -314,13 +326,13 @@ if(!tp)
 			{
 				$("#upload").hide();
 				$("#shareMgmt").hide();	
-				$("#back").hide();				
+				$("#back").hide();
 			}
 			else
 			{
 				$("#upload").show();
 				$("#shareMgmt").show();	
-				$("#back").show();	
+				$("#back").show();
 			}
 		}
 	});
