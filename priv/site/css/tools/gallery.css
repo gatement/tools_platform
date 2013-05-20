@@ -50,13 +50,20 @@ body {
 
 /*== gallery content types ==========================================*/
 .album{	
-	border: 8px solid #C9ECF8;
+	border: 4px solid #C9ECF8;
 }
 .image{	
 }
 .video{
 }
-
+.albumItem{
+	float: left;
+	margin-bottom: 10px;
+	text-align: center;
+}
+#albumOptions{
+	position: fixed;
+}
 /*== toolsbar =======================================================*/
 .toolsbar {
 	display:inline-block;

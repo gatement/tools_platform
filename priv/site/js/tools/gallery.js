@@ -16,6 +16,7 @@ if(!tp)
 		this.currentUploadIndex = 0;
 		this.uploadMaxRetryTimes = 3;
 		this.uploadRetryTimes = 0;
+		this.albumOptionsTimeout = null;
 
 		$("#logout").click(function(){me.logout()});
 		$("#about").click(function(){me.about()});
@@ -26,6 +27,11 @@ if(!tp)
 
 		$("#filesToUpload").change(function(){me.filesSelected()});
 		$("#startUpload").click(function(){me.startUpload()});
+
+		$("#albumOptions").mouseover(function(event)
+		{
+			window.clearTimeout(this.albumOptionsTimeout);
+		});
 	};
 
 	$.extend(Gallery.prototype, {
@@ -282,6 +288,12 @@ if(!tp)
 					$(".album").unbind().click(function(event)
 					{
 						me.album_click(event);
+					}).mouseover(function(event)
+					{
+						me.album_mouseover(event);
+					}).mouseout(function(event)
+					{
+						me.album_mouseout(event);
 					});
 
 					$(".image").unbind().click(function(event)
@@ -308,6 +320,32 @@ if(!tp)
 		{
 			this.currentAlbumId = $(event.target).attr("data-album-id");
 			this.load_items();
+		},
+
+		album_mouseover: function(event)
+		{
+			$("#albumOptions").show();
+			var offset = $(event.target).offset();
+			$("#albumOptions").offset({left: offset.left, top: offset.top});
+		},
+
+		album_mouseout: function(event)
+		{
+			var $target = $(event.target);			
+			var offset = $target.offset();
+			var width = $target.width();
+			var height = $target.height();
+			var x = event.pageX;
+			var y = event.pageY;
+
+			this.albumOptionsTimeout = window.setTimeout(function(){$("#albumOptions").hide();}, 5);
+			//debugger;
+
+			//console.log("x - y: %o, %o, %o - ", x, offset.left, offset.left + width, y, offset.top, offset.top + height);
+			//console.log("y -top: %o, %o, %o", y, offset.top, height);
+			if((x < offset.left || x > offset.left + width) && (y < offset.top || y > offset.top + height))
+			{
+			}
 		},
 
 		image_click: function(event)

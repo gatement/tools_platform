@@ -36,14 +36,24 @@
 			<div><input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" /><input id="startUpload" type="button" value="Upload Image" /></div>
 	        <div id="uploadItemsContainer"></div>
 		</div>
+
+		<div id="albumOptions" style="display:none;">
+			delete/rename/move
+		</div>
 		
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
-			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
+			<div class="albumItem">
+				<img height="${height}px" src="${thumbnail_url}" data-album-id="${id}" class="${type}" />
+				<br/>
+				<span>${name}</span>
+			</div>
 		</script>
+
 		<script id="imageItemTemplate" type="text/x-jquery-tmpl">
 			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
 		</script>
+
 		<script id="videoItemTemplate" type="text/x-jquery-tmpl">
 			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
 		</script>
