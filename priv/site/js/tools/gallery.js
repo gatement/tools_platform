@@ -16,22 +16,18 @@ if(!tp)
 		this.currentUploadIndex = 0;
 		this.uploadMaxRetryTimes = 3;
 		this.uploadRetryTimes = 0;
-		this.albumOptionsTimeout = null;
 
 		$("#logout").click(function(){me.logout()});
 		$("#about").click(function(){me.about()});
 		$("#homepage").click(function(){me.homepage()});
-		$("#addAlbun").click(function(){me.add_album()});
+		$("#addAlbum").click(function(){me.add_album()});
 		$("#refresh").click(function(){me.load_items()});
 		$("#upload").click(function(){me.upload_items()});
+		$("#selectable").click(function(){me.selectable_click()});
+		$("#unselectable").click(function(){me.unselectable_click()});
 
 		$("#filesToUpload").change(function(){me.filesSelected()});
 		$("#startUpload").click(function(){me.startUpload()});
-
-		$("#albumOptions").mouseover(function(event)
-		{
-			window.clearTimeout(this.albumOptionsTimeout);
-		});
 	};
 
 	$.extend(Gallery.prototype, {
@@ -97,6 +93,21 @@ if(!tp)
 		finish_upload: function()
 		{
 			alert("finish_upload");
+		},
+
+		selectable_click: function()
+		{
+			$("#selectable").hide();
+			$("#unselectable").show();
+			$("#galleryContainer").selectable("destroy");
+			$(".albumItem").removeClass("ui-selected");
+		},
+
+		unselectable_click: function()
+		{
+			$("#unselectable").hide();
+			$("#selectable").show();
+			$("#galleryContainer").selectable();
 		},
 
 		//============ IO ==========================================================================
@@ -288,12 +299,6 @@ if(!tp)
 					$(".album").unbind().click(function(event)
 					{
 						me.album_click(event);
-					}).mouseover(function(event)
-					{
-						me.album_mouseover(event);
-					}).mouseout(function(event)
-					{
-						me.album_mouseout(event);
 					});
 
 					$(".image").unbind().click(function(event)
@@ -318,44 +323,27 @@ if(!tp)
 
 		album_click: function(event)
 		{
-			this.currentAlbumId = $(event.target).attr("data-album-id");
-			this.load_items();
-		},
-
-		album_mouseover: function(event)
-		{
-			$("#albumOptions").show();
-			var offset = $(event.target).offset();
-			$("#albumOptions").offset({left: offset.left, top: offset.top});
-		},
-
-		album_mouseout: function(event)
-		{
-			var $target = $(event.target);			
-			var offset = $target.offset();
-			var width = $target.width();
-			var height = $target.height();
-			var x = event.pageX;
-			var y = event.pageY;
-
-			this.albumOptionsTimeout = window.setTimeout(function(){$("#albumOptions").hide();}, 5);
-			//debugger;
-
-			//console.log("x - y: %o, %o, %o - ", x, offset.left, offset.left + width, y, offset.top, offset.top + height);
-			//console.log("y -top: %o, %o, %o", y, offset.top, height);
-			if((x < offset.left || x > offset.left + width) && (y < offset.top || y > offset.top + height))
+			if($("#unselectable").is(":visible"))
 			{
+				this.currentAlbumId = $(event.target).attr("data-album-id");
+				this.load_items();
 			}
 		},
 
 		image_click: function(event)
 		{
-			alert("image_click");
+			if($("#unselectable").is(":visible"))
+			{
+				alert("image_click");
+			}	
 		},
 
 		video_click: function(event)
 		{
-			alert("video_click");
+			if($("#unselectable").is(":visible"))
+			{
+				alert("video_click");
+			}
 		},
 
 		show_hide_toolbar_buttons: function()

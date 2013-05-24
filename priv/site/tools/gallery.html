@@ -14,12 +14,13 @@
 	<body>
 		<div class="toolsbar">
 			<div id="errormsg"></div>
-			<div id="addAlbun" class="bar_button" title="create an album"></div>
+			<div id="addAlbum" class="bar_button" title="create an album"></div>
 			<div id="logout" class="bar_button" title="logout"></div>
 			<div id="homepage" class="bar_button" title="homepage"></div>
 			<div id="about" class="bar_button" title="about"></div>
 			<div id="refresh" class="bar_button" title="refresh"></div>
-			<div id="selector" class="bar_button" title="select albums"></div>
+			<div id="selectable" class="bar_button" title="disable selection" style="display:none;"></div>
+			<div id="unselectable" class="bar_button" title="enable selection"></div>
 			<div id="zoomin" class="bar_button" title="zoom in"></div>
 			<div id="zoomout" class="bar_button" title="zoom out"></div>
 			<div id="shareMgmt" class="bar_button" title="share management"></div>
@@ -35,12 +36,7 @@
 		<div id="fineuploaderDialog" title="Upload Items" style="display:none;">
 			<div><input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" /><input id="startUpload" type="button" value="Upload Image" /></div>
 	        <div id="uploadItemsContainer"></div>
-		</div>
-
-		<div id="albumOptions" style="display:none;">
-			delete/rename/move
-		</div>
-		
+		</div>		
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
 			<div class="albumItem">
