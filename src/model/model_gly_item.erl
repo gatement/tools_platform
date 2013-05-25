@@ -6,7 +6,9 @@
 		,create_album/2
 		,list/2
 		,rename/3
-		,delete/2]).
+		,delete/2
+		,move/3
+		,get_parent_id/2]).
 
 
 %% ===================================================================
@@ -113,7 +115,40 @@ delete(ItemId, UserId) ->
 			mnesia:transaction(Fun),
 			ok
 	end.
+
+
+move(ItemId, TargetItemId, UserId) ->
+	case ?MODULE:get(ItemId, UserId) of
+		error ->
+			error;
+		Model ->
+			case ?MODULE:get(TargetItemId, UserId) of
+				error ->
+					error;
+				TargetModel ->
+					Model = Model#gly_item{parent_id = TargetModel#gly_item.id},
+
+					Fun = fun() ->
+						mnesia:write(Model)
+					end,
+
+					mnesia:transaction(Fun),
+					ok
+			end
+	end.
 	
+
+get_parent_id(ItemId, UserId) ->
+	case ?MODULE:get(ItemId, UserId) of
+		error ->
+			error;
+		Model ->
+			case Model#gly_item.parent_id of
+				undefined -> "";
+				ParentId -> ParentId
+			end
+	end.
+
 
 %% ===================================================================
 %% Local Functions

@@ -62,9 +62,27 @@ out(Arg, ["item", "delete"], UserId) ->
 	ItemIds0 = proplists:get_value("item_ids", Vals),
 
 	ItemIds = string:tokens(ItemIds0, ","),
-	Results = [model_gly_item:delete(X, UserId) || X <- ItemIds],
-	Fails = [X || X <- Results, X =:= error],
+	Fails = [X || X <- ItemIds, model_gly_item:delete(X, UserId) =:= error],
 	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["item", "move"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemIds0 = proplists:get_value("item_ids", Vals),
+	TargetItemId = proplists:get_value("target_item_id", Vals),
+
+	ItemIds = string:tokens(ItemIds0, ","),
+	Fails = [X || X <- ItemIds, model_gly_item:move(X, TargetItemId, UserId) =:= error],
+	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["item", "parent_id"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemId = proplists:get_value("item_id", Vals),
+
+	ParentId = model_gly_item:get_parent_id(ItemId, UserId),
+
+	Result = [{"success", true}, {"parent_id", ParentId}],
 	{content, "application/json", json2:encode({struct, Result})};
 
 out(Arg, ["item", "list"], UserId) ->
@@ -154,7 +172,9 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
     		end
 	end;
 
-out(Arg, ["item", "upload"], _UserId) ->
+out(Arg, ["item", "upload", AlbumItemId], _UserId) ->
+	io:format("~n~nalbumItemId:~p~n~n", [AlbumItemId]),
+
 	State = #upload{},
     multipart(Arg, State);
 
@@ -166,7 +186,7 @@ out(_Arg, _, _) ->
 %% Local Functions
 %% ===================================================================
 
-gallery_html() ->		
+gallery_html() ->
 	{redirect_local, "/tools/gallery.html"}.
 
 

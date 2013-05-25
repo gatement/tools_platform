@@ -209,3 +209,28 @@ body {
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button{
 	font-size: 12px;
 }
+
+
+/*== shareMgmtDialog =================================================*/
+#shareMgmtDialog{
+}
+#shareMgmtAddContainer{
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+.shareMgmtListItem{
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-top: 1px solid #EEEEEE;
+}
+.shareMgmtButton{
+	border: 1px solid #DDDDDD;
+	height: 23px;
+    width: 50px;
+    cursor: pointer;
+}
+.shareMgmtTextbox{
+    border: 1px solid #DDDDDD;
+    height: 20px;
+    width: 248px;
+}

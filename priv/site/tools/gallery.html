@@ -37,14 +37,34 @@
 
 
 		<div id="fileUploaderDialog" title="Upload Items" style="display:none;">
-			<div><input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" /><input id="startUpload" type="button" value="Upload Image" /></div>
+			<div>
+				<input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" />
+				<input id="startUpload" type="button" value="Upload Image" />
+			</div>
 	        <div id="uploadItemsContainer"></div>
-		</div>	
+		</div>
 
 		<div id="moveItemsDialog" title="Move Items" style="display:none;">
 			<div>
+				treeview (http://www.jstree.com/)
+				<br/>
+				<button id="moveItems">move items</button>
 			</div>
-		</div>		
+		</div>	
+
+		<div id="shareMgmtDialog" title="Album Share" style="display:none;">
+			<div id="shareMgmtAddContainer">
+				<input id="shareMgmtAddTextbox" class="shareMgmtTextbox" type="text" />
+				<select id="shareMgmtAddSelect" class="shareMgmtSelect">
+					<option value="r">readonly</option>
+					<option value="rw">readwrite</option>
+				</select>
+				<input id="shareMgmtAddButton" class="shareMgmtButton" type="button" value="Add" />
+			</div>
+			<div id="shareMgmtList">
+				TODO
+			</div>
+		</div>
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
 			<div class="galleryItem ${type}" data-item-id="${id}">
@@ -65,7 +85,6 @@
 				<img height="${height}px" title="${name}" src="${thumbnail_url}" />
 			</div>
 		</script>
-
 
 		<script id="uploadItemTemplate" type="text/x-jquery-tmpl">
 			<div class="uploadItem" id="uploadItem${id}">

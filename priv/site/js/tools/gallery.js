@@ -9,7 +9,7 @@ if(!tp)
 	{
 		var me = this;
 
-		this.currentAlbumId = null;
+		this.currentAlbumId = "";
 		this.itemHeight = 120;
 		this.errorMsgTimeout = {};
 		this.errorMsgTimeoutVal = 8000;
@@ -30,9 +30,13 @@ if(!tp)
 		$("#delete").click(function(){me.delete_click()});
 		$("#rename").click(function(){me.rename_click()});
 		$("#move").click(function(){me.move_click()});
+		$("#moveItems").click(function(){me.move_items_click()});
+		$("#shareMgmt").click(function(){me.shareMgmt_click()});
+		$("#back").click(function(){me.back_click()});		
 
 		$("#filesToUpload").change(function(){me.filesSelected()});
 		$("#startUpload").click(function(){me.startUpload()});
+		$("#shareMgmtAddButton").click(function(){me.add_album_share()});
 	};
 
 	$.extend(Gallery.prototype, {
@@ -252,7 +256,11 @@ if(!tp)
 				var url = "/gallery/item/move";
 
 				itemIds = itemIds.substr(itemIds, itemIds.length - 1);
-				var data = {item_ids: itemIds};
+
+				// TODO: get it from the selected tree node
+				var targetItemId = -1;
+
+				var data = {item_ids: itemIds, target_item_id: targetItemId};
 
 				var successFunc = function(data)
 				{
@@ -280,6 +288,35 @@ if(!tp)
 
 				this.ajax(url, data, successFunc, errorFunc);
 			}
+		},
+
+		shareMgmt_click: function()
+		{
+			var me = this;
+
+			$("#shareMgmtDialog").dialog({modal: true, width: 620, minWidth: 620});			
+		},
+
+		back_click: function()
+		{
+			var me = this;
+
+			var url = "/gallery/item/parent_id";
+
+			var data = {item_id: this.currentAlbumId};
+
+			var successFunc = function(data)
+			{
+				me.currentAlbumId = data.parent_id;
+				me.load_items();
+			}
+
+			var errorFunc = function()
+			{
+				window.alert("Operation failed!");
+			}
+
+			this.ajax(url, data, successFunc, errorFunc);				
 		},
 
 		//============ IO ==========================================================================
@@ -361,7 +398,7 @@ if(!tp)
 		    xhr.addEventListener("load", function(evt){me.uploadComplete(evt)}, false);
 		    xhr.addEventListener("error", function(evt){me.uploadFailed(evt)}, false);
 		    xhr.addEventListener("abort", function(evt){me.uploadCanceled(evt)}, false);
-		    xhr.open("POST", "/gallery/item/upload");
+		    xhr.open("POST", "/gallery/item/upload/" + this.currentAlbumId);
 		    xhr.send(fd);
 		},
 
@@ -437,11 +474,10 @@ if(!tp)
 			var me = this;
 
 			this.cancelSelectable();
+			this.show_hide_toolbar_buttons();
 
 			var $galleryContainer = $("#galleryContainer");
 			$galleryContainer.empty();
-
-			this.show_hide_toolbar_buttons();
 
 			var url = "/gallery/item/list";
 
@@ -520,7 +556,7 @@ if(!tp)
 
 		show_hide_toolbar_buttons: function()
 		{
-			if(this.currentAlbumId === null)
+			if(this.currentAlbumId === "")
 			{
 				$("#upload").hide();
 				$("#shareMgmt").hide();	
@@ -566,10 +602,16 @@ if(!tp)
 
 				$("#delete").hide();
 				$("#rename").hide();
+				$("#move").hide();
 
 				$("#galleryContainer").selectable("destroy");
 				$(".galleryItem").removeClass("ui-selected");
 			}
+		},
+
+		add_album_share: function() 
+		{
+			//TODO: refer to note.js add_note_share
 		}
 	});
 
