@@ -23,6 +23,9 @@
 			<div id="unselectable" class="bar_button" title="enable selection"></div>
 			<div id="zoomin" class="bar_button" title="zoom in"></div>
 			<div id="zoomout" class="bar_button" title="zoom out"></div>
+			<div id="delete" class="bar_button" title="delete selected items" style="display:none;"></div>
+			<div id="rename" class="bar_button" title="rename selected item" style="display:none;"></div>
+			<div id="move" class="bar_button" title="move selected items" style="display:none;"></div>
 			<div id="shareMgmt" class="bar_button" title="share management"></div>
 			<div id="upload" class="bar_button" title="upload items"></div>
 			<div id="back" class="bar_button" title="back to last album"></div>
@@ -33,25 +36,34 @@
 		<div id="infiniteLoading" style="display: none;"></div>
 
 
-		<div id="fineuploaderDialog" title="Upload Items" style="display:none;">
+		<div id="fileUploaderDialog" title="Upload Items" style="display:none;">
 			<div><input type="file" id="filesToUpload" name="filesToUpload" multiple="multiple" /><input id="startUpload" type="button" value="Upload Image" /></div>
 	        <div id="uploadItemsContainer"></div>
+		</div>	
+
+		<div id="moveItemsDialog" title="Move Items" style="display:none;">
+			<div>
+			</div>
 		</div>		
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
-			<div class="albumItem">
-				<img height="${height}px" src="${thumbnail_url}" data-album-id="${id}" class="${type}" />
+			<div class="galleryItem ${type}" data-item-id="${id}">
+				<img height="${height}px" src="${thumbnail_url}" />
 				<br/>
 				<span>${name}</span>
 			</div>
 		</script>
 
 		<script id="imageItemTemplate" type="text/x-jquery-tmpl">
-			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
+			<div class="galleryItem ${type}" data-item-id="${id}">
+				<img height="${height}px" title="${name}" src="${thumbnail_url}" />
+			</div>
 		</script>
 
 		<script id="videoItemTemplate" type="text/x-jquery-tmpl">
-			<img height="${height}px" src="${thumbnail_url}" title="${name}" data-album-id="${id}" class="${type}" />
+			<div class="galleryItem ${type}" data-item-id="${id}">
+				<img height="${height}px" title="${name}" src="${thumbnail_url}" />
+			</div>
 		</script>
 
 

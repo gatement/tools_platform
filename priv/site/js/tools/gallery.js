@@ -25,6 +25,11 @@ if(!tp)
 		$("#upload").click(function(){me.upload_items()});
 		$("#selectable").click(function(){me.selectable_click()});
 		$("#unselectable").click(function(){me.unselectable_click()});
+		$("#zoomin").click(function(){me.zoomin_click()});
+		$("#zoomout").click(function(){me.zoomout_click()});
+		$("#delete").click(function(){me.delete_click()});
+		$("#rename").click(function(){me.rename_click()});
+		$("#move").click(function(){me.move_click()});
 
 		$("#filesToUpload").change(function(){me.filesSelected()});
 		$("#startUpload").click(function(){me.startUpload()});
@@ -86,8 +91,10 @@ if(!tp)
 		},
 
 		upload_items: function()
-		{			
-			$("#fineuploaderDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.finish_upload();}});			
+		{
+			var me = this;
+
+			$("#fileUploaderDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.finish_upload();}});			
 		},
 
 		finish_upload: function()
@@ -97,17 +104,182 @@ if(!tp)
 
 		selectable_click: function()
 		{
-			$("#selectable").hide();
-			$("#unselectable").show();
-			$("#galleryContainer").selectable("destroy");
-			$(".albumItem").removeClass("ui-selected");
+			this.cancelSelectable();
 		},
 
 		unselectable_click: function()
 		{
+			var me = this;
+
 			$("#unselectable").hide();
 			$("#selectable").show();
-			$("#galleryContainer").selectable();
+			$("#galleryContainer").selectable({
+				selected: function(event, ui) {me.item_selected()},
+				unselected: function(event, ui) {me.item_selected()}
+			});
+		},
+
+		zoomin_click: function()
+		{
+			this.itemHeight = window.parseInt(this.itemHeight * 1.2);
+			this.load_items();
+		},
+
+		zoomout_click: function()
+		{
+			this.itemHeight = window.parseInt(this.itemHeight * 0.8);
+			this.load_items();
+		},
+
+		delete_click: function()
+		{
+			if(window.confirm("Confirm deleting selected items?"))
+			{
+				var me = this;
+
+				var itemIds = "";
+
+				if($(".ui-selected").hasClass("album"))
+				{
+					$(".ui-selected").each(function(index, element)
+					{
+						var itemId = $(element).attr("data-item-id");
+						if(itemId != undefined)
+						{
+							itemIds += itemId + ",";
+						}
+					});
+				}
+
+				if(itemIds.length > 0)
+				{
+					var url = "/gallery/item/delete";
+
+					itemIds = itemIds.substr(itemIds, itemIds.length - 1);
+					var data = {item_ids: itemIds};
+
+					var successFunc = function(data)
+					{
+						var itemIdArray = itemIds.split(",");
+
+						for(var i = 0; i < itemIdArray.length; i++)
+						{
+							var itemId = itemIdArray[i];
+							if(data.failed_ids.indexOf(itemId) == -1)
+							{
+								$(".ui-selected[data-item-id="+itemId+"]").remove();
+							}
+						}
+
+						if(data.failed_ids.length > 0)
+						{
+							window.alert("Some of the albums could not be deleted because of they are not empty!");
+						}
+					}
+
+					var errorFunc = function()
+					{
+						window.alert("Deletion failed!");
+					}
+
+					this.ajax(url, data, successFunc, errorFunc);
+				}
+			}
+		},
+
+		rename_click: function()
+		{
+			var me = this;
+
+			if($(".ui-selected").hasClass("album"))
+			{
+				var itemId = $(".ui-selected").attr("data-item-id");
+				var oldName = $(".ui-selected span").html();
+			}
+
+			var newName = $.trim(window.prompt("Please input a new name", oldName));
+
+			if(newName)
+			{
+				var url = "/gallery/item/rename";
+
+				var data = {item_id: itemId, name: newName};
+
+				var successFunc = function(data)
+				{
+					if(data.success)
+					{
+						$(".ui-selected span").html(newName);
+					}
+				}
+
+				var errorFunc = function()
+				{
+					window.alert("Rename failed!");
+				}
+
+				this.ajax(url, data, successFunc, errorFunc);
+			}
+		},
+
+		move_click: function()
+		{
+			var me = this;
+
+			$("#moveItemsDialog").dialog({modal: true, width: 620, minWidth: 620});			
+		},
+
+		move_items_click: function()
+		{
+			var me = this;
+
+			var itemIds = "";
+
+			if($(".ui-selected").hasClass("album"))
+			{
+				$(".ui-selected").each(function(index, element)
+				{
+					var itemId = $(element).attr("data-item-id");
+					if(itemId != undefined)
+					{
+						itemIds += itemId + ",";
+					}
+				});
+			}
+
+			if(itemIds.length > 0)
+			{
+				var url = "/gallery/item/move";
+
+				itemIds = itemIds.substr(itemIds, itemIds.length - 1);
+				var data = {item_ids: itemIds};
+
+				var successFunc = function(data)
+				{
+					var itemIdArray = itemIds.split(",");
+
+					for(var i = 0; i < itemIdArray.length; i++)
+					{
+						var itemId = itemIdArray[i];
+						if(data.failed_ids.indexOf(itemId) == -1)
+						{
+							$(".ui-selected[data-item-id="+itemId+"]").remove();
+						}
+					}
+
+					if(data.failed_ids.length > 0)
+					{
+						window.alert("Some of the items could not be moveed because you have no permission!");
+					}
+				}
+
+				var errorFunc = function()
+				{
+					window.alert("Movement failed!");
+				}
+
+				this.ajax(url, data, successFunc, errorFunc);
+			}
 		},
 
 		//============ IO ==========================================================================
@@ -243,7 +415,6 @@ if(!tp)
 		    }
 		},
 
-
 		//============ Helpers ======================================================================
 
 		set_error_msg: function(msg, pingTheMsg)
@@ -261,10 +432,11 @@ if(!tp)
 			}
 		},
 
-
 		load_items: function()
 		{
 			var me = this;
+
+			this.cancelSelectable();
 
 			var $galleryContainer = $("#galleryContainer");
 			$galleryContainer.empty();
@@ -325,7 +497,7 @@ if(!tp)
 		{
 			if($("#unselectable").is(":visible"))
 			{
-				this.currentAlbumId = $(event.target).attr("data-album-id");
+				this.currentAlbumId = $(event.target).parent().attr("data-item-id");
 				this.load_items();
 			}
 		},
@@ -335,7 +507,7 @@ if(!tp)
 			if($("#unselectable").is(":visible"))
 			{
 				alert("image_click");
-			}	
+			}
 		},
 
 		video_click: function(event)
@@ -359,6 +531,44 @@ if(!tp)
 				$("#upload").show();
 				$("#shareMgmt").show();	
 				$("#back").show();
+			}
+		},
+
+		item_selected: function()
+		{
+			var selectedCount = $(".ui-selected").size();
+			if(selectedCount == 1)
+			{
+				$("#delete").show();
+				$("#rename").show();
+				$("#move").show();
+			}
+			else if(selectedCount > 1)
+			{
+				$("#delete").show();
+				$("#rename").hide();
+				$("#move").show();
+			}
+			else
+			{
+				$("#delete").hide();
+				$("#rename").hide();
+				$("#move").hide();
+			}
+		},
+
+		cancelSelectable: function()
+		{
+			if($("#selectable").is(":visible"))
+			{
+				$("#selectable").hide();
+				$("#unselectable").show();
+
+				$("#delete").hide();
+				$("#rename").hide();
+
+				$("#galleryContainer").selectable("destroy");
+				$(".galleryItem").removeClass("ui-selected");
 			}
 		}
 	});

@@ -43,6 +43,29 @@ out(Arg, ["album", "add"], UserId) ->
     Result = [{"success", true}],
 	{content, "application/json", json2:encode({struct, Result})};
 
+out(Arg, ["item", "rename"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemId = proplists:get_value("item_id", Vals),
+	ItemName = proplists:get_value("name", Vals),
+
+    Result = case model_gly_item:rename(ItemId, ItemName, UserId) of
+    	error ->
+			[{"success", false}];
+    	ok ->
+    		[{"success", true}]
+    end,
+
+	{content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["item", "delete"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemIds0 = proplists:get_value("item_ids", Vals),
+
+	ItemIds = string:tokens(ItemIds0, ","),
+	Results = [model_gly_item:delete(X, UserId) || X <- ItemIds],
+	Fails = [X || X <- Results, X =:= error],
+	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
+	{content, "application/json", json2:encode({struct, Result})};
 
 out(Arg, ["item", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
@@ -70,32 +93,49 @@ out(Arg, ["item", "list"], UserId) ->
 	{content, "application/json", json2:encode({struct, Result})};
 
 
-out(_Arg, ["item", "preview", ItemId, _Height], _UserId) ->
-	% todo: 
-	% 1. check permission
-	% 2. if Height is 0, return original img
-
-	%HeightInt = erlang:list_to_integer(Height),
-
+out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
+	Height = erlang:list_to_integer(Height0),
     Item = model_gly_item:get(ItemId),
 
 	case Item#gly_item.type of
 		"album" ->
 			case Item#gly_item.path of
 	    		undefined ->
-	    			% todo: resize the defaultAlbumCover.jpg to specific height
+	    			%% orginal path
 	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
 	    			SiteDir = SiteDir0 ++ "/priv/site",
-	    			Original = SiteDir ++ "/css/images/defaultAlbumCover.jpg",
-	    			{ok, Binary} = file:read_file(Original),
-					{content, "image/jpeg", Binary};
-	    			%Thumbnail = string:strip(?GALLERY_THUMBNAIL_FOLDER, right, $/) ++ "/css/images/defaultAlbumCover.jpg",
-	    			%filelib:ensure_dir(Thumbnail);
+	    			OriginalFile = SiteDir ++ "/css/images/galleryDefaultAlbumCover.jpg",
+	    			MimeType = "image/jpeg",
+					FileExtension = filename:extension(OriginalFile),
 
-	    		_Path ->
-	    			% todo: judge if Path exists, if exist, generate thumbnail
-	    			% if doesn't exist, user default album cover
-	    			todo
+	    			%% get thumbnail
+	    			ThumbnailBaseName = filename:basename(OriginalFile, FileExtension),
+					get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId);
+
+	    		Path ->	    			
+	    			%% orginal path
+	    			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+					OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Path]),
+
+					case filelib:is_regular(OriginalFile) of
+						true ->
+							%% get thumbnail
+			    			MimeType = Item#gly_item.mime_type,
+							FileExtension = filename:extension(OriginalFile),
+			    			ThumbnailBaseName = filename:basename(OriginalFile, FileExtension),
+							get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId);
+						false ->
+							%% if path doesn't exist, use the default album cover
+			    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
+			    			SiteDir = SiteDir0 ++ "/priv/site",
+			    			OriginalFile2 = SiteDir ++ "/css/images/galleryDefaultAlbumCover.jpg",
+			    			MimeType = "image/jpeg",
+							FileExtension = filename:extension(OriginalFile2),
+
+			    			%% get thumbnail
+			    			ThumbnailBaseName = filename:basename(OriginalFile2, FileExtension),
+							get_thumbnail(OriginalFile2, ThumbnailBaseName, FileExtension, MimeType, Height, UserId)
+					end	    			
     		end;
     	"image" -> 
     		% todo: 
@@ -106,7 +146,7 @@ out(_Arg, ["item", "preview", ItemId, _Height], _UserId) ->
 			case Item#gly_item.path of
 	    		undefined ->
 	    			% todo: resize the default video image to specific height
-	    			"/css/images/defaultAlbumCover.jpg";
+	    			"/css/images/galleryDefaultAlbumCover.jpg";
 	    		_Path ->
 	    			% todo: judge if Path exists, if exist, generate thumbnail
 	    			% if doesn't exist, user default video cover
@@ -132,6 +172,34 @@ gallery_html() ->
 
 error() ->
     {ehtml, {p, [], "error"}}.
+
+
+get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId) ->	
+	%% thumbnail path
+	{ok, ThumbnailDir0} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
+	ThumbnailDir = io_lib:format("~s/~s/~p", [ThumbnailDir0, UserId, Height]),
+	ThumbnailFile = io_lib:format("~s/~s~s", [ThumbnailDir, ThumbnailBaseName, FileExtension]),
+
+	case Height of
+		0 ->
+			%% return original
+			{ok, Binary} = file:read_file(OriginalFile),
+			{content, MimeType, Binary};
+		_ ->
+			%% generate thumbnail if necessary
+			case filelib:is_regular(ThumbnailFile) of
+				true ->
+					do_nothing;
+				false ->
+					filelib:ensure_dir(ThumbnailFile),
+					{ok, Exe} = application:get_env(tools_platform, imagemagick_exe),
+					imagemagick:convert(Exe, OriginalFile, ThumbnailFile, Height)
+			end,
+
+			%% return thumbnail
+			{ok, Binary} = file:read_file(ThumbnailFile),
+			{content, MimeType, Binary}
+	end.
 
 
 multipart(Arg, State) ->

@@ -58,14 +58,14 @@ body {
 }
 
 /*== gallery content types ==========================================*/
-.album{	
+.album img{	
 	border: 4px solid #C9ECF8;
 }
-.image{	
+.image img{	
 }
-.video{
+.video img{
 }
-.albumItem{
+.galleryItem{
 	float: left;
 	margin-bottom: 10px;
 	text-align: center;
@@ -178,6 +178,24 @@ body {
 }
 #zoomout:hover{
 	background-position: -192px -16px;
+}
+#delete{
+	background-position: -64px 0;
+}
+#delete:hover{
+	background-position: -64px -16px;
+}
+#rename{
+	background-position: -224px 0;
+}
+#rename:hover{
+	background-position: -224px -16px;
+}
+#move{
+	background-position: -240px 0;
+}
+#move:hover{
+	background-position: -240px -16px;
 }
 
 

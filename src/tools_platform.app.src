@@ -8,10 +8,14 @@
   	{port, 8080},
 	  {local_ip, "192.168.1.10"},
   	{parent_dir, "/app/tools_platform"},
+
     {database_backup_dir, "/data/sync/backup/mnesia_db"},
     {database_backup_interval, 86400}, % in seconds
+
     {tool_gallery_original_dir, "/app/tools_platform/priv/upload/original"},
-    {tool_gallery_thumbnail_dir, "/app/tools_platform/priv/upload/thumbnails"}
+    {tool_gallery_thumbnail_dir, "/app/tools_platform/priv/upload/thumbnails"},
+
+    {imagemagick_exe, "C:/dev/ImageMagick-6.8.5-Q16/convert.exe"}
 	]},
   {mod, {tools_platform_app, []}}
  ]}.
