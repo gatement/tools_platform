@@ -23,13 +23,13 @@
 
 
 %% runing records ===========================================
--record(upload, {fd, filename, last}).
+-record(gly_item_upload, {item_id, item_name, album_item_id, mime_type, user_id, path, fd, file_full_name, last}).
 -record(arg_state, {session_id, user_id, user_name}).
 -record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, sport, gallery, monitor}).
 -record(user_autocomplete_item, {label, value}).
 -record(note_category, {id, name, permission, is_default, is_trash, display_order}).
 -record(note_share, {id, category_id, user_id, user_name, share_type}).
--record(gallery_item, {id, name, thumbnail_url, type, height}).
+-record(gallery_item, {id, name, thumbnail_url, original_url, type, height}).
 
 
 %% database tables ===========================================

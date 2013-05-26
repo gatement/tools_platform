@@ -73,12 +73,13 @@ if(!tp)
 			var me = this;
 
 			var albumName = $.trim(window.prompt("Please input the album name", ""));
+			var parentId = this.currentAlbumId;
 				
 			if(albumName)
 			{
 				var url = "/gallery/album/add";
 
-				var data = {album_name: albumName};
+				var data = {album_name: albumName, parent_id: parentId};
 
 				var successFunc = function()
 				{
@@ -98,12 +99,18 @@ if(!tp)
 		{
 			var me = this;
 
-			$("#fileUploaderDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.finish_upload();}});			
+			// empty old upload item list
+		    $("#uploadItemsContainer").empty();
+
+		    // disable upload button
+			$("#startUpload").attr("disabled","disabled");
+
+			$("#fileUploaderDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.close_upload_dialog();}});			
 		},
 
-		finish_upload: function()
+		close_upload_dialog: function()
 		{
-			alert("finish_upload");
+			this.load_items();
 		},
 
 		selectable_click: function()
@@ -345,6 +352,7 @@ if(!tp)
 		//============ upload =======================================================================
 		filesSelected: function() 
 		{
+			$("#startUpload").removeAttr("disabled");
 		    var $uploadItemsContainer = $("#uploadItemsContainer").empty();
 		    var filesToUpload = document.getElementById('filesToUpload');
 
@@ -370,6 +378,9 @@ if(!tp)
 
 		startUpload: function()
 		{
+			// disable upload button
+			$("#startUpload").attr("disabled","disabled");
+
 			if(this.currentUploadIndex < document.getElementById('filesToUpload').files.length)
 			{
 				this.uploadFile();
@@ -384,6 +395,8 @@ if(!tp)
 		{
 			this.uploadRetryTimes = 0;
 			this.currentUploadIndex = 0;
+
+			$("#fileUploaderDialog").dialog("close");
 		},
 
 		uploadFile: function()
@@ -479,6 +492,8 @@ if(!tp)
 			var $galleryContainer = $("#galleryContainer");
 			$galleryContainer.empty();
 
+			$("#infiniteLoading").show();
+
 			var url = "/gallery/item/list";
 
 			var data = {parent_id: this.currentAlbumId, height: this.itemHeight};
@@ -487,9 +502,18 @@ if(!tp)
 			{
 				if(result.success)
 				{
+					var lastItemType = "";
 					for(var i = 0; i < result.data.length; i++)
 					{
 						item = result.data[i];
+
+						// seperate albums and normal items with a <br/>
+						if(lastItemType === "album" && item.type !== "album")
+						{
+							$galleryContainer.append('<br style="clear:both;"/>');
+						}
+						lastItemType = item.type;
+
 						switch(item.type)
 						{
 							case "album":
@@ -518,11 +542,18 @@ if(!tp)
 					{
 						me.video_click(event);
 					});
+
+					$(".galleryItem img").load(function(event){
+						$(event.target).removeAttr("width");
+					});
 				}
+
+				$("#infiniteLoading").hide();
 			}
 
 			var errorFunc = function()
 			{
+				$("#infiniteLoading").hide();
 				window.alert("Load items failed!");
 			}
 
@@ -542,7 +573,12 @@ if(!tp)
 		{
 			if($("#unselectable").is(":visible"))
 			{
-				alert("image_click");
+				var $image = $(event.target);
+				var itemId = $image.parent().attr("data-item-id");
+				var imageUrl = $image.attr('data-url');
+				var windowName = itemId;
+				console.log(windowName);
+				window.open(imageUrl, windowName, "toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no");
 			}
 		},
 
@@ -550,7 +586,7 @@ if(!tp)
 		{
 			if($("#unselectable").is(":visible"))
 			{
-				alert("video_click");
+				alert("image_click");
 			}
 		},
 

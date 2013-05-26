@@ -68,7 +68,7 @@
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
 			<div class="galleryItem ${type}" data-item-id="${id}">
-				<img height="${height}px" src="${thumbnail_url}" />
+				<img height="${height}px" width="${height}px" src="${thumbnail_url}" />
 				<br/>
 				<span>${name}</span>
 			</div>
@@ -76,13 +76,13 @@
 
 		<script id="imageItemTemplate" type="text/x-jquery-tmpl">
 			<div class="galleryItem ${type}" data-item-id="${id}">
-				<img height="${height}px" title="${name}" src="${thumbnail_url}" />
+				<img height="${height}px" width="${height}px" title="${name}" src="${thumbnail_url}" data-url="${original_url}" />
 			</div>
 		</script>
 
 		<script id="videoItemTemplate" type="text/x-jquery-tmpl">
 			<div class="galleryItem ${type}" data-item-id="${id}">
-				<img height="${height}px" title="${name}" src="${thumbnail_url}" />
+				<img height="${height}px" width="${height}px" title="${name}" src="${thumbnail_url}" />
 			</div>
 		</script>
 

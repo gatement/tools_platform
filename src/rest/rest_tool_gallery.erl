@@ -8,7 +8,7 @@
 %% ===================================================================
 
 out(Arg) ->
-	case erlang:is_record(Arg#arg.state, upload) of
+	case erlang:is_record(Arg#arg.state, gly_item_upload) of
 		true ->
 			multipart(Arg, Arg#arg.state);
 		false ->
@@ -37,8 +37,14 @@ out(Arg) ->
 out(Arg, ["album", "add"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
 	AlbumName = proplists:get_value("album_name", Vals),
+	ParentId0 = proplists:get_value("parent_id", Vals),
 
-    model_gly_item:create_album(AlbumName, UserId),
+	ParentId = case ParentId0 of
+		[] -> undefined;
+		_ -> ParentId0
+	end,
+
+    model_gly_item:create_album(AlbumName, ParentId, UserId),
 
     Result = [{"success", true}],
 	{content, "application/json", json2:encode({struct, Result})};
@@ -87,24 +93,23 @@ out(Arg, ["item", "parent_id"], UserId) ->
 
 out(Arg, ["item", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
-	ParentId = proplists:get_value("parent_id", Vals),
+	ParentId0 = proplists:get_value("parent_id", Vals),
 	Height = proplists:get_value("height", Vals),
 
-	ParentId2 = case ParentId of
+	ParentId = case ParentId0 of
 		[] -> undefined;
-		ParentId -> ParentId
+		_ -> ParentId0
 	end,
 
-    Items = model_gly_item:list(UserId, ParentId2),
-
-    MapFun = fun(Item) ->
-    	#gallery_item{id = Item#gly_item.id, 
-					name = Item#gly_item.name, 
-					thumbnail_url = lists:flatten(io_lib:format("/gallery/item/preview/~s/~s", [Item#gly_item.id, Height])),
-					type = Item#gly_item.type,
+    Items = model_gly_item:list(UserId, ParentId, "album", false) ++ model_gly_item:list(UserId, ParentId, "image", true),
+    Items2 = [#gallery_item{
+					id = X#gly_item.id, 
+					name = X#gly_item.name, 
+					thumbnail_url = lists:flatten(io_lib:format("/gallery/item/preview/~s/~s", [X#gly_item.id, Height])),
+					original_url = lists:flatten(io_lib:format("/gallery/item/preview/~s/0", [X#gly_item.id])),
+					type = X#gly_item.type,
 					height = Height}
-	end,
-	Items2 = lists:map(MapFun, Items),
+				|| X <- Items],
 
     ItemList = [{struct, tools:record_to_list(Item, record_info(fields, gallery_item))} || Item <- Items2],
 	Result = [{"success", true}, {"data", {array, ItemList}}],
@@ -121,14 +126,12 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 	    		undefined ->
 	    			%% orginal path
 	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
-	    			SiteDir = SiteDir0 ++ "/priv/site",
-	    			OriginalFile = SiteDir ++ "/css/images/galleryDefaultAlbumCover.jpg",
+	    			OriginalFile = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 	    			MimeType = "image/jpeg",
-					FileExtension = filename:extension(OriginalFile),
 
 	    			%% get thumbnail
-	    			ThumbnailBaseName = filename:basename(OriginalFile, FileExtension),
-					get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId);
+	    			ThumbnailName = filename:basename(OriginalFile),
+					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
 
 	    		Path ->	    			
 	    			%% orginal path
@@ -139,27 +142,40 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 						true ->
 							%% get thumbnail
 			    			MimeType = Item#gly_item.mime_type,
-							FileExtension = filename:extension(OriginalFile),
-			    			ThumbnailBaseName = filename:basename(OriginalFile, FileExtension),
-							get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId);
+			    			ThumbnailName = filename:basename(OriginalFile),
+							get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
 						false ->
 							%% if path doesn't exist, use the default album cover
 			    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
-			    			SiteDir = SiteDir0 ++ "/priv/site",
-			    			OriginalFile2 = SiteDir ++ "/css/images/galleryDefaultAlbumCover.jpg",
+			    			OriginalFile2 = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 			    			MimeType = "image/jpeg",
-							FileExtension = filename:extension(OriginalFile2),
 
 			    			%% get thumbnail
-			    			ThumbnailBaseName = filename:basename(OriginalFile2, FileExtension),
-							get_thumbnail(OriginalFile2, ThumbnailBaseName, FileExtension, MimeType, Height, UserId)
-					end	    			
+			    			ThumbnailName = filename:basename(OriginalFile2),
+							get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height, UserId)
+					end
     		end;
-    	"image" -> 
-    		% todo: 
-    		% 1. if doesn't exist, return a default ERROR image (user should delete such an image)
-    		% 2. resize the image and return the image
-    		todo;
+    	"image" ->
+	    	%% orginal path
+			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+			OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Item#gly_item.path]),
+
+			case filelib:is_regular(OriginalFile) of
+				true ->
+					%% get thumbnail
+	    			MimeType = Item#gly_item.mime_type,
+	    			ThumbnailName = filename:basename(OriginalFile),
+					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
+				false ->
+					%% if path doesn't exist, use the default album cover
+	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
+					OriginalFile2 = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryItemPathDeleted.jpg"]),
+	    			MimeType = "image/jpeg",
+
+	    			%% get thumbnail
+	    			ThumbnailName = filename:basename(OriginalFile2),
+					get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height, UserId)
+			end;
     	"video" -> 
 			case Item#gly_item.path of
 	    		undefined ->
@@ -172,10 +188,10 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
     		end
 	end;
 
-out(Arg, ["item", "upload", AlbumItemId], _UserId) ->
-	io:format("~n~nalbumItemId:~p~n~n", [AlbumItemId]),
-
-	State = #upload{},
+out(Arg, ["item", "upload", AlbumItemId], UserId) ->
+	ItemId = tools:generate_id(UserId),
+	
+	State = #gly_item_upload{item_id = ItemId, album_item_id = AlbumItemId, user_id = UserId},
     multipart(Arg, State);
 
 out(_Arg, _, _) ->
@@ -194,11 +210,11 @@ error() ->
     {ehtml, {p, [], "error"}}.
 
 
-get_thumbnail(OriginalFile, ThumbnailBaseName, FileExtension, MimeType, Height, UserId) ->	
+get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId) ->	
 	%% thumbnail path
 	{ok, ThumbnailDir0} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
 	ThumbnailDir = io_lib:format("~s/~s/~p", [ThumbnailDir0, UserId, Height]),
-	ThumbnailFile = io_lib:format("~s/~s~s", [ThumbnailDir, ThumbnailBaseName, FileExtension]),
+	ThumbnailFile = io_lib:format("~s/~s", [ThumbnailDir, ThumbnailName]),
 
 	case Height of
 		0 ->
@@ -233,7 +249,7 @@ multipart(Arg, State) ->
                     {get_more, Cont, NewState}
             end;
         {result, Res} ->
-            case addFileChunk(Arg, Res, State#upload{last = true}) of
+            case addFileChunk(Arg, Res, State#gly_item_upload{last = true}) of
                 {done, Result} ->
                     Result;
                 {cont, _} ->
@@ -247,29 +263,50 @@ multipart(Arg, State) ->
 addFileChunk(Arg, [{part_body, Data}|Res], State) ->
     addFileChunk(Arg, [{body, Data}|Res], State);
 
-addFileChunk(_Arg, [], State) when State#upload.last == true,
-                                   State#upload.filename /= undefined,
-                                   State#upload.fd /= undefined ->
-    file:close(State#upload.fd),
-    Result = {ehtml, {p,[], "File upload done"}},
+addFileChunk(_Arg, [], State) when State#gly_item_upload.last == true,
+                                   State#gly_item_upload.file_full_name /= undefined,
+                                   State#gly_item_upload.fd /= undefined ->
+    file:close(State#gly_item_upload.fd),
+
+    Type = lists:nth(1, string:tokens(State#gly_item_upload.mime_type, "/")),
+
+    model_gly_item:create_item(#gly_item{
+    		id = State#gly_item_upload.item_id, 
+    		user_id = State#gly_item_upload.user_id, 
+    		parent_id = State#gly_item_upload.album_item_id, 
+    		name = State#gly_item_upload.item_name, 
+    		path = State#gly_item_upload.path, 
+    		type = Type,
+    		mime_type = State#gly_item_upload.mime_type
+    	}),
+
+    Result = {ehtml, {p, [], "File upload done"}},
     {done, Result};
 
-addFileChunk(_Arg, [], State) when State#upload.last == true ->
+addFileChunk(_Arg, [], State) when State#gly_item_upload.last == true ->
     {done, error()};
 
 addFileChunk(_Arg, [], State) ->
     {cont, State};
 
-addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State ) ->
+addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State) ->
     case lists:keysearch("filename", 1, Opts) of
-        {value, {_, Fname0}} ->
-            Fname = yaws_api:sanitize_file_name(basename(Fname0)),
-		    {ok, GalleryOriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-		    file:make_dir(GalleryOriginalDir ++ "/"),
-		    case file:open([GalleryOriginalDir, "/", Fname], [write]) of
+        {value, {_, FileName}} ->
+        	%% generate path
+			FileExtension = filename:extension(FileName),
+			Date = tools:datetime_string('yyyyMMdd'),
+			Path = lists:flatten(io_lib:format("~s/~s~s", [Date, State#gly_item_upload.item_id, FileExtension])),
+
+        	%% generate physical full file name
+			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+        	FileFullName = lists:flatten(io_lib:format("~s/~s/~s", [OriginalDir, State#gly_item_upload.user_id, Path])),
+            filelib:ensure_dir(FileFullName),
+
+		    case file:open(FileFullName, [write]) of
 				{ok, Fd} ->
-				    S2 = State#upload{filename = Fname, fd = Fd},
-				    addFileChunk(Arg, Res, S2);
+        			{value, {content_type, MimeType}} = lists:keysearch(content_type, 1, Opts),
+				    State2 = State#gly_item_upload{item_name = FileName, file_full_name = FileFullName, mime_type = MimeType, path = Path, fd = Fd},
+				    addFileChunk(Arg, Res, State2);
 				_Err ->
 				    {done, error()}
 		    end;
@@ -277,21 +314,10 @@ addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State ) ->
 	        addFileChunk(Arg,Res,State)
     end;
 
-addFileChunk(Arg, [{body, Data} | Res], State) when State#upload.filename /= undefined ->
-    case file:write(State#upload.fd, Data) of
+addFileChunk(Arg, [{body, Data} | Res], State) when State#gly_item_upload.file_full_name /= undefined ->
+    case file:write(State#gly_item_upload.fd, Data) of
         ok ->
             addFileChunk(Arg, Res, State);
         _Err ->
             {done, error()}
-    end.
-
-
-basename(FilePath) ->
-    case string:rchr(FilePath, $\\) of
-        0 ->
-            %% probably not a DOS name
-            filename:basename(FilePath);
-        N ->
-            %% probably a DOS name, remove everything after last \
-            basename(string:substr(FilePath, N+1))
     end.

@@ -2,21 +2,6 @@ body {
 	padding: 0;
 	margin: 3px;
 }
-#galleryContainer img {
-	margin-right: 4px;
-	margin-bottom: 1px;
-    background: url("../images/lazyLoading.gif") no-repeat scroll center center transparent;
-    cursor: pointer;
-}
-
-#galleryContainer .ui-selecting img { 
-	border: 4px solid #FECA40;
-}
-
-#galleryContainer .ui-selected img { 
-	border: 4px solid #F39814;
-}
-
 #infiniteLoading {
     background: url("../images/infiniteLoading.gif") no-repeat scroll center top transparent;
     display: block;
@@ -58,21 +43,43 @@ body {
 }
 
 /*== gallery content types ==========================================*/
-.album img{	
-	border: 4px solid #C9ECF8;
+#galleryContainer .ui-selecting img { 
+	border: 1px dashed #FECA40;
 }
-.image img{	
+#galleryContainer .ui-selected img { 
+	border: 1px dashed #F39814;
 }
-.video img{
+#galleryContainer img {
+    background: url("../images/lazyLoading.gif") no-repeat scroll center center transparent;
+    cursor: pointer;
 }
 .galleryItem{
 	float: left;
-	margin-bottom: 10px;
+}
+.album{
 	text-align: center;
+	margin-bottom: 10px;
+	margin-right: 4px;
 }
-#albumOptions{
-	position: fixed;
+.image{
+	margin-right: 1px;
+	margin-bottom: -3px;
 }
+.video{
+	margin-right: 1px;
+	margin-bottom: -3px;
+}
+.album img{
+	border: 1px solid #C9ECF8;
+}
+.image img{
+	border: 1px solid #FFFFFF;
+}
+.video img{
+	border: 1px solid #FFFFFF;
+}
+
+
 /*== toolsbar =======================================================*/
 .toolsbar {
 	display:inline-block;
