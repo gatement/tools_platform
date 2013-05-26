@@ -326,10 +326,10 @@ if(!tp)
 
 			var data = {};
 
-			var successFunc = function(data)
+			var successFunc = function(response)
 			{
-				me.currentAlbumId = data.parent_id;
-				me.currentAlbumPermission = data.permission;
+				me.currentAlbumId = response.data.parent_id;
+				me.currentAlbumPermission = response.data.permission;
 				me.load_items();
 			}
 
@@ -586,9 +586,9 @@ if(!tp)
 				var url = "/gallery/item/info/" + this.currentAlbumId;
 				var data = {};
 
-				var successFunc = function(data)
+				var successFunc = function(response)
 				{
-					me.currentAlbumPermission = data.permission;
+					me.currentAlbumPermission = response.data.permission;
 					me.load_items();
 				}
 
