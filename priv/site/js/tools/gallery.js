@@ -10,7 +10,7 @@ if(!tp)
 		var me = this;
 
 		this.currentAlbumId = "";
-		this.itemHeight = 120;
+		this.itemHeight = 110;
 		this.errorMsgTimeout = {};
 		this.errorMsgTimeoutVal = 8000;
 		this.currentUploadIndex = 0;
@@ -115,7 +115,7 @@ if(!tp)
 
 		selectable_click: function()
 		{
-			this.cancelSelectable();
+			this.cancel_selectable();
 		},
 
 		unselectable_click: function()
@@ -150,17 +150,14 @@ if(!tp)
 
 				var itemIds = "";
 
-				if($(".ui-selected").hasClass("album"))
+				$(".ui-selected").each(function(index, element)
 				{
-					$(".ui-selected").each(function(index, element)
+					var itemId = $(element).attr("data-item-id");
+					if(itemId != undefined)
 					{
-						var itemId = $(element).attr("data-item-id");
-						if(itemId != undefined)
-						{
-							itemIds += itemId + ",";
-						}
-					});
-				}
+						itemIds += itemId + ",";
+					}
+				});
 
 				if(itemIds.length > 0)
 				{
@@ -186,6 +183,8 @@ if(!tp)
 						{
 							window.alert("Some of the albums could not be deleted because of they are not empty!");
 						}
+
+						me.item_selected();
 					}
 
 					var errorFunc = function()
@@ -202,10 +201,16 @@ if(!tp)
 		{
 			var me = this;
 
+			var itemId = $(".ui-selected").attr("data-item-id");
+
+			var oldName = "";
 			if($(".ui-selected").hasClass("album"))
 			{
-				var itemId = $(".ui-selected").attr("data-item-id");
-				var oldName = $(".ui-selected span").html();
+				oldName = $(".ui-selected span").html();
+			}
+			else
+			{
+				oldName = $(".ui-selected img").attr("title");
 			}
 
 			var newName = $.trim(window.prompt("Please input a new name", oldName));
@@ -220,7 +225,14 @@ if(!tp)
 				{
 					if(data.success)
 					{
-						$(".ui-selected span").html(newName);
+						if($(".ui-selected").hasClass("album"))
+						{
+							$(".ui-selected span").html(newName);
+						}
+						else
+						{
+							$(".ui-selected img").attr("title", newName);
+						}
 					}
 				}
 
@@ -486,7 +498,7 @@ if(!tp)
 		{
 			var me = this;
 
-			this.cancelSelectable();
+			this.cancel_selectable();
 			this.show_hide_toolbar_buttons();
 
 			var $galleryContainer = $("#galleryContainer");
@@ -629,7 +641,7 @@ if(!tp)
 			}
 		},
 
-		cancelSelectable: function()
+		cancel_selectable: function()
 		{
 			if($("#selectable").is(":visible"))
 			{
