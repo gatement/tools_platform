@@ -9,7 +9,8 @@
 		,rename/3
 		,delete/2
 		,move/3
-		,get_parent_id/2]).
+		,get_parent_id/2
+		,get_permission/2]).
 
 
 %% ===================================================================
@@ -174,6 +175,15 @@ get_parent_id(ItemId, UserId) ->
 				undefined -> "";
 				ParentId -> ParentId
 			end
+	end.
+	
+
+get_permission(ItemId, UserId) ->
+	case ?MODULE:get(ItemId, UserId) of
+		error ->
+			model_gly_share:get_permission(ItemId, UserId);
+		_Model ->
+			"owner"
 	end.
 
 

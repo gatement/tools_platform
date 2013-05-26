@@ -10,6 +10,8 @@ if(!tp)
 		var me = this;
 
 		this.currentAlbumId = "";
+		this.currentAlbumPermission = "owner";
+
 		this.itemHeight = 110;
 		this.errorMsgTimeout = {};
 		this.errorMsgTimeoutVal = 8000;
@@ -125,8 +127,8 @@ if(!tp)
 			$("#unselectable").hide();
 			$("#selectable").show();
 			$("#galleryContainer").selectable({
-				selected: function(event, ui) {me.item_selected()},
-				unselected: function(event, ui) {me.item_selected()}
+				selected: function(event, ui) {me.on_item_selected()},
+				unselected: function(event, ui) {me.on_item_selected()}
 			});
 		},
 
@@ -184,7 +186,7 @@ if(!tp)
 							window.alert("Some of the albums could not be deleted because of they are not empty!");
 						}
 
-						me.item_selected();
+						me.on_item_selected();
 					}
 
 					var errorFunc = function()
@@ -320,13 +322,14 @@ if(!tp)
 		{
 			var me = this;
 
-			var url = "/gallery/item/parent_id";
+			var url = "/gallery/item/info/" + this.currentAlbumId;
 
-			var data = {item_id: this.currentAlbumId};
+			var data = {};
 
 			var successFunc = function(data)
 			{
 				me.currentAlbumId = data.parent_id;
+				me.currentAlbumPermission = data.permission;
 				me.load_items();
 			}
 
@@ -335,7 +338,7 @@ if(!tp)
 				window.alert("Operation failed!");
 			}
 
-			this.ajax(url, data, successFunc, errorFunc);				
+			this.ajax(url, data, successFunc, errorFunc);			
 		},
 
 		//============ IO ==========================================================================
@@ -574,10 +577,27 @@ if(!tp)
 
 		album_click: function(event)
 		{
+			var me = this;
+
 			if($("#unselectable").is(":visible"))
 			{
 				this.currentAlbumId = $(event.target).parent().attr("data-item-id");
-				this.load_items();
+
+				var url = "/gallery/item/info/" + this.currentAlbumId;
+				var data = {};
+
+				var successFunc = function(data)
+				{
+					me.currentAlbumPermission = data.permission;
+					me.load_items();
+				}
+
+				var errorFunc = function()
+				{
+					window.alert("Operation failed!");
+				}
+
+				this.ajax(url, data, successFunc, errorFunc);	
 			}
 		},
 
@@ -604,21 +624,36 @@ if(!tp)
 
 		show_hide_toolbar_buttons: function()
 		{
+			// it is in root
 			if(this.currentAlbumId === "")
 			{
 				$("#upload").hide();
-				$("#shareMgmt").hide();	
+				$("#shareMgmt").hide();
 				$("#back").hide();
+				$("#unselectable").show();
 			}
 			else
 			{
-				$("#upload").show();
-				$("#shareMgmt").show();	
+				// my album
+				if(this.currentAlbumPermission === "owner")
+				{
+					$("#upload").show();
+					$("#shareMgmt").show();	
+					$("#unselectable").show();
+				}
+				// in shared album
+				else
+				{
+					$("#upload").hide();
+					$("#shareMgmt").hide();
+					$("#unselectable").hide();
+				}
+
 				$("#back").show();
 			}
 		},
 
-		item_selected: function()
+		on_item_selected: function()
 		{
 			var selectedCount = $(".ui-selected").size();
 			if(selectedCount == 1)

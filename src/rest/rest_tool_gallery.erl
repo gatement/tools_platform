@@ -82,13 +82,16 @@ out(Arg, ["item", "move"], UserId) ->
 	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
 	{content, "application/json", json2:encode({struct, Result})};
 
-out(Arg, ["item", "parent_id"], UserId) -> 
-	Vals = yaws_api:parse_post(Arg),
-	ItemId = proplists:get_value("item_id", Vals),
-
+out(_Arg, ["item", "info", ItemId], UserId) -> 
 	ParentId = model_gly_item:get_parent_id(ItemId, UserId),
+	Permission = model_gly_item:get_permission(ItemId, UserId),
+	Info = #gallery_item_info{
+		id = ItemId, 
+		parent_id = ParentId, 
+		permission = Permission
+	},
 
-	Result = [{"success", true}, {"parent_id", ParentId}],
+	Result = [{"success", true}, {"data", {struct, tools:record_to_list(Info, record_info(fields, gallery_item_info))}}],
 	{content, "application/json", json2:encode({struct, Result})};
 
 out(Arg, ["item", "list"], UserId) ->
@@ -96,12 +99,19 @@ out(Arg, ["item", "list"], UserId) ->
 	ParentId0 = proplists:get_value("parent_id", Vals),
 	Height = proplists:get_value("height", Vals),
 
-	ParentId = case ParentId0 of
-		[] -> undefined;
-		_ -> ParentId0
+	case ParentId0 of
+		[] -> 
+			ParentId = undefined,
+
+			%% if it is in root, also get all albums that shared to me
+			SharedItemIds = model_gly_share:get_item_ids(UserId),
+			SharedItems = [model_gly_item:get(X) || X <- SharedItemIds];
+		_ ->
+			ParentId = ParentId0,
+			SharedItems = []
 	end,
 
-    Items = model_gly_item:list(UserId, ParentId, "album", false) ++ model_gly_item:list(UserId, ParentId, "image", true),
+    Items = model_gly_item:list(UserId, ParentId, "album", false) ++ SharedItems ++ model_gly_item:list(UserId, ParentId, "image", true),
     Items2 = [#gallery_item{
 					id = X#gly_item.id, 
 					name = X#gly_item.name, 
