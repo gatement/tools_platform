@@ -251,7 +251,30 @@ if(!tp)
 		{
 			var me = this;
 
-			$("#moveItemsDialog").dialog({modal: true, width: 620, minWidth: 620});			
+			$("#albumTreeviewContrainer").jstree({
+				"plugins": ["themes","json_data","ui","types"],
+				"json_data": {
+		            "ajax": {
+		                "url" : "/gallery/album/treeview/get_children",
+		                "data" : function (node) {
+		                    return {
+		                        "parent_id" : node.attr ? node.attr("id").replace("node_","") : ""
+		                    };
+		                }
+		            }
+		        }
+			})
+			.bind("select_node.jstree", function (event, data) {
+            	alert(data.rslt.obj.attr("id"));
+        	});
+
+			$("#moveItemsDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.close_moveItem_dialog();}});			
+		},
+
+		close_moveItem_dialog: function()
+		{
+			$("#albumTreeviewContrainer").jstree("destroy");
+			this.load_items();
 		},
 
 		move_items_click: function()

@@ -19,11 +19,11 @@ run() ->
     {ok, Port} = application:get_env(port), 
     {ok, ParentDir} = application:get_env(parent_dir), 
 
-    LogDir = ParentDir ++ "/priv/logs",
-    filelib:ensure_dir(LogDir ++ "/"),
-
     Id = "tools_platform",
     DocRoot = ParentDir ++ "/priv/site",
+    LogDir = ParentDir ++ "/priv/logs",
+
+    filelib:ensure_dir(LogDir ++ "/"),
     
     GconfList = [{id, Id},
                  {logdir, LogDir},
@@ -33,16 +33,16 @@ run() ->
     SconfList = [{port, Port},
                  {listen, {0,0,0,0}},
                  {docroot, DocRoot},
-		 {arg_rewrite_mod, arg_rewriter},
-		 {errormod_404, nofound},
+        		 {arg_rewrite_mod, arg_rewriter},
+        		 {errormod_404, nofound},
                  {appmods, [
-			    {"/user/", rest_usr_user},
-			    {"/setting/", rest_gbl_setting},
-                {"/monitor/", rest_tool_monitor},
-                {"/word/", rest_tool_word},
-                {"/note/", rest_tool_note},
-                {"/gallery/", rest_tool_gallery}
-			   ]}],
+    			    {"/user/", rest_usr_user},
+    			    {"/setting/", rest_gbl_setting},
+                    {"/monitor/", rest_tool_monitor},
+                    {"/word/", rest_tool_word},
+                    {"/note/", rest_tool_note},
+                    {"/gallery/", rest_tool_gallery}
+    			 ]}],
 
 
     {ok, SCList, GC, ChildSpecs} = yaws_api:embedded_start_conf(DocRoot, SconfList, GconfList, Id),
