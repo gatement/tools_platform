@@ -49,6 +49,20 @@ out(Arg, ["album", "add"], UserId) ->
     Result = [{"success", true}],
 	{content, "application/json", json2:encode({struct, Result})};
 
+out(Arg, ["album", "treeview", "children"], UserId) -> 
+	Vals = yaws_api:parse_query(Arg),
+	ParentId0 = proplists:get_value("parent_id", Vals),
+
+	ParentId = case ParentId0 of
+		[] -> undefined;
+		_ -> ParentId0
+	end,
+
+    Albums = model_gly_item:get_by_parentId(ParentId, UserId, "album"),
+    Result = [{struct, [{"data", X#gly_item.name}, {"state", "closed"}, {"attr", {struct, [{"id", X#gly_item.id}]}}]} || X <- Albums],
+
+	{content, "application/json", json2:encode({array, Result})};
+
 out(Arg, ["item", "rename"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
 	ItemId = proplists:get_value("item_id", Vals),

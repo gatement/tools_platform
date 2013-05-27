@@ -12,6 +12,8 @@ if(!tp)
 		this.currentAlbumId = "";
 		this.currentAlbumPermission = "owner";
 
+		this.selectTreeviewNodeId = null;
+
 		this.itemHeight = 110;
 		this.errorMsgTimeout = {};
 		this.errorMsgTimeoutVal = 8000;
@@ -250,22 +252,25 @@ if(!tp)
 		move_click: function()
 		{
 			var me = this;
+			this.selectTreeviewNodeId = null;
+			$("#moveItems").attr("disabled", "disabled");
 
 			$("#albumTreeviewContrainer").jstree({
 				"plugins": ["themes","json_data","ui","types"],
 				"json_data": {
 		            "ajax": {
-		                "url" : "/gallery/album/treeview/get_children",
-		                "data" : function (node) {
+		                "url": "/gallery/album/treeview/children",
+		                "data": function (node) {
 		                    return {
-		                        "parent_id" : node.attr ? node.attr("id").replace("node_","") : ""
+		                        "parent_id": node.attr ? node.attr("id").replace("node_","") : ""
 		                    };
 		                }
 		            }
 		        }
 			})
 			.bind("select_node.jstree", function (event, data) {
-            	alert(data.rslt.obj.attr("id"));
+            	me.selectTreeviewNodeId = data.rslt.obj.attr("id");
+            	$("#moveItems").removeAttr("disabled");
         	});
 
 			$("#moveItemsDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.close_moveItem_dialog();}});			
@@ -274,7 +279,6 @@ if(!tp)
 		close_moveItem_dialog: function()
 		{
 			$("#albumTreeviewContrainer").jstree("destroy");
-			this.load_items();
 		},
 
 		move_items_click: function()
@@ -282,7 +286,6 @@ if(!tp)
 			var me = this;
 
 			var itemIds = "";
-
 			if($(".ui-selected").hasClass("album"))
 			{
 				$(".ui-selected").each(function(index, element)
@@ -295,15 +298,12 @@ if(!tp)
 				});
 			}
 
-			if(itemIds.length > 0)
+			if(itemIds.length > 0 && this.selectTreeviewNodeId != null)
 			{
 				var url = "/gallery/item/move";
 
 				itemIds = itemIds.substr(itemIds, itemIds.length - 1);
-
-				// TODO: get it from the selected tree node
-				var targetItemId = -1;
-
+				var targetItemId = this.selectTreeviewNodeId;
 				var data = {item_ids: itemIds, target_item_id: targetItemId};
 
 				var successFunc = function(data)
@@ -321,8 +321,14 @@ if(!tp)
 
 					if(data.failed_ids.length > 0)
 					{
-						window.alert("Some of the items could not be moveed because you have no permission!");
+						window.alert("Some of the items could not be moved because you have no permission or they are already in the target album or the last root album can not be moved!");
 					}
+					else
+					{
+						$("#moveItemsDialog").dialog("close");
+					}
+
+					me.on_item_selected();
 				}
 
 				var errorFunc = function()

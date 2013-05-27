@@ -1,6 +1,7 @@
 body {
 	padding: 0;
 	margin: 3px;
+	font-size: 12px;
 }
 #infiniteLoading {
     background: url("../images/infiniteLoading.gif") no-repeat scroll center top transparent;

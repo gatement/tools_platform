@@ -10,7 +10,8 @@
 		,delete/2
 		,move/3
 		,get_parent_id/2
-		,get_permission/2]).
+		,get_permission/2
+		,get_by_parentId/3]).
 
 
 %% ===================================================================
@@ -146,22 +147,34 @@ delete(ItemId, UserId) ->
 
 
 move(ItemId, TargetItemId, UserId) ->
+	%% have permission to the moving item
 	case ?MODULE:get(ItemId, UserId) of
 		error ->
 			error;
-		Model ->
+		Model0 ->
+			%% have permission to the target item
 			case ?MODULE:get(TargetItemId, UserId) of
 				error ->
 					error;
-				TargetModel ->
-					Model = Model#gly_item{parent_id = TargetModel#gly_item.id},
-
-					Fun = fun() ->
-						mnesia:write(Model)
-					end,
-
-					mnesia:transaction(Fun),
-					ok
+				_TargetModel ->
+					%% it has already in the target album
+					case Model0#gly_item.parent_id =:= TargetItemId of
+						true ->
+							error;
+						_ ->
+							%% the last root album can not be moved, or there will be no entrance
+							case get_root_album_count(UserId) of
+								1 ->
+									error;
+								_ ->
+									Model = Model0#gly_item{parent_id = TargetItemId},
+									Fun = fun() ->
+										mnesia:write(Model)
+									end,
+									mnesia:transaction(Fun),
+									ok
+							end
+					end
 			end
 	end.
 	
@@ -187,6 +200,18 @@ get_permission(ItemId, UserId) ->
 	end.
 
 
+get_by_parentId(ParentId, UserId, Type) ->
+	Fun = fun() -> 
+			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+					X#gly_item.user_id =:= UserId,
+					X#gly_item.parent_id =:= ParentId,
+					X#gly_item.type =:= Type]))
+	end,
+
+	{atomic, Models} = mnesia:transaction(Fun),
+	Models.
+
+
 %% ===================================================================
 %% Local Functions
 %% ===================================================================
@@ -207,3 +232,14 @@ is_album_empty(ItemId) ->
 		{atomic, []} -> true;
 		{atomic, _Models} -> false
 	end.
+
+get_root_album_count(UserId) ->
+	Fun = fun() -> 
+			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+					X#gly_item.user_id =:= UserId,
+					X#gly_item.type =:= "album",
+					X#gly_item.parent_id =:= undefined]))
+	end,
+
+	{atomic, Models} = mnesia:transaction(Fun),
+	erlang:length(Models).
