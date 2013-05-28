@@ -1,7 +1,8 @@
 -module(model_gly_share).
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
--export([create/1, list/2, get_permission/2, get_item_ids/1, exist/2]).
+-export([create/1, get/1, list/1, delete/2, get_permission/2, 
+	get_item_ids/1, exist/2, is_sharing/1]).
 
 
 %% ===================================================================
@@ -24,15 +25,43 @@ create(Model) ->
 	end.
 
 
-list(ItemId, UserId) ->
+
+get(Id) ->
+	Fun = fun() -> 
+		mnesia:read({gly_share, Id})
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> error;
+		{atomic, [Model]} -> Model
+	end.
+
+
+list(ItemId) ->
 	Fun = fun() -> 
 			qlc:e(qlc:q([X || X <- mnesia:table(gly_share),
-					X#gly_share.item_id =:= ItemId,
-					X#gly_share.user_id =:= UserId]))
+					X#gly_share.item_id =:= ItemId]))
 	end,
 
 	{atomic, Models} = mnesia:transaction(Fun),
 	Models.
+
+
+delete(Id, UserId) ->
+	case ?MODULE:get(Id) of
+		error ->
+			non_exist;
+		Share ->
+			case model_gly_item:get(Share#gly_share.item_id, UserId) of
+                error -> 
+                	error;
+                _ ->
+                	mnesia:transaction(fun() -> 
+						mnesia:delete({gly_share, Id})
+					end),
+					ok
+			end
+	end.
 
 
 get_permission(undefined, _UserId) ->
@@ -49,7 +78,8 @@ get_permission(ItemId, UserId) ->
 		{atomic, []} -> 
 			Item = model_gly_item:get(ItemId),
 			get_permission(Item#gly_item.parent_id, UserId);
-		{atomic, [Model]} -> Model#gly_share.share_type
+		{atomic, [Model]} -> 
+			Model#gly_share.share_type
 	end.
 
 
@@ -69,6 +99,18 @@ exist(UserId, ItemId) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(gly_share), 
 						X#gly_share.user_id =:= UserId, 
+						X#gly_share.item_id =:= ItemId]))
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> false;
+		{atomic, _Models} -> true
+	end.
+
+
+is_sharing(ItemId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(gly_share),
 						X#gly_share.item_id =:= ItemId]))
 	end,
 

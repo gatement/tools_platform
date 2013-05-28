@@ -672,7 +672,7 @@ if(!tp)
 		{
 			if($("#unselectable").is(":visible"))
 			{
-				alert("image_click");
+				window.alert("image_click");
 			}
 		},
 
@@ -687,20 +687,55 @@ if(!tp)
 
 			var successFunc = function(response) 
 			{
-				var $shareMgmtList = $("#shareMgmtList");
-
-				for(var i = 0; i < response.length; i++)
+				if(response.success)
 				{
-					$("#shareMgmtListItemTemplate").tmpl(response[i]).appendTo($shareMgmtList);
-				}
+					var $shareMgmtList = $("#shareMgmtList");
 
-				$(".shareMgmtListItemSaveButton").click(function(event){me.update_note_share(event)});
-				$(".shareMgmtListItemDeleteButton").click(function(event){me.delete_note_share(event)});
+					for(var i = 0; i < response.data.length; i++)
+					{
+						$("#shareMgmtListItemTemplate").tmpl(response.data[i]).appendTo($shareMgmtList);
+					}
+
+					$(".shareMgmtListItemDeleteButton").click(function(event){me.delete_album_share(event)});
+				}
+				else
+				{
+					window.alert(response.data);
+				}
 			};
 
 			var errorFunc = function() 
 			{
-				alert("Load share list failed!");
+				window.alert("Load share list failed!");
+			};
+
+			this.ajax(url, data, successFunc, errorFunc);
+		},
+
+		delete_album_share: function(event) 
+		{
+			var me = this;
+
+			var url = "/gallery/share/delete";
+
+			var shareId = $(event.target).parent().find(".shareMgmtListItemTextbox").attr("data-share-id");
+			var data = {share_id: shareId};
+
+			var successFunc = function(response) 
+			{
+				if(response.success)
+				{
+					me.load_album_shares();
+				}
+				else
+				{
+					window.alert(response.data);
+				}				
+			};
+
+			var errorFunc = function(data) 
+			{
+				window.alert("Delete album share failed!");
 			};
 
 			this.ajax(url, data, successFunc, errorFunc);

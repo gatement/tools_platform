@@ -6,7 +6,7 @@
 		,get/1
 		,get/2
 		,get/3
-		,list/4
+		,list/5
 		,rename/3
 		,delete/2
 		,move/3
@@ -43,7 +43,7 @@ create_album(AlbumName, ParentId, UserId) ->
 	DisplayOrder = tools:epoch_milli_seconds(),
 	Type = "album",
 	Created = erlang:universaltime(),
-
+	
 	Album = #gly_item{id = Id, 
 					parent_id = ParentId,
 					user_id = UserId, 
@@ -78,8 +78,15 @@ get(Id, UserId) ->
 	end,
 
 	case mnesia:transaction(Fun) of
-		{atomic, []} -> error;
-		{atomic, [Item]} -> Item
+		{atomic, []} -> 
+			case model_gly_share:get_permission(Id, UserId) of
+				"deny" ->
+					error;
+				_ ->
+					?MODULE:get(Id)
+			end;
+		{atomic, [Item]} -> 
+			Item
 	end.
 
 
@@ -92,31 +99,55 @@ get(Id, UserId, Type) ->
 	end,
 
 	case mnesia:transaction(Fun) of
-		{atomic, []} -> error;
-		{atomic, [Item]} -> Item
+		{atomic, []} -> 
+			case model_gly_share:get_permission(Id, UserId) of
+				"deny" ->
+					error;
+				_ ->
+					?MODULE:get(Id)
+			end;
+		{atomic, [Item]} -> 
+			Item
 	end.
 
 
-list(UserId, ParentId, Type, OrderAscending) ->	
-	Fun = fun() -> 
-			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
-					X#gly_item.user_id =:= UserId,
-					X#gly_item.type =:= Type,
-					X#gly_item.parent_id =:= ParentId]))
-	end,
+list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
+	case ?MODULE:get(ParentId, UserId) of
+		error ->
+			[];
+		_ ->
+			Fun = fun() -> 
+					qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+							X#gly_item.type =:= Type,
+							X#gly_item.parent_id =:= ParentId]))
+			end,
 
-	{atomic, Items} = mnesia:transaction(Fun),
+			{atomic, Items} = mnesia:transaction(Fun),
 
-	% sort items by display_order desc
-	SortFun = fun(A, B) ->
-		if
-			A#gly_item.display_order < B#gly_item.display_order -> 
-				OrderAscending;
-			true -> 
-				case OrderAscending of true -> false; _ -> true end
-		end
-	end,
-	lists:sort(SortFun, Items).
+			% sort items by display_order desc
+			SortFun = fun(A, B) ->
+				if
+					A#gly_item.display_order < B#gly_item.display_order -> 
+						OrderAscending;
+					true -> 
+						case OrderAscending of true -> false; _ -> true end
+				end
+			end,
+			Items2 = lists:sort(SortFun, Items),
+
+			case ModifyName of
+				false ->
+					Items2;
+				true ->
+					[case model_gly_share:is_sharing(X#gly_item.id) of
+						true ->
+							X#gly_item{name = X#gly_item.name ++ "[s]"};
+						false ->
+							X
+					end
+					|| X <- Items2]
+			end
+	end.
 
 
 rename(ItemId, ItemName, UserId) ->

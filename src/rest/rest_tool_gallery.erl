@@ -67,17 +67,22 @@ out(Arg, ["share", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
 	ItemId = proplists:get_value("item_id", Vals),
 
-    Shares0 = model_gly_share:list(ItemId, UserId),
-    Shares = [#gallery_share{
-    	id = X#gly_share.id, 
-    	item_id = X#gly_share.item_id, 
-    	user_id = X#gly_share.user_id, 
-    	user_name = model_usr_user:get_name(X#gly_share.user_id), 
-    	share_type = X#gly_share.share_type
-    }|| X <- Shares0],
+	Result = case model_gly_item:get(ItemId, UserId) of
+                error -> 
+                	[{"success", false}, {"data", "You don't have permission to this album."}];
+                _ ->
+				    Shares0 = model_gly_share:list(ItemId),
+				    Shares = [#gallery_share{
+				    	id = X#gly_share.id, 
+				    	item_id = X#gly_share.item_id, 
+				    	user_id = X#gly_share.user_id, 
+				    	user_name = model_usr_user:get_name(X#gly_share.user_id), 
+				    	share_type = X#gly_share.share_type
+				    }|| X <- Shares0],
 
-    ShareList = [{struct, tools:record_to_list(Share, record_info(fields, gallery_share))} || Share <- Shares],
-    Result = [{"success", true}, {"data", {array, ShareList}}],
+				    ShareList = [{struct, tools:record_to_list(Share, record_info(fields, gallery_share))} || Share <- Shares],
+				    [{"success", true}, {"data", {array, ShareList}}]
+			end,
 
     {content, "application/json", json2:encode({struct, Result})};
 
@@ -111,6 +116,20 @@ out(Arg, ["share", "add"], UserId) ->
 
     {content, "application/json", json2:encode({struct, Result})};
 
+out(Arg, ["share", "delete"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ShareId = proplists:get_value("share_id", Vals),
+
+	Result = case model_gly_share:delete(ShareId, UserId) of
+                non_exist -> 
+                	[{"success", false}, {"data", "This share won't exist."}];
+        		error -> 
+        			[{"success", false}, {"data", "You don't have permission to share this album."}];
+                ok ->
+                	[{"success", true}, {"data", "ok."}]
+            end,
+
+    {content, "application/json", json2:encode({struct, Result})};
 
 out(Arg, ["item", "rename"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
@@ -187,7 +206,7 @@ out(Arg, ["item", "list"], UserId) ->
 			SharedItems = []
 	end,
 
-    Items = model_gly_item:list(UserId, ParentId, "album", false) ++ SharedItems ++ model_gly_item:list(UserId, ParentId, "image", true),
+    Items = model_gly_item:list(UserId, ParentId, "album", false, true) ++ SharedItems ++ model_gly_item:list(UserId, ParentId, "image", true, false),
     Items2 = [#gallery_item{
 					id = X#gly_item.id, 
 					name = X#gly_item.name, 
@@ -204,7 +223,7 @@ out(Arg, ["item", "list"], UserId) ->
 
 out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 	Height = erlang:list_to_integer(Height0),
-    Item = model_gly_item:get(ItemId),
+    Item = model_gly_item:get(ItemId, UserId),
 
 	case Item#gly_item.type of
 		"album" ->
@@ -217,19 +236,19 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 
 	    			%% get thumbnail
 	    			ThumbnailName = filename:basename(OriginalFile),
-					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
+					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
 
 	    		Path ->
 	    			%% orginal path
 	    			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-					OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Path]),
+					OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
 
 					case filelib:is_regular(OriginalFile) of
 						true ->
 							%% get thumbnail
 			    			MimeType = Item#gly_item.mime_type,
 			    			ThumbnailName = filename:basename(OriginalFile),
-							get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
+							get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
 						false ->
 							%% if path doesn't exist, use the default album cover
 			    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
@@ -238,20 +257,21 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 
 			    			%% get thumbnail
 			    			ThumbnailName = filename:basename(OriginalFile2),
-							get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height, UserId)
+							get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height)
 					end
     		end;
+
     	"image" ->
 	    	%% orginal path
 			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-			OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Item#gly_item.path]),
+			OriginalFile = io_lib:format("~s/~s", [OriginalDir, Item#gly_item.path]),
 
 			case filelib:is_regular(OriginalFile) of
 				true ->
 					%% get thumbnail
 	    			MimeType = Item#gly_item.mime_type,
 	    			ThumbnailName = filename:basename(OriginalFile),
-					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
+					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
 				false ->
 					%% if path doesn't exist, use the default album cover
 	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
@@ -260,8 +280,9 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 
 	    			%% get thumbnail
 	    			ThumbnailName = filename:basename(OriginalFile2),
-					get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height, UserId)
+					get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height)
 			end;
+
     	"video" -> 
 			case Item#gly_item.path of
 	    		undefined ->
@@ -296,18 +317,20 @@ error() ->
     {ehtml, {p, [], "error"}}.
 
 
-get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId) ->	
-	%% thumbnail path
-	{ok, ThumbnailDir0} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
-	ThumbnailDir = io_lib:format("~s/~s/~p", [ThumbnailDir0, UserId, Height]),
-	ThumbnailFile = io_lib:format("~s/~s", [ThumbnailDir, ThumbnailName]),
-
+get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height) ->	
 	case Height of
 		0 ->
 			%% return original
 			{ok, Binary} = file:read_file(OriginalFile),
 			{content, MimeType, Binary};
 		_ ->
+			%% thumbnail path
+			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+			ThumbnailPath = filename:dirname(re:replace(OriginalFile, OriginalDir, "", [global, {return, list}])),
+			{ok, ThumbnailDir0} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
+			ThumbnailDir = io_lib:format("~s/~s/~p", [ThumbnailDir0, ThumbnailPath, Height]),
+			ThumbnailFile = io_lib:format("~s/~s", [ThumbnailDir, ThumbnailName]),
+
 			%% generate thumbnail if necessary
 			case filelib:is_regular(ThumbnailFile) of
 				true ->
@@ -381,11 +404,11 @@ addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State) ->
         	%% generate path
 			FileExtension = filename:extension(FileName),
 			Date = tools:datetime_string('yyyyMMdd'),
-			Path = lists:flatten(io_lib:format("~s/~s~s", [Date, State#gly_item_upload.item_id, FileExtension])),
+			Path = lists:flatten(io_lib:format("~s/~s/~s~s", [State#gly_item_upload.user_id, Date, State#gly_item_upload.item_id, FileExtension])),
 
         	%% generate physical full file name
 			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-        	FileFullName = lists:flatten(io_lib:format("~s/~s/~s", [OriginalDir, State#gly_item_upload.user_id, Path])),
+        	FileFullName = lists:flatten(io_lib:format("~s/~s", [OriginalDir, Path])),
             filelib:ensure_dir(FileFullName),
 
 		    case file:open(FileFullName, [write]) of

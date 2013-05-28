@@ -115,7 +115,7 @@
 		
 		<script id="shareMgmtListItemTemplate" type="text/x-jquery-tmpl">
 			<div class="shareMgmtListItem">
-				<input class="shareMgmtListItemTextbox categoryMgmtTextbox" type="text" value="${user_id}(${user_name})" data-share-id="${id}" data-user-id="${user_id}" readonly="readonly" />
+				<input class="shareMgmtListItemTextbox shareMgmtTextbox" type="text" value="${user_id}(${user_name})" data-share-id="${id}" data-user-id="${user_id}" readonly="readonly" />
 				<select class="shareMgmtSelect">
 					<option value="r" {{if share_type === 'r'}}selected="selected"{{/if}}>readonly</option>
 					<option value="rw" {{if share_type === 'rw'}}selected="selected"{{/if}}>readwrite</option>
