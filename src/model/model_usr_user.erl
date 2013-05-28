@@ -7,7 +7,8 @@
 		exist/1, 
 		exist/2, 
 		get/1, 
-		get/2, 
+		get/2,
+		get_name/1,
 		change_password/2, 
 		change_password/3, 
 		list/3,
@@ -68,6 +69,17 @@ get(Id) ->
 	case mnesia:transaction(Fun) of
 		{atomic, []} -> error;
 		{atomic, [User]} -> User
+	end.
+
+
+get_name(Id) ->
+	Fun = fun() -> 
+		mnesia:read({usr_user, Id})
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> error;
+		{atomic, [User]} -> User#usr_user.name
 	end.
 
 

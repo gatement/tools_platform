@@ -8,7 +8,7 @@
 		delete_by_category_id/1,
 		create/1,
 		update/1, 
-		exit/2, 
+		exist/2, 
 		get_permission_by_category_id/2, 
 		get_permission_by_note_id/2, 
 		category_list/1,
@@ -79,7 +79,7 @@ delete_by_category_id(CategoryId) ->
 	
 
 create(NoteSharing) ->
-	case model_nte_share:exit(NoteSharing#nte_share.user_id, NoteSharing#nte_share.category_id) of
+	case model_nte_share:exist(NoteSharing#nte_share.user_id, NoteSharing#nte_share.category_id) of
 		true -> duplicate;
 		false -> 
 			Fun = fun() ->
@@ -105,7 +105,7 @@ update(NoteSharing) ->
 	end.
 
 
-exit(UserId, CategoryId) ->
+exist(UserId, CategoryId) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(nte_share), 
 						X#nte_share.user_id =:= UserId, 

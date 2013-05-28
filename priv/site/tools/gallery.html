@@ -26,6 +26,7 @@
 			<div id="zoomout" class="bar_button" title="zoom out"></div>
 			<div id="delete" class="bar_button" title="delete selected items" style="display:none;"></div>
 			<div id="rename" class="bar_button" title="rename selected item" style="display:none;"></div>
+			<div id="setAsCover" class="bar_button" title="set selected item as current album cover" style="display:none;"></div>
 			<div id="move" class="bar_button" title="move selected items" style="display:none;"></div>
 			<div id="shareMgmt" class="bar_button" title="share management"></div>
 			<div id="upload" class="bar_button" title="upload items"></div>
@@ -63,9 +64,19 @@
 				<input id="shareMgmtAddButton" class="shareMgmtButton" type="button" value="Add" />
 			</div>
 			<div id="shareMgmtList">
-				TODO
 			</div>
-		</div>
+		</div>		
+		
+		<script id="shareMgmtListItemTemplate" type="text/x-jquery-tmpl">
+			<div class="shareMgmtListItem">
+				<input class="shareMgmtListItemTextbox categoryMgmtTextbox" type="text" value="${user_id}(${user_name})" data-share-id="${id}" data-user-id="${user_id}" readonly="readonly" />
+				<select class="shareMgmtSelect">
+					<option value="r" {{if share_type === 'r'}}selected="selected"{{/if}}>readonly</option>
+				</select>
+				<input class="shareMgmtListItemSaveButton shareMgmtButton" type="button" value="Save" />
+				<input class="shareMgmtListItemDeleteButton shareMgmtButton" type="button" value="Delete" />
+			</div>
+		</script>
 
 		<script id="albumItemTemplate" type="text/x-jquery-tmpl">
 			<div class="galleryItem ${type}" data-item-id="${id}">

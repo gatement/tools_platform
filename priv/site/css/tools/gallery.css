@@ -199,6 +199,12 @@ body {
 #rename:hover{
 	background-position: -224px -16px;
 }
+#setAsCover{
+	background-position: -256px 0;
+}
+#setAsCover:hover{
+	background-position: -256px -16px;
+}
 #move{
 	background-position: -240px 0;
 }

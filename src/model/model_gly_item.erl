@@ -5,13 +5,15 @@
 		,create_album/3
 		,get/1
 		,get/2
+		,get/3
 		,list/4
 		,rename/3
 		,delete/2
 		,move/3
 		,get_parent_id/2
 		,get_permission/2
-		,get_by_parentId/3]).
+		,get_by_parentId/3
+		,set_as_cover/2]).
 
 
 %% ===================================================================
@@ -72,6 +74,20 @@ get(Id, UserId) ->
 	Fun = fun() -> 
 			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
 					X#gly_item.user_id =:= UserId,
+					X#gly_item.id =:= Id]))
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> error;
+		{atomic, [Item]} -> Item
+	end.
+
+
+get(Id, UserId, Type) ->	
+	Fun = fun() -> 
+			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+					X#gly_item.user_id =:= UserId,
+					X#gly_item.type =:= Type,
 					X#gly_item.id =:= Id]))
 	end,
 
@@ -210,6 +226,26 @@ get_by_parentId(ParentId, UserId, Type) ->
 
 	{atomic, Models} = mnesia:transaction(Fun),
 	Models.
+
+
+set_as_cover(ItemId, UserId) ->
+	case ?MODULE:get(ItemId, UserId, "image") of
+		error ->
+			error;
+		Model ->
+			case ?MODULE:get(Model#gly_item.parent_id, UserId, "album") of
+				error ->
+					error;
+				ParentModel0 ->
+					ParentModel = ParentModel0#gly_item{path = Model#gly_item.path, mime_type = Model#gly_item.mime_type},
+					Fun = fun() ->
+						mnesia:write(ParentModel)
+					end,
+					mnesia:transaction(Fun),
+					ok
+			end
+	end.
+
 
 
 %% ===================================================================

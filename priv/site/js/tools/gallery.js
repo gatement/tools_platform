@@ -33,6 +33,7 @@ if(!tp)
 		$("#zoomout").click(function(){me.zoomout_click()});
 		$("#delete").click(function(){me.delete_click()});
 		$("#rename").click(function(){me.rename_click()});
+		$("#setAsCover").click(function(){me.setAsCover_click()});
 		$("#move").click(function(){me.move_click()});
 		$("#moveItems").click(function(){me.move_items_click()});
 		$("#shareMgmt").click(function(){me.shareMgmt_click()});
@@ -170,20 +171,20 @@ if(!tp)
 					itemIds = itemIds.substr(itemIds, itemIds.length - 1);
 					var data = {item_ids: itemIds};
 
-					var successFunc = function(data)
+					var successFunc = function(response)
 					{
 						var itemIdArray = itemIds.split(",");
 
 						for(var i = 0; i < itemIdArray.length; i++)
 						{
 							var itemId = itemIdArray[i];
-							if(data.failed_ids.indexOf(itemId) == -1)
+							if(response.failed_ids.indexOf(itemId) == -1)
 							{
 								$(".ui-selected[data-item-id="+itemId+"]").remove();
 							}
 						}
 
-						if(data.failed_ids.length > 0)
+						if(response.failed_ids.length > 0)
 						{
 							window.alert("Some of the albums could not be deleted because of they are not empty!");
 						}
@@ -225,9 +226,9 @@ if(!tp)
 
 				var data = {item_id: itemId, name: newName};
 
-				var successFunc = function(data)
+				var successFunc = function(response)
 				{
-					if(data.success)
+					if(response.success)
 					{
 						if($(".ui-selected").hasClass("album"))
 						{
@@ -247,6 +248,26 @@ if(!tp)
 
 				this.ajax(url, data, successFunc, errorFunc);
 			}
+		},
+
+		setAsCover_click: function()
+		{
+			var me = this;
+
+			var itemId = $(".ui-selected").attr("data-item-id");			
+			var url = "/gallery/item/setAsCover";
+			var data = {item_id: itemId};
+
+			var successFunc = function(response)
+			{
+			}
+
+			var errorFunc = function()
+			{
+				window.alert("Failed to set as cover!");
+			}
+
+			this.ajax(url, data, successFunc, errorFunc);
 		},
 
 		move_click: function()
@@ -306,20 +327,20 @@ if(!tp)
 				var targetItemId = this.selectTreeviewNodeId;
 				var data = {item_ids: itemIds, target_item_id: targetItemId};
 
-				var successFunc = function(data)
+				var successFunc = function(response)
 				{
 					var itemIdArray = itemIds.split(",");
 
 					for(var i = 0; i < itemIdArray.length; i++)
 					{
 						var itemId = itemIdArray[i];
-						if(data.failed_ids.indexOf(itemId) == -1)
+						if(response.failed_ids.indexOf(itemId) == -1)
 						{
 							$(".ui-selected[data-item-id="+itemId+"]").remove();
 						}
 					}
 
-					if(data.failed_ids.length > 0)
+					if(response.failed_ids.length > 0)
 					{
 						window.alert("Some of the items could not be moved because you have no permission or they are already in the target album or the last root album can not be moved!");
 					}
@@ -342,9 +363,9 @@ if(!tp)
 
 		shareMgmt_click: function()
 		{
-			var me = this;
-
-			$("#shareMgmtDialog").dialog({modal: true, width: 620, minWidth: 620});			
+			this.load_album_shares();
+			$("#shareMgmtDialog").dialog({modal: true, width: 500, minWidth: 500});
+			$("#shareMgmtAddTextbox").focus();
 		},
 
 		back_click: function()
@@ -381,9 +402,9 @@ if(!tp)
 				    url: url,
 				    type: method,
 				    data: data,
-				    success: function (data, textStatus, jqXHR) 
+				    success: function (response, textStatus, jqXHR) 
 		            {
-		            	if(successFunc) successFunc(data);
+		            	if(successFunc) successFunc(response);
 				    },
 				    error: function (jqXHR, textStatus, errorThrown)
 		            {		        
@@ -394,6 +415,7 @@ if(!tp)
 
 
 		//============ upload =======================================================================
+
 		filesSelected: function() 
 		{
 			$("#startUpload").removeAttr("disabled");
@@ -440,7 +462,10 @@ if(!tp)
 			this.uploadRetryTimes = 0;
 			this.currentUploadIndex = 0;
 
-			$("#fileUploaderDialog").dialog("close");
+			if($(".uploadItem .uploadError").size() === 0)
+			{
+				$("#fileUploaderDialog").dialog("close");
+			}
 		},
 
 		uploadFile: function()
@@ -651,6 +676,36 @@ if(!tp)
 			}
 		},
 
+		load_album_shares: function() 
+		{
+			var me = this;
+
+			$("#shareMgmtList").empty();
+
+			var url = "/gallery/share/list";
+			var data = {item_id: this.currentAlbumId};
+
+			var successFunc = function(response) 
+			{
+				var $shareMgmtList = $("#shareMgmtList");
+
+				for(var i = 0; i < response.length; i++)
+				{
+					$("#shareMgmtListItemTemplate").tmpl(response[i]).appendTo($shareMgmtList);
+				}
+
+				$(".shareMgmtListItemSaveButton").click(function(event){me.update_note_share(event)});
+				$(".shareMgmtListItemDeleteButton").click(function(event){me.delete_note_share(event)});
+			};
+
+			var errorFunc = function() 
+			{
+				alert("Load share list failed!");
+			};
+
+			this.ajax(url, data, successFunc, errorFunc);
+		},
+
 		show_hide_toolbar_buttons: function()
 		{
 			// it is in root
@@ -690,17 +745,23 @@ if(!tp)
 				$("#delete").show();
 				$("#rename").show();
 				$("#move").show();
+				if(this.currentAlbumId !== "" && $(".ui-selected").hasClass("image"))
+				{
+					$("#setAsCover").show();
+				}
 			}
 			else if(selectedCount > 1)
 			{
 				$("#delete").show();
 				$("#rename").hide();
+				$("#setAsCover").hide();
 				$("#move").show();
 			}
 			else
 			{
 				$("#delete").hide();
 				$("#rename").hide();
+				$("#setAsCover").hide();
 				$("#move").hide();
 			}
 		},
@@ -723,7 +784,37 @@ if(!tp)
 
 		add_album_share: function() 
 		{
-			//TODO: refer to note.js add_note_share
+			var me = this;
+
+			var sharedUserId = $.trim($("#shareMgmtAddTextbox").val());
+			var albumItemId = this.currentAlbumId;
+			var permission = $("#shareMgmtAddSelect").val();
+
+			if(sharedUserId)
+			{
+				var url = "/gallery/share/add";
+			    var data = {shared_user_id: sharedUserId, item_id: albumItemId, permission: permission};
+
+				var successFunc = function(response) 
+				{
+					if(response.success)
+					{
+						$("#shareMgmtAddTextbox").val("");
+						me.load_album_shares();
+					}
+					else
+					{
+						window.alert(response.data);
+					}
+				};
+
+				var errorFunc = function(response) 
+				{
+					window.alert(response.data);
+				};
+
+				this.ajax(url, data, successFunc, errorFunc);
+		    }
 		}
 	});
 

@@ -63,12 +63,74 @@ out(Arg, ["album", "treeview", "children"], UserId) ->
 
 	{content, "application/json", json2:encode({array, Result})};
 
+out(Arg, ["share", "list"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemId = proplists:get_value("item_id", Vals),
+
+    Shares0 = model_gly_share:list(ItemId, UserId),
+    Shares = [#gallery_share{
+    	id = X#gly_share.id, 
+    	item_id = X#gly_share.item_id, 
+    	user_id = X#gly_share.user_id, 
+    	user_name = model_usr_user:get_name(X#gly_share.user_id), 
+    	share_type = X#gly_share.share_type
+    }|| X <- Shares0],
+
+    ShareList = [{struct, tools:record_to_list(Share, record_info(fields, gallery_share))} || Share <- Shares],
+    Result = [{"success", true}, {"data", {array, ShareList}}],
+
+    {content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["share", "add"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemId = proplists:get_value("item_id", Vals),
+	SharedUserId = proplists:get_value("shared_user_id", Vals),
+	Permission = proplists:get_value("permission", Vals),
+
+	Result = case model_gly_item:get(ItemId, UserId, "album") of
+                error -> 
+                	[{"success", false}, {"data", "You don't have permission to share this album."}];
+                _ ->
+                    case model_usr_user:exist(SharedUserId) of
+                        true ->
+                            if
+                                SharedUserId =:= UserId -> 
+                                    [{"success", false}, {"data", "You can not add share to yourself."}];
+                                true ->
+                                    Share = #gly_share{item_id=ItemId, user_id=SharedUserId, share_type=Permission},
+                                    case model_gly_share:create(Share) of
+                                        error -> [{"success", false}, {"data", "Operation error."}];
+                                        duplicate -> [{"success", false}, {"data", "Share already exists."}];
+                                        ok -> [{"success", true}, {"data", "ok."}]
+                                    end
+                            end;
+
+                        false -> [{"success", false}, {"data", "The user you input doesn't exist."}]
+                    end
+            end,
+
+    {content, "application/json", json2:encode({struct, Result})};
+
+
 out(Arg, ["item", "rename"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
 	ItemId = proplists:get_value("item_id", Vals),
 	ItemName = proplists:get_value("name", Vals),
 
     Result = case model_gly_item:rename(ItemId, ItemName, UserId) of
+    	error ->
+			[{"success", false}];
+    	ok ->
+    		[{"success", true}]
+    end,
+
+	{content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["item", "setAsCover"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemId = proplists:get_value("item_id", Vals),
+
+    Result = case model_gly_item:set_as_cover(ItemId, UserId) of
     	error ->
 			[{"success", false}];
     	ok ->
@@ -157,7 +219,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 	    			ThumbnailName = filename:basename(OriginalFile),
 					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height, UserId);
 
-	    		Path ->	    			
+	    		Path ->
 	    			%% orginal path
 	    			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
 					OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Path]),
