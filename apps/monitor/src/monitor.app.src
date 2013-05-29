@@ -8,10 +8,10 @@
                   stdlib
                  ]},
   {env, [
-    {run_interval, 10}, % in seconds
+    {run_interval, 60}, % in seconds
     {log_file_name, "./log.csv"},
     {rrdtool_exe, "/dev/rrdtool144-bin/rrdtool.exe"},
-    {rrd_file_name, "/app/rrdtool/monitor.rrd"}
+    {rrd_file_name, "/app/tools_platform/priv/data/monitor.rrd"}
   ]},
   {mod, {monitor_app, []}}
  ]}.

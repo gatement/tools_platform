@@ -21,7 +21,7 @@ run() ->
 
     Id = "tools_platform",
     DocRoot = ParentDir ++ "/priv/site",
-    LogDir = ParentDir ++ "/priv/logs",
+    LogDir = ParentDir ++ "/priv/log",
 
     filelib:ensure_dir(LogDir ++ "/"),
     

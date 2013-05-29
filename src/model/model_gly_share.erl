@@ -25,7 +25,6 @@ create(Model) ->
 	end.
 
 
-
 get(Id) ->
 	Fun = fun() -> 
 		mnesia:read({gly_share, Id})
@@ -52,14 +51,15 @@ delete(Id, UserId) ->
 		error ->
 			non_exist;
 		Share ->
-			case model_gly_item:get(Share#gly_share.item_id, UserId) of
-                error -> 
-                	error;
-                _ ->
+			%% only owner can delete it
+			case model_gly_item:get_permission(Share#gly_share.item_id, UserId) of
+                "owner" ->
                 	mnesia:transaction(fun() -> 
 						mnesia:delete({gly_share, Id})
 					end),
-					ok
+					ok;
+                _ -> 
+                	error
 			end
 	end.
 

@@ -67,10 +67,8 @@ out(Arg, ["share", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
 	ItemId = proplists:get_value("item_id", Vals),
 
-	Result = case model_gly_item:get(ItemId, UserId) of
-                error -> 
-                	[{"success", false}, {"data", "You don't have permission to this album."}];
-                _ ->
+	Result = case model_gly_item:get_permission(ItemId, UserId) of
+                "owner" -> 
 				    Shares0 = model_gly_share:list(ItemId),
 				    Shares = [#gallery_share{
 				    	id = X#gly_share.id, 
@@ -81,7 +79,9 @@ out(Arg, ["share", "list"], UserId) ->
 				    }|| X <- Shares0],
 
 				    ShareList = [{struct, tools:record_to_list(Share, record_info(fields, gallery_share))} || Share <- Shares],
-				    [{"success", true}, {"data", {array, ShareList}}]
+				    [{"success", true}, {"data", {array, ShareList}}];
+                _ ->
+                	[{"success", false}, {"data", "You don't have permission to this album."}]
 			end,
 
     {content, "application/json", json2:encode({struct, Result})};
@@ -92,26 +92,31 @@ out(Arg, ["share", "add"], UserId) ->
 	SharedUserId = proplists:get_value("shared_user_id", Vals),
 	Permission = proplists:get_value("permission", Vals),
 
-	Result = case model_gly_item:get(ItemId, UserId, "album") of
-                error -> 
-                	[{"success", false}, {"data", "You don't have permission to share this album."}];
-                _ ->
-                    case model_usr_user:exist(SharedUserId) of
-                        true ->
-                            if
-                                SharedUserId =:= UserId -> 
-                                    [{"success", false}, {"data", "You can not add share to yourself."}];
-                                true ->
-                                    Share = #gly_share{item_id=ItemId, user_id=SharedUserId, share_type=Permission},
-                                    case model_gly_share:create(Share) of
-                                        error -> [{"success", false}, {"data", "Operation error."}];
-                                        duplicate -> [{"success", false}, {"data", "Share already exists."}];
-                                        ok -> [{"success", true}, {"data", "ok."}]
-                                    end
-                            end;
+	Result = case model_gly_item:get_permission(ItemId, UserId) of
+                "owner" ->
+                	case model_gly_item:get_type(ItemId) of
+                		"album" ->
+		                    case model_usr_user:exist(SharedUserId) of
+		                        true ->
+		                            if
+		                                SharedUserId =:= UserId -> 
+		                                    [{"success", false}, {"data", "You can not add share to yourself."}];
+		                                true ->
+		                                    Share = #gly_share{item_id=ItemId, user_id=SharedUserId, share_type=Permission},
+		                                    case model_gly_share:create(Share) of
+		                                        error -> [{"success", false}, {"data", "Operation error."}];
+		                                        duplicate -> [{"success", false}, {"data", "Share already exists."}];
+		                                        ok -> [{"success", true}, {"data", "ok."}]
+		                                    end
+		                            end;
 
-                        false -> [{"success", false}, {"data", "The user you input doesn't exist."}]
-                    end
+		                        false -> [{"success", false}, {"data", "The user you input doesn't exist."}]
+		                    end;
+		                _ ->
+		                	[{"success", false}, {"data", "Only album can be shared!"}]
+		            end;
+                _ ->
+                	[{"success", false}, {"data", "You don't have permission to share this album."}]
             end,
 
     {content, "application/json", json2:encode({struct, Result})};
@@ -174,6 +179,16 @@ out(Arg, ["item", "move"], UserId) ->
 
 	ItemIds = string:tokens(ItemIds0, ","),
 	Fails = [X || X <- ItemIds, model_gly_item:move(X, TargetItemId, UserId) =:= error],
+	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+out(Arg, ["item", "copy"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ItemIds0 = proplists:get_value("item_ids", Vals),
+	TargetItemId = proplists:get_value("target_item_id", Vals),
+
+	ItemIds = string:tokens(ItemIds0, ","),
+	Fails = [X || X <- ItemIds, model_gly_item:copy(X, TargetItemId, UserId) =:= error],
 	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
 	{content, "application/json", json2:encode({struct, Result})};
 

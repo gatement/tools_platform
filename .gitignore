@@ -3,11 +3,10 @@
 *.beam
 *.plt
 *.*~
-log.csv
 ebin
 deps
 local.config
-logs
 rrdtool_img
-data
-upload
+priv/log
+priv/data
+priv/upload

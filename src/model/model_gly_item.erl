@@ -6,12 +6,14 @@
 		,get/1
 		,get/2
 		,get/3
+		,get_type/1
+		,get_permission/2
 		,list/5
 		,rename/3
 		,delete/2
 		,move/3
+		,copy/3
 		,get_parent_id/2
-		,get_permission/2
 		,get_by_parentId/3
 		,set_as_cover/2]).
 
@@ -70,6 +72,7 @@ get(Id) ->
 	end.
 
 
+%% only have permission can get
 get(Id, UserId) ->	
 	Fun = fun() -> 
 			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
@@ -90,6 +93,7 @@ get(Id, UserId) ->
 	end.
 
 
+%% only have permission can get
 get(Id, UserId, Type) ->	
 	Fun = fun() -> 
 			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
@@ -111,6 +115,32 @@ get(Id, UserId, Type) ->
 	end.
 
 
+get_type(Id) ->
+	Fun = fun() -> 
+		mnesia:read({gly_item, Id})
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> error;
+		{atomic, [Item]} -> Item#gly_item.type
+	end.
+
+
+get_permission(ItemId, UserId) ->
+	Fun = fun() -> 
+			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+					X#gly_item.user_id =:= UserId,
+					X#gly_item.id =:= ItemId]))
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> 
+			model_gly_share:get_permission(ItemId, UserId);
+		{atomic, [_Model]} -> 
+			"owner"
+	end.
+
+
 list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
 	Items = case ParentId of 
 		undefined ->
@@ -118,15 +148,15 @@ list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
 					qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
 							X#gly_item.user_id =:= UserId,
 							X#gly_item.type =:= Type,
-							X#gly_item.parent_id =:= ParentId]))
+							X#gly_item.parent_id =:= undefined]))
 			end,
 
 			{atomic, Items0} = mnesia:transaction(Fun),
 			Items0;
 		_ ->
 			%% check permission
-			case ?MODULE:get(ParentId, UserId) of
-				error -> 
+			case ?MODULE:get_permission(ParentId, UserId) of
+				"deny" -> 
 					[];
 				_ -> 
 					Fun = fun() -> 
@@ -166,10 +196,10 @@ list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
 
 
 rename(ItemId, ItemName, UserId) ->
-	case ?MODULE:get(ItemId, UserId) of
-		error ->
-			error;
-		Model0 ->
+	%% only owner can do rename
+	case ?MODULE:get_permission(ItemId, UserId) of
+		"owner" ->
+			Model0 = ?MODULE:get(ItemId),
 			Model = Model0#gly_item{name = ItemName},
 
 			Fun = fun() ->
@@ -177,15 +207,16 @@ rename(ItemId, ItemName, UserId) ->
 			end,
 
 			mnesia:transaction(Fun),
-			ok
+			ok;
+		_ ->
+			error
 	end.
 
 
 delete(ItemId, UserId) ->
-	case ?MODULE:get(ItemId, UserId) of
-		error ->
-			error;
-		Model ->
+	case ?MODULE:get_permission(ItemId, UserId) of
+		"owner" ->
+			Model = ?MODULE:get(ItemId),
 			case Model#gly_item.type of
 				"album" ->
 					case is_album_empty(ItemId) of
@@ -204,21 +235,20 @@ delete(ItemId, UserId) ->
 					mnesia:transaction(fun() -> 
 						mnesia:delete({gly_item, ItemId})
 					end)
-			end
+			end;
+		_ ->
+			error
 	end.
 
 
 move(ItemId, TargetItemId, UserId) ->
-	%% have permission to the moving item
-	case ?MODULE:get(ItemId, UserId) of
-		error ->
-			error;
-		Model0 ->
+	%% only owner can move item
+	case ?MODULE:get_permission(ItemId, UserId) of
+		"owner" ->
 			%% have permission to the target item
-			case ?MODULE:get(TargetItemId, UserId) of
-				error ->
-					error;
-				_TargetModel ->
+			case ?MODULE:get_permission(TargetItemId, UserId) of
+				"owner" ->
+					Model0 = ?MODULE:get(ItemId),
 					%% it has already in the target album
 					case Model0#gly_item.parent_id =:= TargetItemId of
 						true ->
@@ -236,12 +266,63 @@ move(ItemId, TargetItemId, UserId) ->
 									mnesia:transaction(Fun),
 									ok
 							end
-					end
-			end
+					end;
+				_ ->
+					error
+			end;
+		_ ->
+			error
+	end.
+
+
+copy(ItemId, TargetItemId, UserId) ->
+	%% only owner can copy item
+	case ?MODULE:get_permission(ItemId, UserId) of
+		"owner" ->
+			%% have permission to the target item
+			case ?MODULE:get(TargetItemId, UserId) of
+				"owner" ->
+					Model0 = ?MODULE:get(ItemId),
+					%% it has already in the target album
+					case Model0#gly_item.parent_id =:= TargetItemId of
+						true ->
+							error;
+						_ ->
+							%% copy file
+							Id2 = tools:generate_id(UserId),
+							Path = Model0#gly_item.path,
+
+							{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+				        	FileFullName = lists:flatten(io_lib:format("~s/~s", [OriginalDir, Path])),
+
+				        	Path2 = re:replace(Path, ItemId, Id2, [global, {return, list}]),
+				        	FileFullName2 = re:replace(FileFullName, ItemId, Id2, [global, {return, list}]),
+
+				        	file:copy(FileFullName, FileFullName2),
+
+				        	%% create item record
+					    	?MODULE:create_item(#gly_item{
+					    		id = Id2, 
+					    		user_id = UserId, 
+					    		parent_id = TargetItemId, 
+					    		name = Model0#gly_item.name, 
+					    		path = Path2, 
+					    		type = Model0#gly_item.type,
+					    		mime_type = Model0#gly_item.mime_type
+					    	}),
+
+							ok
+					end;
+				_ ->
+					error
+			end;
+		_ ->
+			error
 	end.
 	
 
 get_parent_id(ItemId, UserId) ->
+	%% have permission to get
 	case ?MODULE:get(ItemId, UserId) of
 		error ->
 			error;
@@ -250,21 +331,6 @@ get_parent_id(ItemId, UserId) ->
 				undefined -> "";
 				ParentId -> ParentId
 			end
-	end.
-	
-
-get_permission(ItemId, UserId) ->
-	Fun = fun() -> 
-			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
-					X#gly_item.user_id =:= UserId,
-					X#gly_item.id =:= ItemId]))
-	end,
-
-	case mnesia:transaction(Fun) of
-		{atomic, []} -> 
-			model_gly_share:get_permission(ItemId, UserId);
-		{atomic, [_Model]} -> 
-			"owner"
 	end.
 
 
@@ -285,16 +351,17 @@ set_as_cover(ItemId, UserId) ->
 		error ->
 			error;
 		Model ->
-			case ?MODULE:get(Model#gly_item.parent_id, UserId, "album") of
-				error ->
-					error;
-				ParentModel0 ->
+			case ?MODULE:get_permission(Model#gly_item.parent_id, UserId) of
+				"owner" ->
+					ParentModel0 = ?MODULE:get(Model#gly_item.parent_id, UserId, "album"),
 					ParentModel = ParentModel0#gly_item{path = Model#gly_item.path, mime_type = Model#gly_item.mime_type},
 					Fun = fun() ->
 						mnesia:write(ParentModel)
 					end,
 					mnesia:transaction(Fun),
-					ok
+					ok;
+				_ ->
+					error
 			end
 	end.
 
@@ -320,6 +387,7 @@ is_album_empty(ItemId) ->
 		{atomic, []} -> true;
 		{atomic, _Models} -> false
 	end.
+
 
 get_root_album_count(UserId) ->
 	Fun = fun() -> 

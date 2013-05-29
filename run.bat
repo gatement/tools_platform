@@ -1,1 +1,1 @@
-erl -pa c:/app/tools_platform/ebin c:/app/tools_platform/apps/monitor/ebin c:/app/tools_platform/apps/cleaner/ebin  C:/dev/Yaws/ebin -config local -s tools_platform
+erl -config local -pa c:/app/tools_platform/ebin c:/app/tools_platform/apps/monitor/ebin c:/app/tools_platform/apps/cleaner/ebin C:/dev/Yaws/ebin -s tools_platform

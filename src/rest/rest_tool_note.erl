@@ -254,9 +254,7 @@ out(Arg, ["note", "delete"], UserId) ->
 				            end;
                 		_ ->
                 			[{"success", true}, {"data", "ok."}]
-                	end
-
-				                  
+                	end				                  
             end,
 
     {content, "application/json", json2:encode({struct, Result})};
@@ -623,7 +621,21 @@ out(Arg, ["deleteNotes"], UserId) ->
 		case model_nte_share:get_permission_by_note_id(UserId, NoteId) of
 			none -> no_permission;
 			r -> no_permission;
-			_ -> model_nte_note:delete(NoteId)
+			_ -> 
+            	case model_nte_note:get(NoteId) of
+            		#nte_note{category_id = CategoryId} ->
+            			#nte_category{attributes = Attributes} = model_nte_category:get(CategoryId),
+            			case lists:member(trash, Attributes) of
+            				true ->
+            					%% delete it
+								model_nte_note:delete(NoteId);
+			                _ ->
+			                	%% move to trash category
+			                	model_nte_note:move_note_to_trash(NoteId, UserId)
+			            end;
+            		_ ->
+            			already_deleted
+            	end
 		end
 	end,
 
