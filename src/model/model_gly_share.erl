@@ -75,10 +75,10 @@ get_permission(ItemId, UserId) ->
 	end,
 
 	case mnesia:transaction(Fun) of
-		{atomic, []} -> 
+		{atomic, []} ->
 			Item = model_gly_item:get(ItemId),
 			get_permission(Item#gly_item.parent_id, UserId);
-		{atomic, [Model]} -> 
+		{atomic, [Model]} ->
 			Model#gly_share.share_type
 	end.
 

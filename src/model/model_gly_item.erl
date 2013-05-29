@@ -112,41 +112,56 @@ get(Id, UserId, Type) ->
 
 
 list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
-	case ?MODULE:get(ParentId, UserId) of
-		error ->
-			[];
-		_ ->
+	Items = case ParentId of 
+		undefined ->
 			Fun = fun() -> 
 					qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+							X#gly_item.user_id =:= UserId,
 							X#gly_item.type =:= Type,
 							X#gly_item.parent_id =:= ParentId]))
 			end,
 
-			{atomic, Items} = mnesia:transaction(Fun),
+			{atomic, Items0} = mnesia:transaction(Fun),
+			Items0;
+		_ ->
+			%% check permission
+			case ?MODULE:get(ParentId, UserId) of
+				error -> 
+					[];
+				_ -> 
+					Fun = fun() -> 
+							qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+									X#gly_item.type =:= Type,
+									X#gly_item.parent_id =:= ParentId]))
+					end,
 
-			% sort items by display_order desc
-			SortFun = fun(A, B) ->
-				if
-					A#gly_item.display_order < B#gly_item.display_order -> 
-						OrderAscending;
-					true -> 
-						case OrderAscending of true -> false; _ -> true end
-				end
-			end,
-			Items2 = lists:sort(SortFun, Items),
-
-			case ModifyName of
-				false ->
-					Items2;
-				true ->
-					[case model_gly_share:is_sharing(X#gly_item.id) of
-						true ->
-							X#gly_item{name = X#gly_item.name ++ "[s]"};
-						false ->
-							X
-					end
-					|| X <- Items2]
+					{atomic, Items0} = mnesia:transaction(Fun),
+					Items0
 			end
+	end,
+
+	% sort items by display_order desc
+	SortFun = fun(A, B) ->
+		if
+			A#gly_item.display_order < B#gly_item.display_order -> 
+				OrderAscending;
+			true -> 
+				case OrderAscending of true -> false; _ -> true end
+		end
+	end,
+	Items2 = lists:sort(SortFun, Items),
+
+	case ModifyName of
+		false ->
+			Items2;
+		true ->
+			[case model_gly_share:is_sharing(X#gly_item.id) of
+				true ->
+					X#gly_item{name = X#gly_item.name ++ "[s]"};
+				false ->
+					X
+			end
+			|| X <- Items2]
 	end.
 
 
@@ -239,10 +254,16 @@ get_parent_id(ItemId, UserId) ->
 	
 
 get_permission(ItemId, UserId) ->
-	case ?MODULE:get(ItemId, UserId) of
-		error ->
+	Fun = fun() -> 
+			qlc:e(qlc:q([X || X <- mnesia:table(gly_item),
+					X#gly_item.user_id =:= UserId,
+					X#gly_item.id =:= ItemId]))
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, []} -> 
 			model_gly_share:get_permission(ItemId, UserId);
-		_Model ->
+		{atomic, [_Model]} -> 
 			"owner"
 	end.
 

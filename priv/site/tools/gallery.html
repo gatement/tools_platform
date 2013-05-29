@@ -52,13 +52,14 @@
 				<div id="albumTreeviewContrainer"></div>
 				<br/>
 				<button id="moveItems">move items</button>
+				<button id="copyItems">copy items</button>
 			</div>
 		</div>	
 
 		<div id="shareMgmtDialog" title="Album Share" style="display:none;">
 			<div id="shareMgmtAddContainer">
 				<input id="shareMgmtAddTextbox" class="shareMgmtTextbox" type="text" />
-				<select id="shareMgmtAddSelect" class="shareMgmtSelect">
+				<select id="shareMgmtAddSelect" class="shareMgmtSelect" style="display:none;">
 					<option value="r">readonly</option>
 				</select>
 				<input id="shareMgmtAddButton" class="shareMgmtButton" type="button" value="Add" />
@@ -70,7 +71,7 @@
 		<script id="shareMgmtListItemTemplate" type="text/x-jquery-tmpl">
 			<div class="shareMgmtListItem">
 				<input class="shareMgmtListItemTextbox shareMgmtTextbox" type="text" value="${user_id}(${user_name})" data-share-id="${id}" data-user-id="${user_id}" readonly="readonly" />
-				<select class="shareMgmtSelect">
+				<select class="shareMgmtSelect" style="display:none;">
 					<option value="r" {{if share_type === 'r'}}selected="selected"{{/if}}>readonly</option>
 				</select>
 				<input class="shareMgmtListItemDeleteButton shareMgmtButton" type="button" value="Delete" />

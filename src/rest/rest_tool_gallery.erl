@@ -200,7 +200,8 @@ out(Arg, ["item", "list"], UserId) ->
 
 			%% if it is in root, also get all albums that shared to me
 			SharedItemIds = model_gly_share:get_item_ids(UserId),
-			SharedItems = [model_gly_item:get(X) || X <- SharedItemIds];
+			SharedItems0 = [model_gly_item:get(X) || X <- SharedItemIds],
+			SharedItems = [X#gly_item{name = X#gly_item.name ++ "[" ++ X#gly_item.user_id ++ "]" } || X <- SharedItems0];
 		_ ->
 			ParentId = ParentId0,
 			SharedItems = []
@@ -230,34 +231,27 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 			case Item#gly_item.path of
 	    		undefined ->
 	    			%% orginal path
-	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
-	    			OriginalFile = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
+	    			{ok, OriginalDir} = application:get_env(tools_platform, parent_dir),
+	    			OriginalPath = io_lib:format("~s/~s", ["priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 	    			MimeType = "image/jpeg",
-
-	    			%% get thumbnail
-	    			ThumbnailName = filename:basename(OriginalFile),
-					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
+					get_thumbnail(OriginalDir, OriginalPath, MimeType, Height);
 
 	    		Path ->
 	    			%% orginal path
 	    			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-					OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
-
+	    			OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
+					
 					case filelib:is_regular(OriginalFile) of
 						true ->
 							%% get thumbnail
 			    			MimeType = Item#gly_item.mime_type,
-			    			ThumbnailName = filename:basename(OriginalFile),
-							get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
+							get_thumbnail(OriginalDir, Path, MimeType, Height);
 						false ->
 							%% if path doesn't exist, use the default album cover
-			    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
-			    			OriginalFile2 = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
+			    			{ok, OriginalDir} = application:get_env(tools_platform, parent_dir),
+			    			OriginalPath = io_lib:format("~s/~s", ["priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 			    			MimeType = "image/jpeg",
-
-			    			%% get thumbnail
-			    			ThumbnailName = filename:basename(OriginalFile2),
-							get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height)
+							get_thumbnail(OriginalDir, OriginalPath, MimeType, Height)
 					end
     		end;
 
@@ -270,17 +264,13 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 				true ->
 					%% get thumbnail
 	    			MimeType = Item#gly_item.mime_type,
-	    			ThumbnailName = filename:basename(OriginalFile),
-					get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height);
+					get_thumbnail(OriginalDir, Item#gly_item.path, MimeType, Height);
 				false ->
 					%% if path doesn't exist, use the default album cover
-	    			{ok, SiteDir0} = application:get_env(tools_platform, parent_dir),
-					OriginalFile2 = io_lib:format("~s/~s/~s", [SiteDir0, "priv/site", "css/images/galleryItemPathDeleted.jpg"]),
+	    			{ok, OriginalDir2} = application:get_env(tools_platform, parent_dir),
+					OriginalPath = io_lib:format("~s/~s", ["priv/site", "css/images/galleryItemPathDeleted.jpg"]),
 	    			MimeType = "image/jpeg",
-
-	    			%% get thumbnail
-	    			ThumbnailName = filename:basename(OriginalFile2),
-					get_thumbnail(OriginalFile2, ThumbnailName, MimeType, Height)
+					get_thumbnail(OriginalDir2, OriginalPath, MimeType, Height)
 			end;
 
     	"video" -> 
@@ -317,7 +307,8 @@ error() ->
     {ehtml, {p, [], "error"}}.
 
 
-get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height) ->	
+get_thumbnail(OriginalDir, OriginalPath, MimeType, Height) ->
+	OriginalFile = io_lib:format("~s/~s", [OriginalDir, OriginalPath]),
 	case Height of
 		0 ->
 			%% return original
@@ -325,11 +316,8 @@ get_thumbnail(OriginalFile, ThumbnailName, MimeType, Height) ->
 			{content, MimeType, Binary};
 		_ ->
 			%% thumbnail path
-			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-			ThumbnailPath = filename:dirname(re:replace(OriginalFile, OriginalDir, "", [global, {return, list}])),
-			{ok, ThumbnailDir0} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
-			ThumbnailDir = io_lib:format("~s/~s/~p", [ThumbnailDir0, ThumbnailPath, Height]),
-			ThumbnailFile = io_lib:format("~s/~s", [ThumbnailDir, ThumbnailName]),
+			{ok, ThumbnailDir} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
+			ThumbnailFile = lists:flatten(io_lib:format("~s/~p/~s", [ThumbnailDir, Height, OriginalPath])),
 
 			%% generate thumbnail if necessary
 			case filelib:is_regular(ThumbnailFile) of

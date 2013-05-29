@@ -35,13 +35,14 @@ if(!tp)
 		$("#rename").click(function(){me.rename_click()});
 		$("#setAsCover").click(function(){me.setAsCover_click()});
 		$("#move").click(function(){me.move_click()});
-		$("#moveItems").click(function(){me.move_items_click()});
 		$("#shareMgmt").click(function(){me.shareMgmt_click()});
 		$("#back").click(function(){me.back_click()});		
 
 		$("#filesToUpload").change(function(){me.filesSelected()});
 		$("#startUpload").click(function(){me.startUpload()});
 		$("#shareMgmtAddButton").click(function(){me.add_album_share()});
+		$("#moveItems").click(function(){me.move_items_click()});
+		$("#copyItems").click(function(){me.copy_items_click()});
 	};
 
 	$.extend(Gallery.prototype, {
@@ -275,6 +276,7 @@ if(!tp)
 			var me = this;
 			this.selectTreeviewNodeId = null;
 			$("#moveItems").attr("disabled", "disabled");
+			$("#copyItems").attr("disabled", "disabled");
 
 			$("#albumTreeviewContrainer").jstree({
 				"plugins": ["themes","json_data","ui","types"],
@@ -292,6 +294,7 @@ if(!tp)
 			.bind("select_node.jstree", function (event, data) {
             	me.selectTreeviewNodeId = data.rslt.obj.attr("id");
             	$("#moveItems").removeAttr("disabled");
+            	$("#copyItems").removeAttr("disabled");
         	});
 
 			$("#moveItemsDialog").dialog({modal: true, width: 620, minWidth: 620, close: function(event, ui) {me.close_moveItem_dialog();}});			
@@ -307,17 +310,14 @@ if(!tp)
 			var me = this;
 
 			var itemIds = "";
-			if($(".ui-selected").hasClass("album"))
+			$(".ui-selected").each(function(index, element)
 			{
-				$(".ui-selected").each(function(index, element)
+				var itemId = $(element).attr("data-item-id");
+				if(itemId != undefined)
 				{
-					var itemId = $(element).attr("data-item-id");
-					if(itemId != undefined)
-					{
-						itemIds += itemId + ",";
-					}
-				});
-			}
+					itemIds += itemId + ",";
+				}
+			});			
 
 			if(itemIds.length > 0 && this.selectTreeviewNodeId != null)
 			{
@@ -355,6 +355,65 @@ if(!tp)
 				var errorFunc = function()
 				{
 					window.alert("Movement failed!");
+				}
+
+				this.ajax(url, data, successFunc, errorFunc);
+			}
+		},
+
+		copy_items_click: function()
+		{
+			var me = this;
+
+			var itemIds = "";
+			$(".ui-selected").each(function(index, element)
+			{
+				if(!$(element).hasClass("album"))
+				{
+					var itemId = $(element).attr("data-item-id");
+					if(itemId != undefined)
+					{
+						itemIds += itemId + ",";
+					}
+				}
+			});
+
+			if(itemIds.length > 0 && this.selectTreeviewNodeId != null)
+			{
+				var url = "/gallery/item/copy";
+
+				itemIds = itemIds.substr(itemIds, itemIds.length - 1);
+				var targetItemId = this.selectTreeviewNodeId;
+				var data = {item_ids: itemIds, target_item_id: targetItemId};
+
+				var successFunc = function(response)
+				{
+					var itemIdArray = itemIds.split(",");
+
+					for(var i = 0; i < itemIdArray.length; i++)
+					{
+						var itemId = itemIdArray[i];
+						if(response.failed_ids.indexOf(itemId) == -1)
+						{
+							$(".ui-selected[data-item-id="+itemId+"]").remove();
+						}
+					}
+
+					if(response.failed_ids.length > 0)
+					{
+						window.alert("Some of the items could not be copied because you have no permission or they are already in the target album!");
+					}
+					else
+					{
+						$("#moveItemsDialog").dialog("close");
+					}
+
+					me.on_item_selected();
+				}
+
+				var errorFunc = function()
+				{
+					window.alert("Copy failed!");
 				}
 
 				this.ajax(url, data, successFunc, errorFunc);
@@ -788,9 +847,9 @@ if(!tp)
 			else if(selectedCount > 1)
 			{
 				$("#delete").show();
+				$("#move").show();
 				$("#rename").hide();
 				$("#setAsCover").hide();
-				$("#move").show();
 			}
 			else
 			{
@@ -810,6 +869,7 @@ if(!tp)
 
 				$("#delete").hide();
 				$("#rename").hide();
+				$("#setAsCover").hide();
 				$("#move").hide();
 
 				$("#galleryContainer").selectable("destroy");
