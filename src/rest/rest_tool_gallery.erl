@@ -192,12 +192,17 @@ out(Arg, ["item", "copy"], UserId) ->
 	Result = [{"success", true}, {"failed_ids", {array, Fails}}],
 	{content, "application/json", json2:encode({struct, Result})};
 
-out(_Arg, ["item", "info", ItemId], UserId) -> 
+out(Arg, ["item", "info", ItemId], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	IncludeSelf = erlang:list_to_atom(proplists:get_value("include_self", Vals)),
+	
 	ParentId = model_gly_item:get_parent_id(ItemId, UserId),
 	Permission = model_gly_item:get_permission(ItemId, UserId),
+	AncestorsPath = model_gly_item:get_ancestor_path(ItemId, UserId, "current:/", IncludeSelf),
 	Info = #gallery_item_info{
 		id = ItemId, 
-		parent_id = ParentId, 
+		parent_id = ParentId,
+		ancestor_path = AncestorsPath,
 		permission = Permission
 	},
 
@@ -238,17 +243,17 @@ out(Arg, ["item", "list"], UserId) ->
 
 
 out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
-	Height = erlang:list_to_integer(Height0),
+	Height = erlang:list_to_integer(Height0), 
     Item = model_gly_item:get(ItemId, UserId),
-
 	case Item#gly_item.type of
-		"album" ->
+		"album" -> 
 			case Item#gly_item.path of
 	    		undefined ->
 	    			%% orginal path
 	    			{ok, OriginalDir} = application:get_env(tools_platform, parent_dir),
 	    			OriginalPath = io_lib:format("~s/~s", ["priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 	    			MimeType = "image/jpeg",
+
 					get_thumbnail(OriginalDir, OriginalPath, MimeType, Height);
 
 	    		Path ->

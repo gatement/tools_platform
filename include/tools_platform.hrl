@@ -53,5 +53,5 @@
 -record(note_category, {id, name, permission, is_default, is_trash, display_order}).
 -record(note_share, {id, category_id, user_id, user_name, share_type}).
 -record(gallery_item, {id, name, thumbnail_url, original_url, type, height}).
--record(gallery_item_info, {id, parent_id, permission}).
+-record(gallery_item_info, {id, parent_id, ancestor_path, permission}).
 -record(gallery_share, {id, item_id, user_id, user_name, share_type}).

@@ -8,6 +8,7 @@
 		,get/3
 		,get_type/1
 		,get_permission/2
+		,get_ancestor_path/4
 		,list/5
 		,rename/3
 		,delete/2
@@ -141,6 +142,21 @@ get_permission(ItemId, UserId) ->
 	end.
 
 
+get_ancestor_path(ItemId, UserId, Prefix, IncludeSelf) ->
+	case ?MODULE:get_permission(ItemId, UserId) of
+		"deny" ->
+			Prefix;
+		_ ->
+			case IncludeSelf of
+				true ->	
+					Prefix ++ get_ancestor_path_inner(ItemId, "");
+				false ->
+					Module = ?MODULE:get(ItemId),
+					Prefix ++ get_ancestor_path_inner(Module#gly_item.parent_id, "")
+			end
+	end.
+
+
 list(UserId, ParentId, Type, OrderAscending, ModifyName) ->
 	Items = case ParentId of 
 		undefined ->
@@ -251,20 +267,36 @@ move(ItemId, TargetItemId, UserId) ->
 					Model0 = ?MODULE:get(ItemId),
 					%% it has already in the target album
 					case Model0#gly_item.parent_id =:= TargetItemId of
-						true ->
+						true -> 
 							error;
 						_ ->
-							%% the last root album can not be moved, or there will be no entrance
-							case get_root_album_count(UserId) of
-								1 ->
+							%% can not move in itself
+							case Model0#gly_item.id =:= TargetItemId of
+								true ->
 									error;
 								_ ->
-									Model = Model0#gly_item{parent_id = TargetItemId},
-									Fun = fun() ->
-										mnesia:write(Model)
-									end,
-									mnesia:transaction(Fun),
-									ok
+									case Model0#gly_item.parent_id =:= undefined of
+										true -> 
+											%% the last root album can not be moved, or there will be no entrance
+											case get_root_album_count(UserId) of
+												1 ->
+													error;
+												_ ->
+													Model = Model0#gly_item{parent_id = TargetItemId},
+													Fun = fun() ->
+														mnesia:write(Model)
+													end,
+													mnesia:transaction(Fun),
+													ok
+											end;
+										false ->
+											Model = Model0#gly_item{parent_id = TargetItemId},
+											Fun = fun() ->
+												mnesia:write(Model)
+											end,
+											mnesia:transaction(Fun),
+											ok
+									end
 							end
 					end;
 				_ ->
@@ -280,7 +312,7 @@ copy(ItemId, TargetItemId, UserId) ->
 	case ?MODULE:get_permission(ItemId, UserId) of
 		"owner" ->
 			%% have permission to the target item
-			case ?MODULE:get(TargetItemId, UserId) of
+			case ?MODULE:get_permission(TargetItemId, UserId) of
 				"owner" ->
 					Model0 = ?MODULE:get(ItemId),
 					%% it has already in the target album
@@ -399,3 +431,11 @@ get_root_album_count(UserId) ->
 
 	{atomic, Models} = mnesia:transaction(Fun),
 	erlang:length(Models).
+
+
+get_ancestor_path_inner(undefined, Names) ->
+	Names;
+get_ancestor_path_inner(ItemId, Names) ->
+	Model = ?MODULE:get(ItemId),
+	Names2 = Model#gly_item.name ++ "/" ++ Names,
+	get_ancestor_path_inner(Model#gly_item.parent_id, Names2).

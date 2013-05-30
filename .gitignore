@@ -5,7 +5,6 @@
 *.*~
 ebin
 deps
-local.config
 rrdtool_img
 priv/log
 priv/data

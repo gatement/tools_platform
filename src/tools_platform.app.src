@@ -5,7 +5,9 @@
   {registered, [tools_session_sup]},
   {applications, [kernel, stdlib, mnesia]},
   {env, [
-  	{port, 8080},
+    {yaws_embed_mode, false},
+    
+    {port, 8080},
   	{parent_dir, "/app/tools_platform"},
 
     {database_backup_dir, "/data/sync/backup/mnesia_db"},

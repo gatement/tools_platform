@@ -342,7 +342,7 @@ if(!tp)
 
 					if(response.failed_ids.length > 0)
 					{
-						window.alert("Some of the items could not be moved because you have no permission or they are already in the target album or the last root album can not be moved!");
+						window.alert("Some of the items could not be moved because you have no permission or they are already in the target album or you can move it into itself or the last root album can not be moved!");
 					}
 					else
 					{
@@ -388,17 +388,6 @@ if(!tp)
 
 				var successFunc = function(response)
 				{
-					var itemIdArray = itemIds.split(",");
-
-					for(var i = 0; i < itemIdArray.length; i++)
-					{
-						var itemId = itemIdArray[i];
-						if(response.failed_ids.indexOf(itemId) == -1)
-						{
-							$(".ui-selected[data-item-id="+itemId+"]").remove();
-						}
-					}
-
 					if(response.failed_ids.length > 0)
 					{
 						window.alert("Some of the items could not be copied because you have no permission or they are already in the target album!");
@@ -418,6 +407,10 @@ if(!tp)
 
 				this.ajax(url, data, successFunc, errorFunc);
 			}
+			else
+			{
+				window.alert("Sorry, only non-album could be copied!");
+			}
 		},
 
 		shareMgmt_click: function()
@@ -433,11 +426,12 @@ if(!tp)
 
 			var url = "/gallery/item/info/" + this.currentAlbumId;
 
-			var data = {};
+			var data = {include_self: false};
 
 			var successFunc = function(response)
 			{
 				me.currentAlbumId = response.data.parent_id;
+				$("#ancestorsPath").text(response.data.ancestor_path);
 				me.currentAlbumPermission = response.data.permission;
 				me.load_items();
 			}
@@ -697,11 +691,12 @@ if(!tp)
 				this.currentAlbumId = $(event.target).parent().attr("data-item-id");
 
 				var url = "/gallery/item/info/" + this.currentAlbumId;
-				var data = {};
+				var data = {include_self: true};
 
 				var successFunc = function(response)
 				{
 					me.currentAlbumPermission = response.data.permission;
+					$("#ancestorsPath").text(response.data.ancestor_path);
 					me.load_items();
 				}
 
