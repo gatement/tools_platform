@@ -360,8 +360,16 @@ get_parent_id(ItemId, UserId) ->
 			error;
 		Model ->
 			case Model#gly_item.parent_id of
-				undefined -> "";
-				ParentId -> ParentId
+				undefined -> 
+					"";
+				ParentId -> 
+					%% must also have permission to the ParentId
+					case ?MODULE:get(ParentId, UserId) of
+						error ->
+							"";
+						_ ->
+							ParentId
+					end
 			end
 	end.
 

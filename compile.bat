@@ -1,1 +1,1 @@
-cd /app/tools_platform/apps/monitor & rebar compile & cd /app/tools_platform/apps/cleaner & rebar compile & cd /app/tools_platform & rebar compile
+cd /app/tools_platform/apps/monitor & rebar compile & cd /app/tools_platform/apps/cleaner & rebar compile  & cd /app/tools_platform/apps/db_backup & rebar compile & cd /app/tools_platform & rebar compile

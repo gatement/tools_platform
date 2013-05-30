@@ -8,29 +8,32 @@
 %% ===================================================================
 
 start_link() ->
-    {ok, erlang:spawn(?MODULE, run, [])}.
+    {ok, erlang:spawn_link(?MODULE, run, [])}.
+
+
+run() ->
+	timer:sleep(20000),
+    %error_logger:info_report("Start cleaning."),
+    clean_up(),
+
+    {ok, RunInterval} = application:get_env(cleaner, run_interval),     
+    timer:sleep(RunInterval * 1000),
+
+    run().
 
 
 %% ===================================================================
 %% Local Functions
 %% ===================================================================
 
-run() ->
-    {ok, RunInterval} = application:get_env(cleaner, run_interval),     
-    timer:apply_after(RunInterval * 1000, ?MODULE, clean_up, []),
-    ok.
-
-
 clean_up() ->
-    %error_logger:info_report("Start cleaning."),
-
     {ok, UserSessionTimeout} = application:get_env(cleaner, user_session_timeout), 
     model_usr_session:clear_old(UserSessionTimeout),
 
     {ok, RrdtoolImgTimeout} = application:get_env(cleaner, rrdtool_img_timeout), 
     clean_rrdtool_img(RrdtoolImgTimeout),
 
-    run().
+    ok.
 
 
 clean_rrdtool_img(RrdtoolImgTimeout) ->	

@@ -59,7 +59,7 @@ arg_rewrite(Arg) ->
 %% these pages must be shippable without a auth cookie
 no_auth_paths() ->
 	[
-	"/js/lib/jquery.min.js",
+	"/js/lib/jquery-1.10.0.min.js",
 	"/js/lib/jquery.validate.min.js", 
 	"/login.yaws",
 	"/css/login.css", 

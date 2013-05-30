@@ -10,9 +10,6 @@
     {port, 8080},
   	{parent_dir, "/app/tools_platform"},
 
-    {database_backup_dir, "/data/sync/backup/mnesia_db"},
-    {database_backup_interval, 86400}, % in seconds
-
     {tool_gallery_original_dir, "/app/tools_platform/priv/upload/original"},
     {tool_gallery_thumbnail_dir, "/app/tools_platform/priv/upload/thumbnails"},
 

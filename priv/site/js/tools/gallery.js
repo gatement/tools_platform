@@ -87,9 +87,16 @@ if(!tp)
 
 				var data = {album_name: albumName, parent_id: parentId};
 
-				var successFunc = function()
+				var successFunc = function(response)
 				{
-					me.load_items();
+					if(response.success)
+					{
+						me.load_items();
+					}
+					else
+					{
+						window.alert(response.data);
+					}
 				}
 
 				var errorFunc = function()
@@ -187,7 +194,7 @@ if(!tp)
 
 						if(response.failed_ids.length > 0)
 						{
-							window.alert("Some of the albums could not be deleted because of they are not empty!");
+							window.alert("Some of the albums could not be deleted because of they are not empty or you do not have permission!");
 						}
 
 						me.on_item_selected();
@@ -239,6 +246,10 @@ if(!tp)
 						{
 							$(".ui-selected img").attr("title", newName);
 						}
+					}
+					else
+					{
+						window.alert("You do not have permission to do rename!");						
 					}
 				}
 
@@ -686,7 +697,7 @@ if(!tp)
 		{
 			var me = this;
 
-			if($("#unselectable").is(":visible"))
+			if($("#unselectable").is(":visible") || (!$("#selectable").is(":visible") && !$("#unselectable").is(":visible")))
 			{
 				this.currentAlbumId = $(event.target).parent().attr("data-item-id");
 
@@ -711,13 +722,12 @@ if(!tp)
 
 		image_click: function(event)
 		{
-			if($("#unselectable").is(":visible"))
+			if($("#unselectable").is(":visible") || (!$("#selectable").is(":visible") && !$("#unselectable").is(":visible")))
 			{
 				var $image = $(event.target);
 				var itemId = $image.parent().attr("data-item-id");
 				var imageUrl = $image.attr('data-url');
 				var windowName = itemId;
-				console.log(windowName);
 				window.open(imageUrl, windowName, "toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no");
 			}
 		},
@@ -817,6 +827,7 @@ if(!tp)
 				// in shared album
 				else
 				{
+					$("#addAlbum").hide();
 					$("#upload").hide();
 					$("#shareMgmt").hide();
 					$("#unselectable").hide();

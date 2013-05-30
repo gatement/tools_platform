@@ -44,9 +44,20 @@ out(Arg, ["album", "add"], UserId) ->
 		_ -> ParentId0
 	end,
 
-    model_gly_item:create_album(AlbumName, ParentId, UserId),
-
-    Result = [{"success", true}],
+	Result = case ParentId of
+		undefined ->
+			model_gly_item:create_album(AlbumName, ParentId, UserId),
+    		[{"success", true}];
+    	_ ->
+			case model_gly_item:get_permission(ParentId, UserId) of
+				"owner" ->
+					model_gly_item:create_album(AlbumName, ParentId, UserId),
+		    		[{"success", true}];
+		    	_ ->
+		    		[{"success", false}, {"data", "You don't have permission!"}]
+		    end
+	end,
+	    
 	{content, "application/json", json2:encode({struct, Result})};
 
 out(Arg, ["album", "treeview", "children"], UserId) -> 

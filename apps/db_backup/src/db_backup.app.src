@@ -1,0 +1,15 @@
+{application, db_backup,
+ [
+  {description, "tools_platform db_backup"},
+  {vsn, "0.1.0"},
+  {registered, [db_backup_sup]},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, [
+    {database_backup_dir, "/data/sync/backup/mnesia_db"},
+    {database_backup_interval, 86400} % in seconds
+  ]},
+  {mod, {db_backup_app, []}}
+ ]}.
