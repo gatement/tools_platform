@@ -1,0 +1,21 @@
+ebin_dir = "/app/tools_platform/apps/cleaner/ebin"
+ebin_dir = "/app/tools_platform/apps/monitor/ebin"
+ebin_dir = "/app/tools_platform/apps/db_backup/ebin"
+ebin_dir = "/app/tools_platform/ebin"
+include_dir = "/app/tools_platform/include"
+runmod = cleaner
+runmod = monitor
+runmod = db_backup
+runmod = tools_platform
+<server tools.johnson.uicp.net>
+        port = 88
+        listen = 0.0.0.0
+        docroot = "/app/tools_platform/priv/site"
+	arg_rewrite_mod = arg_rewriter
+	errormod_404 = notfound
+        appmods = </user/, rest_usr_user> </setting/, rest_gbl_setting> </monitor/, rest_tool_monitor> </word/, rest_tool_word> </note/, rest_tool_note> </gallery/, rest_tool_gallery>
+	<ssl>
+                keyfile = /root/certificates/johnson.uicp.net.key
+                certfile = /root/certificates/johnson.uicp.net.cer
+        </ssl>
+</server>

@@ -25,6 +25,5 @@
     {database_backup_interval, 3600} % in seconds
 ]},
 {tools_platform,[
-    {port, 8080},
     {parent_dir, "/app/tools_platform"}
 ]}].
