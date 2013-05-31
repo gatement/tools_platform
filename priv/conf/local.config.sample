@@ -17,14 +17,15 @@
 ]},
 {cleaner, [
     {run_interval, 60}, % in seconds
-    {user_session_timeout, 57600}, % in seconds, = 16hr 
+    {user_session_timeout, 57600}, % in seconds, = 16hr
     {rrdtool_img_timeout, 60} % in seconds
 ]},
 {db_backup, [
     {database_backup_dir, "/app/tools_platform/priv/data"},
-    {database_backup_interval, 60} % in seconds
+    {database_backup_interval, 3600} % in seconds
 ]},
 {tools_platform,[
-	{port, 8080},
-  	{parent_dir, "/app/tools_platform"}
+    {yaws_embed_mode, true},
+    {port, 8080},
+    {parent_dir, "/app/tools_platform"}
 ]}].

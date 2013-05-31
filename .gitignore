@@ -9,3 +9,4 @@ rrdtool_img
 priv/log
 priv/data
 priv/upload
+local.config
