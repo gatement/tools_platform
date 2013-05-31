@@ -1,0 +1,1 @@
+erl -config /app/tools_platform/local -pa /app/tools_platform/ebin /app/tools_platform/apps/monitor/ebin /app/tools_platform/apps/cleaner/ebin /app/tools_platform/apps/db_backup/ebin /usr/local/lib/yaws/ebin -s tools_platform
