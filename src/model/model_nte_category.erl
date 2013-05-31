@@ -2,7 +2,7 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1,
-	     list/3,
+	     list/4,
 	     exist/1,
 	     exist/2,
 	     exist/3,
@@ -49,11 +49,11 @@ create(NoteCategory) ->
 	end.
 
 
-list(UserId, AmendName, PrefixAll) ->
-	NoteCategories = list(UserId),
+list(UserId, AmendName, IncludeAll, IncludeTrash) ->
+	Categories0 = list(UserId),
 
 	% append [s] to the name if it is shared
-	UpdatedCategories = case AmendName of
+	Categories1 = case AmendName of
 							true -> 
 								UpdateNameFun = fun(Category) ->
 									case model_nte_share:is_shared(Category#note_category.id) of
@@ -65,9 +65,9 @@ list(UserId, AmendName, PrefixAll) ->
 											end
 									end
 								end,
-								lists:map(UpdateNameFun, NoteCategories);
+								lists:map(UpdateNameFun, Categories0);
 							false ->
-								NoteCategories
+								Categories0
 						end,
 
 	% sort categories by display_order
@@ -77,9 +77,16 @@ list(UserId, AmendName, PrefixAll) ->
 			true -> false
 		end
 	end,
-	SortedCategories = lists:sort(SortFun, UpdatedCategories),
+	Categories2 = lists:sort(SortFun, Categories1),
 
-	case PrefixAll of
+	Categories3 = case IncludeTrash of
+		true ->
+			Categories2;
+		false ->
+			[X || X <- Categories2, X#note_category.is_trash =:= false]
+	end,
+
+	Categories4 = case IncludeAll of
 		true ->
 			AllCategory = #note_category{
 				id = "0", 
@@ -88,10 +95,12 @@ list(UserId, AmendName, PrefixAll) ->
 				is_default = false, 
 				is_trash = false, 
 				display_order = 0},
-			[AllCategory | SortedCategories];
+			[AllCategory | Categories3];
 		_ ->
-			SortedCategories
-	end.
+			Categories3
+	end,
+
+	Categories4.
 
 
 exist(Id) ->

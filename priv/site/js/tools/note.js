@@ -310,7 +310,7 @@ if(!tp)
 			$("#notes").empty();
 			$("#search").val("input text to search");
 
-			var data = {category_id: $("#noteCategory").val()};
+			var data = {};
 
 			var successFunc = function(data) 
 			{
@@ -327,7 +327,8 @@ if(!tp)
 				me.set_error_msg(data);
 			};
 
-			this.send_msg("/note/note/list", data, successFunc, errorFunc);
+			var url = "/note/note/list?category_id=" + $("#noteCategory").val();
+			this.send_msg(url, data, successFunc, errorFunc);
 		},
 
 		search_notes: function()
@@ -390,7 +391,8 @@ if(!tp)
 				me.set_error_msg(data);
 			};
 
-			this.send_msg("/note/category/list", data, successFunc, errorFunc);
+			var url = "/note/category/list?include_all=true&include_trash=true";
+			this.send_msg(url, data, successFunc, errorFunc);
 		},
 
 		update_note_category: function() 

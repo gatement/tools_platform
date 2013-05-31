@@ -78,7 +78,7 @@ out(Arg, ["note", "load"], UserId) ->
 
 
 out(Arg, ["note", "list"], UserId) -> 
-	Vals = yaws_api:parse_post(Arg),
+	Vals = yaws_api:parse_query(Arg),
 	CategoryId = proplists:get_value("category_id", Vals),
 
     Result = 
@@ -331,9 +331,12 @@ out(Arg, ["category", "add"], UserId) ->
 	{content, "application/json", json2:encode({struct, Result})};
 
 
-out(_Arg, ["category", "list"], UserId) -> 
-    NoteCategories = model_nte_category:list(UserId, true, true) ++ model_nte_share:category_list(UserId),
+out(Arg, ["category", "list"], UserId) -> 
+	Vals = yaws_api:parse_query(Arg),
+	IncludeAll = erlang:list_to_atom(proplists:get_value("include_all", Vals, "false")),
+	IncludeTrash = erlang:list_to_atom(proplists:get_value("include_trash", Vals, "false")),
 
+	NoteCategories = model_nte_category:list(UserId, true, IncludeAll, IncludeTrash) ++ model_nte_share:category_list(UserId),
     CategoryList = [{struct, tools:record_to_list(NoteCategory, record_info(fields, note_category))} || NoteCategory <- NoteCategories],
 	Result = [{"success", true}, {"data", {array, CategoryList}}],
 
@@ -344,7 +347,7 @@ out(Arg, ["category", "mine", "list"], UserId) ->
 	Vals = yaws_api:parse_post(Arg),
 	AmendName = erlang:list_to_atom(proplists:get_value("amend_name", Vals)),
 
-    NoteCategories = model_nte_category:list(UserId, AmendName, false),
+    NoteCategories = model_nte_category:list(UserId, AmendName, false, true),
 
     CategoryList = [{struct, tools:record_to_list(NoteCategory, record_info(fields, note_category))} || NoteCategory <- NoteCategories],
 
@@ -550,19 +553,6 @@ out(Arg, ["history", "list"], UserId) ->
 %% ===================================================================
 %% Mobile specific API
 %% ===================================================================
-
-%% equal to out(_Arg, ["note", "list"], UserId), just the params input differently
-out(_Arg, ["list", CategoryId], UserId) -> 
-    Result = case model_nte_share:get_permission_by_category_id(UserId, CategoryId) of
-        none -> [{"success", false}, {"data", "You don't have permission to load notes from this category."}];
-        Permission -> 
-            Notes = model_nte_note:list(CategoryId),
-            NoteList = [{struct, [{"permission", erlang:atom_to_list(Permission)} | tools:record_to_list(Note, record_info(fields, nte_note))]} || Note <- Notes],
-            [{"success", true}, {"data", {array, NoteList}}]
-    end,
-
-	{content, "application/json", json2:encode({struct, Result})};
-
 
 out(Arg, ["update"], UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
