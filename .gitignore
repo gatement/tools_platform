@@ -10,3 +10,4 @@ priv/log
 priv/data
 priv/upload
 local*.config
+erl_crash.dump
