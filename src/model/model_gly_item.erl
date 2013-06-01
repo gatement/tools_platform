@@ -246,7 +246,7 @@ delete(ItemId, UserId) ->
 				_ ->
 					%% delete correlation file if it is not album
 					Path = Model#gly_item.path,
-					delete_file(Path, UserId),
+					delete_file(Path),
 
 					mnesia:transaction(fun() -> 
 						mnesia:delete({gly_item, ItemId})
@@ -411,9 +411,9 @@ set_as_cover(ItemId, UserId) ->
 %% Local Functions
 %% ===================================================================
 
-delete_file(Path, UserId) ->
+delete_file(Path) ->
 	{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
-	OriginalFile = io_lib:format("~s/~s/~s", [OriginalDir, UserId, Path]),
+	OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
 	file:delete(OriginalFile).
 
 

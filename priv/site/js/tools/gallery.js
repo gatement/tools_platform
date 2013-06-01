@@ -839,7 +839,7 @@ if(!tp)
 		on_item_selected: function()
 		{
 			var selectedCount = $(".ui-selected").size();
-			console.log("size: %o, image: %o, albumId: %o", selectedCount, $(".ui-selected").hasClass("image"), this.currentAlbumId);
+			//console.log("size: %o, image: %o, albumId: %o", selectedCount, $(".ui-selected").hasClass("image"), this.currentAlbumId);
 			if(selectedCount == 1)
 			{
 				$("#delete").show();
