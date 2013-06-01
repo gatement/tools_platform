@@ -138,7 +138,7 @@ if(!tp)
 			$("#unselectable").hide();
 			$("#selectable").show();
 			$("#galleryContainer").selectable({
-				selected: function(event, ui) {me.on_item_selected()}
+				selected: function(event, ui) {window.setTimeout(function(){me.on_item_selected();}, 50)}
 			});
 		},
 
@@ -839,6 +839,7 @@ if(!tp)
 		on_item_selected: function()
 		{
 			var selectedCount = $(".ui-selected").size();
+			console.log("size: %o, image: %o, albumId: %o", selectedCount, $(".ui-selected").hasClass("image"), this.currentAlbumId);
 			if(selectedCount == 1)
 			{
 				$("#delete").show();
@@ -847,6 +848,10 @@ if(!tp)
 				if(this.currentAlbumId !== "" && $(".ui-selected").hasClass("image"))
 				{
 					$("#setAsCover").show();
+				}
+				else
+				{
+					$("#setAsCover").hide();
 				}
 			}
 			else if(selectedCount > 1)

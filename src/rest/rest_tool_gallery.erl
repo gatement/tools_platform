@@ -422,8 +422,8 @@ addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State) ->
         {value, {_, FileName}} ->
         	%% generate path
 			FileExtension = filename:extension(FileName),
-			Date = tools:datetime_string('yyyyMMdd'),
-			Path = lists:flatten(io_lib:format("~s/~s/~s~s", [State#gly_item_upload.user_id, Date, State#gly_item_upload.item_id, FileExtension])),
+			DateTime = tools:datetime_string('yyyy/MM/dd/hh/mm'),
+			Path = lists:flatten(io_lib:format("~s/~s/~s~s", [State#gly_item_upload.user_id, DateTime, State#gly_item_upload.item_id, FileExtension])),
 
         	%% generate physical full file name
 			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),

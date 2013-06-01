@@ -59,16 +59,16 @@ body {
 }
 .album{
 	text-align: center;
-	margin-bottom: 10px;
 	margin-right: 4px;
+	margin-bottom: 10px;
 }
 .image{
 	margin-right: 1px;
-	margin-bottom: -3px;
+	margin-bottom: -2px;
 }
 .video{
 	margin-right: 1px;
-	margin-bottom: -3px;
+	margin-bottom: -2px;
 }
 .album img{
 	border: 1px solid #C9ECF8;

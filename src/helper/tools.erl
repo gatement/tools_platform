@@ -16,7 +16,7 @@
 		record_to_list/2,
 		is_pid_alive/1]).
 		
--vsn("0.1.1").
+-vsn("0.1.3").
 
 %% ===================================================================
 %% API functions
@@ -89,6 +89,8 @@ datetime_string(Format, {{Year, Month, Day}, {Hour, Minute, Second}}) ->
 			erlang:integer_to_list(Year) ++ "-" ++ MonthText ++ "-" ++ DayText ++ " " ++ HourText ++ ":" ++ MinuteText ++ ":" ++ SecondText;
 		'yyyyMMdd_hhmmss' ->
 			erlang:integer_to_list(Year) ++ MonthText ++ DayText ++ "_" ++ HourText ++ MinuteText ++ SecondText;
+		'yyyy/MM/dd/hh/mm' ->
+			erlang:integer_to_list(Year) ++ "/" ++ MonthText ++ "/" ++ DayText ++ "/" ++ HourText ++ "/" ++ MinuteText;
 		'yyyyMMdd' ->
 			erlang:integer_to_list(Year) ++ MonthText ++ DayText
 	end,
