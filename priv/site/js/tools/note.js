@@ -968,7 +968,7 @@ if(!tp)
 		tile_notes_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(true);
 
 			// set note position values
 			var left = this.arrangeNotes.defaultLeft;
@@ -998,7 +998,7 @@ if(!tp)
 
 		list_notes_locally: function()
 		{
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1034,7 +1034,7 @@ if(!tp)
 		list_small_notes_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1070,7 +1070,7 @@ if(!tp)
 		list_left_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1123,7 +1123,7 @@ if(!tp)
 		list_right_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1176,7 +1176,7 @@ if(!tp)
 		list_top_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1229,7 +1229,7 @@ if(!tp)
 		list_bottom_locally: function()
 		{
 			// get note array
-			var notes = this.get_sorted_notes();
+			var notes = this.get_sorted_notes(false);
 
 			// set note position/size values
 			var left = 0;
@@ -1279,7 +1279,7 @@ if(!tp)
 			}
 		},
 
-		get_sorted_notes: function()
+		get_sorted_notes: function(asc)
 		{
 			// get note array
 			var notes=[];
@@ -1295,9 +1295,14 @@ if(!tp)
 			}
 
 			// sort note array
-			notes = this.sort_notes_by_z_index_desc(notes);
-
-			return notes;
+			if(asc)
+			{
+				return this.sort_notes_by_z_index_desc(notes);
+			}
+			else
+			{
+				return this.sort_notes_by_z_index_asc(notes);
+			}
 		},
 
 		sort_notes_by_z_index_asc: function(notes)
