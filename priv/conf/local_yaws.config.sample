@@ -22,8 +22,13 @@
 ]},
 {db_backup, [
     {database_backup_dir, "/app/tools_platform/priv/data"},
-    {database_backup_interval, 3600} % in seconds
+    {database_backup_interval, 28800} % in seconds
 ]},
 {tools_platform,[
-    {parent_dir, "/app/tools_platform"}
+    {yaws_embed_mode, false},
+
+    {tool_gallery_original_dir, "/data/sync/gallery/original"},
+    {tool_gallery_thumbnail_dir, "/app/tools_platform/priv/upload/thumbnails"},
+
+    {imagemagick_exe, "/usr/bin/convert"}
 ]}].

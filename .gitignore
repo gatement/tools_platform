@@ -9,5 +9,6 @@ rrdtool_img
 priv/log
 priv/data
 priv/upload
-local*.config
+local.config
 erl_crash.dump
+run.sh
