@@ -138,8 +138,7 @@ if(!tp)
 			$("#unselectable").hide();
 			$("#selectable").show();
 			$("#galleryContainer").selectable({
-				selected: function(event, ui) {me.on_item_selected()},
-				unselected: function(event, ui) {me.on_item_selected()}
+				selected: function(event, ui) {me.on_item_selected()}
 			});
 		},
 
