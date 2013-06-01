@@ -10,6 +10,6 @@ priv/log
 priv/data
 priv/upload
 local_linux.config
-yaws_linux.config
+yaws_linux.conf
 run.sh
 erl_crash.dump
