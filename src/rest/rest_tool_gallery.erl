@@ -279,10 +279,10 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 							get_thumbnail(OriginalDir, Path, MimeType, Height);
 						false ->
 							%% if path doesn't exist, use the default album cover
-			    			{ok, OriginalDir} = application:get_env(tools_platform, parent_dir),
+			    			{ok, OriginalDir2} = application:get_env(tools_platform, parent_dir),
 			    			OriginalPath = io_lib:format("~s/~s", ["priv/site", "css/images/galleryDefaultAlbumCover.jpg"]),
 			    			MimeType = "image/jpeg",
-							get_thumbnail(OriginalDir, OriginalPath, MimeType, Height)
+							get_thumbnail(OriginalDir2, OriginalPath, MimeType, Height)
 					end
     		end;
 
