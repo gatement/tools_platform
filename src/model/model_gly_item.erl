@@ -414,7 +414,7 @@ set_as_cover(ItemId, UserId) ->
 delete_file(Path) ->
 	{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
 	OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
-	file:delete(OriginalFile).
+	ok = file:delete(OriginalFile).
 
 
 is_album_empty(ItemId) ->

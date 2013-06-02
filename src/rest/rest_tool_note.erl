@@ -245,6 +245,7 @@ out(Arg, ["note", "delete"], UserId) ->
 				                        error ->
 				                            [{"success", false}, {"data", "Failed to delete note."}];
 				                        ok ->
+				                        	model_nte_history:delete_by_noteId(NoteId),
 				                            [{"success", true}, {"data", "ok."}]
 				                    end;
 				                _ ->

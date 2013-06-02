@@ -2,7 +2,9 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/3,
-		list/1]).
+		list/1,
+		delete/1,
+		delete_by_noteId/1]).
 
 
 %% ===================================================================
@@ -43,6 +45,29 @@ list(NoteId) ->
 	SortedModels = lists:sort(SortFun, Models),
 
 	SortedModels.
+
+
+delete(Id) ->
+	Fun = fun() ->
+			mnesia:delete({nte_history, Id})
+	end,
+
+	case mnesia:transaction(Fun) of
+		{atomic, ok} -> ok;
+		_ -> error
+	end.
+
+
+delete_by_noteId(NoteId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(nte_history),
+				X#nte_history.note_id =:= NoteId]))
+	end,
+	{atomic, Models} = mnesia:transaction(Fun),
+
+	[?MODULE:delete(X#nte_history.id) || X <- Models],
+
+	ok.
 
 
 %% ===================================================================
