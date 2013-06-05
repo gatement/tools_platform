@@ -138,6 +138,54 @@ body {
 #list_top:hover{
 	background-position: -240px -16px;
 }
+#list2_left{
+	background-position: -320px 0;
+}
+#list2_left:hover{
+	background-position: -320px -16px;
+}
+#list2_right{
+	background-position: -352px 0;
+}
+#list2_right:hover{
+	background-position: -352px -16px;
+}
+#list2_bottom{
+	background-position: -400px 0;
+}
+#list2_bottom:hover{
+	background-position: -400px -16px;
+}
+#list2_top{
+	background-position: -304px 0;
+}
+#list2_top:hover{
+	background-position: -304px -16px;
+}
+#list3_left{
+	background-position: -336px 0;
+}
+#list3_left:hover{
+	background-position: -336px -16px;
+}
+#list3_right{
+	background-position: -288px 0;
+}
+#list3_right:hover{
+	background-position: -288px -16px;
+}
+#list3_bottom{
+	background-position: -368px 0;
+}
+#list3_bottom:hover{
+	background-position: -368px -16px;
+}
+#list3_top{
+	background-position: -384px 0;
+}
+#list3_top:hover{
+	background-position: -384px -16px;
+}
 #logout{
 	background-position: -48px 0;
 }
