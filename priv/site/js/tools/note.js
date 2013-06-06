@@ -89,6 +89,45 @@ if(!tp)
 				$("#noteCategoryDialog").dialog("close");
 				me.update_note_category();
 			});
+
+			$.Shortcuts.add({
+			    type: 'down',
+			    mask: 'Ctrl+9',
+			    enableInInput: true,
+			    handler: function() {
+			    	$("#search").focus();
+			    }
+			}).add({
+			    type: 'down',
+			    mask: 'Ctrl+0',
+			    enableInInput: true,
+			    handler: function() {
+			    	$("#search").val("").blur();
+			    	me.show_all_notes();
+			    }
+			}).add({
+			    type: 'down',
+			    mask: 'Ctrl+8',
+			    enableInInput: true,
+			    handler: function() {
+			    	$("#noteCategory").focus();
+			    }
+			}).add({
+			    type: 'down',
+			    mask: 'Alt+m',
+			    enableInInput: true,
+			    handler: function() {
+			    	me.maximize_note($(document.activeElement.parentElement))
+			    }
+			}).add({
+			    type: 'down',
+			    mask: 'Alt+n',
+			    enableInInput: true,
+			    handler: function() {
+			    	me.minimize_note($(document.activeElement.parentElement));
+			    }
+			}).start();
+
 		});
 		
 		$("#logout").click(function(){me.logout()});
@@ -336,7 +375,6 @@ if(!tp)
 			var me = this;
 			var key = $("#search").val().toLowerCase();
 
-			var notes=[];
 			$notes = $(".note");
 			for(var i = 0; i < $notes.length; i++)
 			{
@@ -349,6 +387,18 @@ if(!tp)
 				{
 					$note.show();
 				}
+			}
+		},
+
+		show_all_notes: function()
+		{
+			var me = this;
+
+			$notes = $(".note");
+			for(var i = 0; i < $notes.length; i++)
+			{
+				var $note = $($notes[i]);
+				$note.show();
 			}
 		},
 
@@ -1541,6 +1591,52 @@ if(!tp)
 			return color;
 		},
 
+		maximize_note:function($note)
+		{
+			var me = this;
+
+			var noteId = $note.attr("id");
+
+			var left = me.arrangeNotes.defaultLeft;
+			var top = me.arrangeNotes.defaultTop;
+			var width = me.get_client_width() - left - 20 - me.arrangeNotes.horizontalGap; // 20 is the note horizontal margin+border+padding
+			var height = me.get_client_height() - me.arrangeNotes.defaultTop - 33 - me.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding
+
+			// update UI
+			$("#"+noteId).animate({left: left, top: top, width: width, height: height});
+
+			// only save if has permission
+			var permission = me.get_current_category_permission();
+			if(permission === "owner" || permission === "rw")
+			{
+				me.update_note_position(noteId, left, top);
+				me.update_note_size(noteId, width, height);
+			}
+		},
+
+		minimize_note: function($note)
+		{
+			var me = this;
+
+			var noteId = $note.attr("id");
+
+			var left = me.arrangeNotes.defaultLeft;
+			var top = me.arrangeNotes.defaultTop;
+			var width = me.arrangeNotes.defaultMinWidth;
+			var height = me.arrangeNotes.defaultMinHeight;
+
+			// update UI
+			$("#"+noteId).animate({left: left, top: top, width: width, height: height});
+
+			// only save if has permission
+			var permission = me.get_current_category_permission();
+			if(permission === "owner" || permission === "rw")
+			{
+				me.update_note_position(noteId, left, top);
+				me.update_note_size(noteId, width, height);
+			}
+		},
+
 		bind_events: function()
 		{
 			var me = this;
@@ -1558,46 +1654,14 @@ if(!tp)
 			$(".maximize_button").unbind().click(function(event)
 			{
 				var $note = $(event.target).parent().parent().parent();
-				var noteId = $note.attr("id");
-
-				var left = me.arrangeNotes.defaultLeft;
-				var top = me.arrangeNotes.defaultTop;
-				var width = me.get_client_width() - left - 20 - me.arrangeNotes.horizontalGap; // 20 is the note horizontal margin+border+padding
-				var height = me.get_client_height() - me.arrangeNotes.defaultTop - 33 - me.arrangeNotes.verticalGap; // 33 is the note vertical margin+border+padding
-
-				// update UI
-				$("#"+noteId).animate({left: left, top: top, width: width, height: height});
-
-				// only save if has permission
-				var permission = me.get_current_category_permission();
-				if(permission === "owner" || permission === "rw")
-				{
-					me.update_note_position(noteId, left, top);
-					me.update_note_size(noteId, width, height);
-				}
+				me.maximize_note($note);
 			});
 			
 
 			$(".minimize_button").unbind().click(function(event)
 			{
 				var $note = $(event.target).parent().parent().parent();
-				var noteId = $note.attr("id");
-
-				var left = me.arrangeNotes.defaultLeft;
-				var top = me.arrangeNotes.defaultTop;
-				var width = me.arrangeNotes.defaultMinWidth;
-				var height = me.arrangeNotes.defaultMinHeight;
-
-				// update UI
-				$("#"+noteId).animate({left: left, top: top, width: width, height: height});
-
-				// only save if has permission
-				var permission = me.get_current_category_permission();
-				if(permission === "owner" || permission === "rw")
-				{
-					me.update_note_position(noteId, left, top);
-					me.update_note_size(noteId, width, height);
-				}
+				me.minimize_note($note);
 			});
 			
 
@@ -1694,17 +1758,20 @@ if(!tp)
 				var permission = me.get_current_category_permission();
 				if(permission === "owner" || permission === "rw")
 				{
-					window.clearTimeout(me.autoSavingTimeout);
+					if(event.keyCode !== 9) // is not "tab" key
+					{
+						window.clearTimeout(me.autoSavingTimeout);
 
-					var $note = $(event.target).parent();
-					var noteId = $note.attr("id");
+						var $note = $(event.target).parent();
+						var noteId = $note.attr("id");
 
-					me.show_writing_icon(noteId);
+						me.show_writing_icon(noteId);
 
-					me.autoSavingTimeout = window.setTimeout(function()
-						{
-							me.update_note_content(noteId);
-						}, me.autoSavingTimeoutVal);
+						me.autoSavingTimeout = window.setTimeout(function()
+							{
+								me.update_note_content(noteId);
+							}, me.autoSavingTimeoutVal);
+					}
 				}
 			});
 

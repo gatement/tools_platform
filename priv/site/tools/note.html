@@ -6,8 +6,10 @@
 		<link type="text/css" rel="stylesheet" href="/css/lib/smoothness/jquery-ui-1.10.3.custom.min.css" />
 		<link type="text/css" rel="stylesheet" href="/css/tools/note.css" />
 		<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery-migrate-1.2.1.min.js"></script>
 		<script type="text/javascript" src="/js/lib/jquery-ui-1.10.3.custom.min.js"></script>
 		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.shortcuts.min.js"></script>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript" src="/js/tools/note.js"></script>
 	</head>
@@ -36,10 +38,10 @@
 			<div id="homepage" class="bar_button" title="homepage"></div>
 			<div id="about" class="bar_button" title="about"></div>
 			<div id="refresh" class="bar_button" title="refresh"></div>
-			<div class="bar_select" title="category">
+			<div class="bar_select" title="category (ctrl+8)">
 				<select id="noteCategory"></select>
 			</div>
-			<div class="bar_textbox" title="search">
+			<div class="bar_textbox" title="search (ctrl+9, show all with ctrl+0)">
 				<input id="search" type="text" value="input text to search"></input>
 			</div>
 		</div>
@@ -95,8 +97,8 @@
 						<div class="note_button note_left_button color_button color3" style="display:none;"></div>
 						<div class="note_button note_left_button color_button color5" style="display:none;"></div>
 						<div class="note_button note_left_button color_button color6" style="display:none;"></div>
-						<div class="note_button note_right_button maximize_button" style="display:none;"></div>
-						<div class="note_button note_right_button minimize_button" style="display:none;"></div>
+						<div class="note_button note_right_button maximize_button" style="display:none;" title="alt+m"></div>
+						<div class="note_button note_right_button minimize_button" style="display:none;"title="alt+n"></div>
 						<div class="note_button note_right_button history_button" style="display:none;"></div>
 						<div class="note_button note_right_button delete_button" style="display:none;"></div>
 					</div>
