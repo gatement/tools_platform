@@ -1192,6 +1192,11 @@ if(!tp)
 			width = this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
 			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
 
+			emphasizingNote.left = left;
+			emphasizingNote.top = top;
+			emphasizingNote.width = width;
+			emphasizingNote.height = height;
+			
 			// update UI
 			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
 			
