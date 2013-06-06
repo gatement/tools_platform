@@ -1,0 +1,12 @@
+{application, core,
+ [
+  {description, "tools_platform core"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { }},
+  {env, []}
+ ]}.

@@ -5,11 +5,10 @@
 *.*~
 ebin
 deps
-rrdtool_img
+priv/site/rrdtool_img
 priv/log
 priv/data
 priv/upload
 local_linux.config
-yaws_linux.conf
 run.sh
 erl_crash.dump

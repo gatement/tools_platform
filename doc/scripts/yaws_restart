@@ -1,5 +1,0 @@
-#!/bin/bash
-
-/usr/local/bin/yaws --stop
-/usr/local/bin/yaws --daemon --mnesiadir '/var/mnesia'
-

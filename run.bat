@@ -1,1 +1,1 @@
-erl -config local_embed -pa c:/app/tools_platform/ebin c:/app/tools_platform/apps/monitor/ebin c:/app/tools_platform/apps/cleaner/ebin c:/app/tools_platform/apps/db_backup/ebin C:/dev/Yaws/ebin -s tools_platform
+erl -config local_win -pa ./core/ebin ./cleaner/ebin ./db_backup/ebin ./monitor/ebin ./interface_http/ebin C:/dev/Yaws/ebin -s core
