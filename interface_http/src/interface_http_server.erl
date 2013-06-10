@@ -1,4 +1,5 @@
 -module(interface_http_server).
+-include("yaws.hrl").
 %% API
 -export([start/0, run/0]).
 
@@ -17,6 +18,8 @@ start() ->
 
 run() ->
     {ok, Port} = application:get_env(port), 
+    {ok, KeyFile} = application:get_env(keyfile), 
+    {ok, CertFile} = application:get_env(certfile), 
 
     Id = "tools_platform",
 
@@ -27,6 +30,11 @@ run() ->
     IncludeDir2 = PrivDir ++ "/../../core/include",
 
     filelib:ensure_dir(LogDir ++ "/"),
+
+    Ssl = #ssl{
+          keyfile = KeyFile,
+          certfile = CertFile
+    },
     
     GconfList = [{id, Id},
                  {logdir, LogDir},
@@ -38,6 +46,7 @@ run() ->
                  {docroot, DocRoot},
         		 {arg_rewrite_mod, arg_rewriter},
         		 {errormod_404, nofound},
+                 {ssl, Ssl},
                  {appmods, [
     			    {"/user/", rest_usr_user},
     			    {"/setting/", rest_gbl_setting},

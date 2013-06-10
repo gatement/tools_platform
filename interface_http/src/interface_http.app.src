@@ -3,12 +3,15 @@
   {description, "tools platform interface_http"},
   {vsn, "0.1.0"},
   {registered, []},
-  {applications, [kernel, stdlib, mnesia]},
+  {applications, [kernel, stdlib, mnesia, crypto, public_key, ssl]},
   {env, [        
     {port, 88},
 
     {tool_gallery_original_dir, "/app/tools_platform/interface_http/priv/upload/original"},
     {tool_gallery_thumbnail_dir, "/app/tools_platform/interface_http/priv/upload/thumbnails"},
+
+    {keyfile, "/root/certificates/johnson.uicp.net.key"},
+    {certfile, "/root/certificates/johnson.uicp.net.cer"}, 
 
     {imagemagick_exe, "C:/dev/ImageMagick-6.8.5-Q16/convert.exe"}
 	]},

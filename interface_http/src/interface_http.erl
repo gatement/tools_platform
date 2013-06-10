@@ -7,6 +7,9 @@
 %% ===================================================================
 
 start() ->    
+	application:start(crypto),
+	application:start(public_key),
+	application:start(ssl),
 	application:start(interface_http).
 
 
