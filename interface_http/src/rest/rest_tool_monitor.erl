@@ -57,7 +57,7 @@ out_rrd_graph(Arg, Type) ->
 rrdtool_graph(Type, Start, End) ->
 	RelFileName = lists:flatten(io_lib:format("/rrdtool_img/~s.png", [tools:generate_id(erlang:atom_to_list(Type))])),
 
-	AbsFileName = lists:flatten(io_lib:format("~s/site~s", [code:priv_dir(tools_platform), RelFileName])),
+	AbsFileName = lists:flatten(io_lib:format("~s/site~s", [code:priv_dir(interface_http), RelFileName])),
     filelib:ensure_dir(AbsFileName),
 
 	{ok, RrdtoolExe} = application:get_env(monitor, rrdtool_exe),	

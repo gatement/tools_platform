@@ -90,8 +90,8 @@ update_last_active(Id) ->
 			mnesia:transaction(Fun)
 	end.
 
-%ttl is the max seconds a session can live 
-%ttl needs to less than 7 days
+%% ttl is the max seconds a session can live 
+%% ttl needs to less than 7 days
 clear_old(Ttl) ->
 	{A, S, C} = erlang:now(),
 	B = S - Ttl,

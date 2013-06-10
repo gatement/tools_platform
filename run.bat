@@ -1,1 +1,1 @@
-erl -config local_win -pa ./core/ebin ./cleaner/ebin ./db_backup/ebin ./monitor/ebin ./interface_http/ebin C:/dev/Yaws/ebin -s core
+erl -config c:/app/tools_platform/local_win -pa c:/app/tools_platform/core/ebin c:/app/tools_platform/cleaner/ebin c:/app/tools_platform/db_backup/ebin c:/app/tools_platform/monitor/ebin c:/app/tools_platform/interface_http/ebin C:/dev/Yaws/ebin -s core

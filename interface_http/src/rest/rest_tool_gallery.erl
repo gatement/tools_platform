@@ -261,7 +261,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 			case Item#gly_item.path of
 	    		undefined ->
 	    			%% orginal path
-    				OriginalDir = code:priv_dir(interface_http) ++ "site",
+    				OriginalDir = code:priv_dir(interface_http) ++ "/site",
 	    			OriginalPath = "css/images/galleryDefaultAlbumCover.jpg",
 	    			MimeType = "image/jpeg",
 
@@ -269,7 +269,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 
 	    		Path ->
 	    			%% orginal path
-	    			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+	    			{ok, OriginalDir} = application:get_env(tool_gallery_original_dir),
 	    			OriginalFile = io_lib:format("~s/~s", [OriginalDir, Path]),
 					
 					case filelib:is_regular(OriginalFile) of
@@ -279,7 +279,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 							get_thumbnail(OriginalDir, Path, MimeType, Height);
 						false ->
 							%% if path doesn't exist, use the default album cover
-    						OriginalDir2 = code:priv_dir(interface_http) ++ "site",
+    						OriginalDir2 = code:priv_dir(interface_http) ++ "/site",
 			    			OriginalPath = "css/images/galleryDefaultAlbumCover.jpg",
 			    			MimeType = "image/jpeg",
 							get_thumbnail(OriginalDir2, OriginalPath, MimeType, Height)
@@ -288,7 +288,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 
     	"image" ->
 	    	%% orginal path
-			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+			{ok, OriginalDir} = application:get_env(tool_gallery_original_dir),
 			OriginalFile = io_lib:format("~s/~s", [OriginalDir, Item#gly_item.path]),
 
 			case filelib:is_regular(OriginalFile) of
@@ -298,7 +298,7 @@ out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 					get_thumbnail(OriginalDir, Item#gly_item.path, MimeType, Height);
 				false ->
 					%% if path doesn't exist, use the default album cover
-    				OriginalDir2 = code:priv_dir(interface_http) ++ "site",
+    				OriginalDir2 = code:priv_dir(interface_http) ++ "/site",
 					OriginalPath = "css/images/galleryItemPathDeleted.jpg",
 	    			MimeType = "image/jpeg",
 					get_thumbnail(OriginalDir2, OriginalPath, MimeType, Height)
@@ -347,7 +347,7 @@ get_thumbnail(OriginalDir, OriginalPath, MimeType, Height) ->
 			{content, MimeType, Binary};
 		_ ->
 			%% thumbnail path
-			{ok, ThumbnailDir} = application:get_env(tools_platform, tool_gallery_thumbnail_dir),
+			{ok, ThumbnailDir} = application:get_env(tool_gallery_thumbnail_dir),
 			ThumbnailFile = lists:flatten(io_lib:format("~s/~p/~s", [ThumbnailDir, Height, OriginalPath])),
 
 			%% generate thumbnail if necessary
@@ -356,7 +356,7 @@ get_thumbnail(OriginalDir, OriginalPath, MimeType, Height) ->
 					do_nothing;
 				false ->
 					filelib:ensure_dir(ThumbnailFile),
-					{ok, Exe} = application:get_env(tools_platform, imagemagick_exe),
+					{ok, Exe} = application:get_env(imagemagick_exe),
 					imagemagick:convert(Exe, OriginalFile, ThumbnailFile, Height)
 			end,
 
@@ -426,7 +426,7 @@ addFileChunk(Arg, [{head, {_Name, Opts}} | Res], State) ->
 			Path = lists:flatten(io_lib:format("~s/~s/~s~s", [State#gly_item_upload.user_id, DateTime, State#gly_item_upload.item_id, FileExtension])),
 
         	%% generate physical full file name
-			{ok, OriginalDir} = application:get_env(tools_platform, tool_gallery_original_dir),
+			{ok, OriginalDir} = application:get_env(tool_gallery_original_dir),
         	FileFullName = lists:flatten(io_lib:format("~s/~s", [OriginalDir, Path])),
             filelib:ensure_dir(FileFullName),
 

@@ -8,7 +8,7 @@
 %% ===================================================================
 
 start_link() ->
-    {ok, erlang:spawn_link(?MODULE, run, [])}.
+    {ok, proc_lib:spawn_link(?MODULE, run, [])}.
 
 
 run() ->
@@ -16,9 +16,8 @@ run() ->
     %error_logger:info_report("Start db backup."),
 	do_backup(),
 
-    {ok, RunInterval} = application:get_env(db_backup, database_backup_interval), 
+    {ok, RunInterval} = application:get_env(database_backup_interval), 
 	timer:sleep(RunInterval * 1000),
-
     run().
 
 
@@ -27,7 +26,7 @@ run() ->
 %% ===================================================================
 
 do_backup() ->
-    {ok, BackupFolder} = application:get_env(db_backup, database_backup_dir), 
+    {ok, BackupFolder} = application:get_env(database_backup_dir), 
 	FileName = lists:flatten(io_lib:format("~s/mnesia_~s.bak", [BackupFolder, tools:datetime_string('yyyyMMdd_hhmmss')])),
     
     %error_logger:info_msg("backup db to: ~p~n", [FileName]),

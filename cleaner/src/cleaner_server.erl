@@ -8,7 +8,7 @@
 %% ===================================================================
 
 start_link() ->
-    {ok, erlang:spawn_link(?MODULE, run, [])}.
+    {ok, proc_lib:spawn_link(?MODULE, run, [])}.
 
 
 run() ->
@@ -28,9 +28,11 @@ run() ->
 
 clean_up() ->
     {ok, UserSessionTimeout} = application:get_env(cleaner, user_session_timeout), 
+    %error_logger:info_msg("Start cleaning - UserSessionTimeout: ~p~n", [UserSessionTimeout]),
     model_usr_session:clear_old(UserSessionTimeout),
 
     {ok, RrdtoolImgTimeout} = application:get_env(cleaner, rrdtool_img_timeout), 
+    %error_logger:info_msg("Start cleaning - RrdtoolImgTimeout: ~p~n", [RrdtoolImgTimeout]),
     clean_rrdtool_img(RrdtoolImgTimeout),
 
     ok.
@@ -38,6 +40,7 @@ clean_up() ->
 
 clean_rrdtool_img(RrdtoolImgTimeout) ->	
 	ImgDir = code:priv_dir(interface_http) ++ "/site/rrdtool_img",
+    %error_logger:info_msg("Start cleaning - RrdtoolImgDir: ~p~n", [ImgDir]),
 
 	case filelib:is_dir(ImgDir) of
 		false ->
