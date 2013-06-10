@@ -11,16 +11,20 @@
 up() ->
 
 	%% == initialization functions =====================
-	create_base_schema(),
-	init_base_data(),
+	%create_base_schema(),
+	%init_base_data(),
 
-	create_word_schema(),
+	%create_word_schema(),
 
-	create_note_schema(),
+	%create_note_schema(),
 
-	create_gallery_schema(),
+	%create_gallery_schema(),
+
+	create_device_schema(),
 
 	%% == lowing function is not for initialization ====
+	add_socket_to_usr_session(),
+
 	ok.
 
 
@@ -79,9 +83,29 @@ create_gallery_schema() ->
 	ok.
 
 
+create_device_schema() ->
+	mnesia:create_table(dev_device, [{attributes, record_info(fields, dev_device)}, {disc_copies, [node()]}]),
+	mnesia:create_table(dev_session, [{attributes, record_info(fields, dev_session)}, {ram_copies, [node()]}]),
+	mnesia:create_table(dev_status, [{attributes, record_info(fields, dev_status)}, {ram_copies, [node()]}]),
+	mnesia:create_table(dev_data, [{attributes, record_info(fields, dev_data)}, {disc_copies, [node()]}]),
+
+	ok.
+
+
 %% ===================================================================
 %% migration update
 %% ===================================================================
+
+add_socket_to_usr_session() ->
+	%% add column socket_pid, socket_territory to table usr_session
+	Fun = fun({usr_session, Id, UserId, UserName, LastActive}) ->
+		#usr_session{id = Id, 
+			user_id = UserId, 
+			user_name = UserName, 
+			last_active = LastActive}
+	end,
+
+	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
 
 
 %% ===================================================================

@@ -645,4 +645,4 @@ out(_Arg, _, _UserId) ->
 %% ===================================================================
 
 note_html() ->	
-	{redirect_local, "/note.html"}.
+	{redirect_local, "/tools/note.html"}.

@@ -6,8 +6,11 @@
 		delete_by_user/1,
 		get/1, 
 		exist/1, 
-		update_last_active/1, 
-		clear_old/1]).
+		clear_old/1,
+		clear_socket/1,
+		update_socket/3,
+		update_last_active/1,
+		get_socket_pid_by_socket_territory/1]).
 
 
 %% ===================================================================
@@ -78,18 +81,6 @@ exist(Id) ->
 	end.
 
 
-update_last_active(Id) ->
-	case model_usr_session:get(Id) of
-		[] -> 
-			error;
-		[Session] ->
-			Fun = fun() ->
-					mnesia:write(Session#usr_session{last_active = erlang:now()})	  
-			end,
-
-			mnesia:transaction(Fun)
-	end.
-
 %% ttl is the max seconds a session can live 
 %% ttl needs to less than 7 days
 clear_old(Ttl) ->
@@ -110,6 +101,58 @@ clear_old(Ttl) ->
 	mnesia:transaction(Fun),
 
 	ok.
+
+
+clear_socket(SocketPid) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(usr_session), 
+						X#usr_session.socket_pid =:= SocketPid]))
+	end,
+	{atomic, Models} = mnesia:transaction(Fun),
+
+	[?MODULE:update_socket(X#usr_session.id, undefined, undefined) || X <- Models],
+
+	ok.
+
+
+update_socket(Id, SocketPid, SocketTerritory) ->
+	case ?MODULE:get(Id) of
+		[] ->
+			error;
+		[Model] ->
+			Fun = fun() ->
+					mnesia:write(Model#usr_session{
+						socket_pid = SocketPid,
+						socket_territory = SocketTerritory
+					})  
+			end,
+
+			mnesia:transaction(Fun)
+	end.
+
+
+update_last_active(Id) ->
+	case ?MODULE:get(Id) of
+		[] -> 
+			error;
+		[Model] ->
+			Fun = fun() ->
+					mnesia:write(Model#usr_session{last_active = erlang:now()})	  
+			end,
+
+			mnesia:transaction(Fun)
+	end.
+
+
+get_socket_pid_by_socket_territory(SocketTerritory) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X#usr_session.socket_pid || X <- mnesia:table(usr_session), 
+						X#usr_session.socket_territory =:= SocketTerritory]))
+	end,
+
+	{atomic, Result} = mnesia:transaction(Fun),
+	Result.
+
 
 %% ===================================================================
 %% Local Functions

@@ -1,0 +1,13 @@
+{application, interface_tcp,
+ [{description, "TCP interface for tools_platform"},
+  {vsn, "0.1.0"},
+  {registered, [
+		interface_tcp_sup, 
+		interface_tcp_sup_ac, 
+		interface_tcp_sup_controller]},
+  {applications, [kernel, stdlib]},
+  {env, [
+    {tcp_port_device, 10000}
+  ]},
+  {mod, {interface_tcp_app, []}}
+ ]}.

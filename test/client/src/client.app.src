@@ -1,0 +1,25 @@
+{application, client,
+ [
+  {description, "a test client for interface_tcp"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, [
+    {server_host, "wolf.com"},
+    {server_port, 10000},
+    
+    {run_mode, test}, % test/press
+
+    {mac_base, 0},
+
+    {reconnect_wait_time, 10000},
+    {data_sending_interval, 30000},
+
+    {client_creating_interval, 1000},
+    {client_count_init, 1},
+    {client_count_total, 1}
+  ]}
+ ]}.

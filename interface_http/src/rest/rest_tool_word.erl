@@ -151,4 +151,4 @@ out(_Arg, _, _) ->
 %% ===================================================================
 
 word_yaws() ->		
-	{redirect_local, "/word.yaws"}.
+	{redirect_local, "/tools/word.yaws"}.

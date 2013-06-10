@@ -12,6 +12,7 @@
 -define(USR_PREFERENCE_WORD_ENABLED, "word").
 -define(USR_PREFERENCE_GALLERY_ENABLED, "gallery").
 -define(USR_PREFERENCE_MONITOR_ENABLED, "monitor").
+-define(USR_PREFERENCE_DEVICE_ENABLED, "device").
 
 %% default note parameters ----------
 -define(NOTE_DEFAULT_LEFT, 5).
@@ -28,7 +29,7 @@
 %% user --------------------
 -record(usr_user, {id, password, name, email, enabled, admin, last_login}).
 -record(usr_preference, {id, user_id, key, value}).
--record(usr_session, {id, user_id, user_name, last_active}).
+-record(usr_session, {id, user_id, user_name, last_active, socket_pid, socket_territory}).
 
 %% word --------------------
 -record(wrd_word, {id, user_id, word, pronunciation, translation, display_order, last_updated}).
@@ -43,11 +44,17 @@
 -record(gly_item, {id, user_id, parent_id, name, path, type, mime_type, display_order, created}).
 -record(gly_share, {id, item_id, user_id, share_type}).
 
+%% device --------------------
+-record(dev_device, {id, sn, user_id, name, created}).
+-record(dev_session, {id, sn, pid, created}).
+-record(dev_status, {id, sn, key, value, updated}).
+-record(dev_data, {id, sn, key, value, datetime}).
+
 
 %% runing records ===========================================
 -record(gly_item_upload, {item_id, item_name, album_item_id, mime_type, user_id, path, fd, file_full_name, last}).
 -record(arg_state, {session_id, user_id, user_name}).
--record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, gallery, monitor}).
+-record(user_search_result, {id, name, email, enabled, admin, last_login, note, word, gallery, monitor, device}).
 -record(user_autocomplete_item, {label, value}).
 -record(note_category, {id, name, permission, is_default, is_trash, display_order}).
 -record(note_share, {id, category_id, user_id, user_name, share_type}).

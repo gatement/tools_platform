@@ -208,7 +208,8 @@ search(ContainStr) ->
 			note = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_NOTE_ENABLED),
 			word = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_WORD_ENABLED),
 			gallery = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_GALLERY_ENABLED),
-			monitor = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_MONITOR_ENABLED)
+			monitor = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_MONITOR_ENABLED),
+			device = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_DEVICE_ENABLED)
 		} || User <- Users].
 
 

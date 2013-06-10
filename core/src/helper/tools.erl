@@ -14,7 +14,8 @@
 		random_string/1,
 		generate_id/1,		
 		record_to_list/2,
-		is_pid_alive/1]).
+		is_pid_alive/1,
+		prefix_string/3]).
 		
 -vsn("0.1.3").
 
@@ -162,7 +163,17 @@ is_pid_alive(Pid) ->
 		    end
     end.
 
-    
+
+prefix_string(Str, TotalLength, Prefix) ->
+    if 
+        length(Str) < TotalLength ->
+            Str2 = Prefix ++ Str,
+            prefix_string(Str2, TotalLength, Prefix);
+        true ->
+            lists:flatten(Str)
+    end.
+
+
 %% ===================================================================
 %% Local Functions
 %% ===================================================================

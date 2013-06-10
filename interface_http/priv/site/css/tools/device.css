@@ -1,0 +1,25 @@
+body {
+	padding: 0;
+	margin: 3px;
+	font-size: 12px;
+}
+.voltage{
+	border: 1px solid #BBBBBB;
+	background: none repeat scroll 0 0 #F0F0F0;
+	box-shadow: 0 0 5px #BBBBBB inset;
+	margin-top: 3px;
+	height: 23px;
+	width: 300px;
+}
+.voltageProgress{
+	background-color: #0099FF;
+	box-shadow: 0 0 1px #FFFFFF inset;
+	height: 23px;
+	width: 0;
+}
+.voltageText{
+	color: #FFFFFF;
+	margin-top: -23px;
+	font-size: 12px;
+	padding-top: 4px;
+}

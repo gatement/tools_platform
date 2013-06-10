@@ -22,6 +22,12 @@
     {database_backup_dir, "/app/tools_platform/priv/data"},
     {database_backup_interval, 3600} % in seconds
 ]},
+{gen_tcp_server, [
+    {init_worker_count, 2}
+]},
+{interface_tcp, [
+    {tcp_port_device, 10000}
+]},
 {interface_http,[   
     {port, 8080},
 

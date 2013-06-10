@@ -31,10 +31,16 @@ run() ->
 
     filelib:ensure_dir(LogDir ++ "/"),
 
-    Ssl = #ssl{
-          keyfile = KeyFile,
-          certfile = CertFile
-    },
+    Ssl = case KeyFile of
+        [] ->
+            undefined;
+         _ ->
+            #ssl{
+              keyfile = KeyFile,
+              certfile = CertFile
+            }
+    end,
+
     
     GconfList = [{id, Id},
                  {logdir, LogDir},
@@ -44,8 +50,8 @@ run() ->
     SconfList = [{port, Port},
                  {listen, {0,0,0,0}},
                  {docroot, DocRoot},
-        		 {arg_rewrite_mod, arg_rewriter},
-        		 {errormod_404, nofound},
+                 {arg_rewrite_mod, arg_rewriter},
+                 {errormod_404, nofound},
                  {ssl, Ssl},
                  {appmods, [
     			    {"/user/", rest_usr_user},
@@ -53,9 +59,9 @@ run() ->
                     {"/monitor/", rest_tool_monitor},
                     {"/word/", rest_tool_word},
                     {"/note/", rest_tool_note},
-                    {"/gallery/", rest_tool_gallery}
+                    {"/gallery/", rest_tool_gallery},
+                    {"/device/", rest_tool_device}
     			 ]}],
-
 
     {ok, SCList, GC, ChildSpecs} = yaws_api:embedded_start_conf(DocRoot, SconfList, GconfList, Id),
     [supervisor:start_child(interface_http_sup, Ch) || Ch <- ChildSpecs],

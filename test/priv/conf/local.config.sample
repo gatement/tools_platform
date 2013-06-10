@@ -1,0 +1,18 @@
+[
+{kernel, [
+	{error_logger, {file, "/app/midea_core/test/priv/log/kernel.log"}}
+]},
+{client, [
+    {server_host, "wolf.com"},
+    {server_port, 10000},
+    
+    {run_mode, test}, % test/press
+
+    {reconnect_wait_time, 10000},
+    {data_sending_interval, 30000},
+
+    {client_creating_interval, 1000},
+    {client_count_init, 1},
+    {client_count_total, 1}
+]}
+].

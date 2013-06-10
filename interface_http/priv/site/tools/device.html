@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Device - Tools</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="/css/tools/device.css" />
+		<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="/js/utils.js"></script>
+		<script type="text/javascript" src="/js/tools/device.js"></script>
+	</head>
+	<body>
+		<div>
+			Device properties:
+		</div>
+		
+		<hr id="hr"/>
+		
+		<div id="devicesContainer"></div>
+
+		<script id="deviceTemplate" type="text/x-jquery-tmpl">
+			<div class="devProps" id="${sn}">
+				<div>name: <span class="deviceName">${name}</span></div>
+				<div>sn: <span class="deviceSn">${sn}</span></div>
+				<div class="voltage">
+					<div class="voltageProgress"></div>
+					<div class="voltageText">Voltage: <span>${voltage}</span>v</div>
+				</div>
+			</div>
+		</script>
+
+	</body>
+	</html>

@@ -50,6 +50,7 @@
 					WordEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_WORD_ENABLED),
 					GalleryEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_GALLERY_ENABLED),
 					MonitorEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_MONITOR_ENABLED),
+					DeviceEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_DEVICE_ENABLED),
 					if
 						NoteEnabled =:= true ->
 							NoteHtml = "<li class=\"tool\"><a href=\"/tools/note.html\">note</a></li>";
@@ -74,7 +75,13 @@
 						true -> 
 							MonitorHtml = ""
 					end,
-					Html = NoteHtml ++ WordHtml ++ GalleryHtml ++ MonitorHtml,
+					if
+						DeviceEnabled =:= true ->
+							DeviceHtml = "<li class=\"tool\"><a href=\"/tools/device.html\">device</a></li>";
+						true -> 
+							DeviceHtml = ""
+					end,
+					Html = NoteHtml ++ WordHtml ++ GalleryHtml ++ MonitorHtml ++ DeviceHtml,
 					{html, Html}.
 				</erl>
 			</ul>
