@@ -10,7 +10,7 @@ if(!tp)
 		var me = this;
 
 		this.sessionCookieId = "usr_sid",
-		this.firstLoading = false;
+		this.firstLoading = true;
 	};
 
 	$.extend(Device.prototype, {
@@ -41,6 +41,7 @@ if(!tp)
 			window.alert(data);
 		},
 
+
 		list_online_devices: function()
 		{
 			var msg = {
@@ -53,7 +54,7 @@ if(!tp)
 
 		list_online_devices_success: function(data) 
 		{
-			for(int i=0; i< data.length; i++)
+			for(var i=0; i< data.length; i++)
 			{
 				this.update_device_display(data[i]);
 			}
@@ -64,10 +65,12 @@ if(!tp)
 			window.alert(data);
 		},
 
+
 		device_status_changed_success: function(data) 
 		{
 			this.update_device_display(data);
 		},
+
 
 		update_device_display: function(data)
 		{			
@@ -77,6 +80,10 @@ if(!tp)
 				{
 					// create the element
 					$("#deviceTemplate").tmpl(data).appendTo($("#devicesContainer"));
+
+					// update the voltage display
+					$device = $("#"+data.sn);
+					this.display_device_voltage($device, data.voltage);
 				}
 				else
 				{
@@ -84,9 +91,7 @@ if(!tp)
 					$device = $("#"+data.sn);
 					$device.find(".deviceName").text(data.name);
 					$device.find(".deviceSn").text(data.sn);
-
-					var width = data.voltage * 100 / 1023;	
-					$device.find(".voltageProgress").animate({width, width + "%"});
+					this.display_device_voltage($device, data.voltage);
 				}
 			}
 			else
@@ -94,6 +99,32 @@ if(!tp)
 				// delete the element
 				$("#"+data.sn).remove();
 			}
+		},
+
+		display_device_voltage: function($device, voltage)
+		{
+			var width = voltage * 100 / 100;
+			var bgColor = this.get_device_voltage_bg_color(width);
+			var widthStr = $.utils.formatStr("{0}%", width);
+			var voltageText = $.utils.formatStr("{0}V / {1}", voltage, widthStr);				
+			$device.find(".voltageText").text(voltageText);
+			$device.find(".voltageProgress").animate({"width": widthStr, "background-color": bgColor});
+		},
+
+		get_device_voltage_bg_color: function(voltagePercentage)
+		{
+			var bgColor = "#0099FF";
+
+			if(voltagePercentage < 20){
+				var vol = 256 - window.parseInt(voltagePercentage*256/100);
+				bgColor = $.utils.formatStr("rgb(0, {0}, 0)", vol);
+			}
+			else if(voltagePercentage > 80){
+				var vol = window.parseInt(voltagePercentage*256/100);
+				bgColor = $.utils.formatStr("rgb({0}, 0, 0)", vol);
+			}
+
+			return bgColor;
 		},
 
 		//============ web socket ======================================================================
@@ -118,14 +149,11 @@ if(!tp)
 				if(me.firstLoading)
 				{
 					me.firstLoading = false;
-
-					// do something on first loading
-
+					me.list_online_devices();
 				}
-				else // reconnect
-				{
-					me.update_socket(); // upate session to the new socket PID
-				}
+
+				// upate session to the new socket PID whenever connect(re-connect)
+				me.update_socket();
 			},
 			socket_on_message = function(msg)
 			{
@@ -140,6 +168,12 @@ if(!tp)
 					{
 						me[response.cmd + "_error"].apply(me, [response.data]);
 					}
+				}
+
+				// log
+				if(console && console.log)
+				{
+					console.log("received: %o", msg);
 				}
 			},
 			socket_on_close = function()

@@ -23,10 +23,10 @@ handle_message({text, Request}) ->
             [{"success", false}, {"data", "Bad session, please re-login."}];
         [] ->
             [{"success", false}, {"data", "Bad session, please re-login."}];
-        [Session] ->
-            UserId = Session#usr_session.user_id,
+        [UserSession] ->
+            UserId = UserSession#usr_session.user_id,
             Function = erlang:list_to_atom(Cmd),
-            erlang:apply(?MODULE, Function, [Data, UserId, Session])
+            erlang:apply(?MODULE, Function, [Data, UserId, UserSession])
     end,
 
     %io:format("Function result: ~p~n", [Response]),
@@ -47,7 +47,10 @@ device_status_changed_notification(Sn) ->
         false ->
             0;
         true ->
-            model_dev_status:get_by_key(voltage)
+            case model_dev_status:get_by_key(Sn, voltage) of
+                undefined -> 0;
+                Vol -> Vol
+            end
     end,
 
     Msg = json2:encode({struct, [
@@ -84,19 +87,22 @@ notice(Msg) ->
 %% Request handlers
 %% ===================================================================
 
-update_socket(_Data, _UserId, Session) ->
-    model_usr_session:update_socket(Session#usr_session.id, erlang:self(), "/device"),
+update_socket(_Data, _UserId, UserSession) ->
+    model_usr_session:update_socket(UserSession#usr_session.id, erlang:self(), "/device"),
     [{"success", true}, {"data", "ok."}].
 
 
-list_online_devices(_Data, _UserId, Session) ->
+list_online_devices(_Data, _UserId, _UserSession) ->
     DeviceSessionIds = model_dev_session:all_keys(),
 
     Fun = fun(SessionId) ->
-        Session = model_dev_session:get(SessionId),
-        Sn = Session#dev_session.sn,
-        Device = model_dev_device:get_by_sn(Sn),
-        Voltage = model_dev_status:get_by_key(Sn, voltage),
+        DeviceSession = model_dev_session:get(SessionId),
+        Sn = DeviceSession#dev_session.sn,
+        [Device] = model_dev_device:get_by_sn(Sn),
+        Voltage = case model_dev_status:get_by_key(Sn, voltage) of
+            undefined -> 0;
+            Vol -> Vol
+        end,
         {struct, [
                     {"sn", Sn}, 
                     {"name", Device#dev_device.name}, 

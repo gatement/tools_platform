@@ -3,13 +3,23 @@ body {
 	margin: 3px;
 	font-size: 12px;
 }
+.device{	
+	border: 1px solid #BBBBBB;
+	background: none repeat scroll 0 0 #FAFAFA;
+	box-shadow: 0 0 5px #BBBBBB inset;
+	margin: 3px;
+	padding: 3px;
+	height: 60px;
+	width: 300px;
+	float: left;
+}
 .voltage{
 	border: 1px solid #BBBBBB;
 	background: none repeat scroll 0 0 #F0F0F0;
 	box-shadow: 0 0 5px #BBBBBB inset;
 	margin-top: 3px;
 	height: 23px;
-	width: 300px;
+	width: 290px;
 }
 .voltageProgress{
 	background-color: #0099FF;
@@ -17,9 +27,12 @@ body {
 	height: 23px;
 	width: 0;
 }
-.voltageText{
+.voltageTextContainer{
 	color: #FFFFFF;
 	margin-top: -23px;
 	font-size: 12px;
 	padding-top: 4px;
+}
+.deviceSn{
+	margin-left: 12px;
 }

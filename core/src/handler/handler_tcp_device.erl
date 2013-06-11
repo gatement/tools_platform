@@ -66,7 +66,7 @@ process_data_online(SourcePid, Socket, _Data, Sn) ->
             model_dev_device:create(#dev_device{
                 id = uuid:to_string(uuid:uuid1()), 
                 sn = Sn,
-                name = "Device1",
+                name = "Device" ++ erlang:integer_to_list(erlang:list_to_integer(Sn)),
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
             });
         _ ->
@@ -100,9 +100,9 @@ process_data_online(SourcePid, Socket, _Data, Sn) ->
     ok.
 
 
-process_data_voltage(_SourcePid, _Socket, Data, Sn) ->
+process_data_voltage(SourcePid, _Socket, Data, Sn) ->
     Voltage = extract_voltage(Data),
-    error_logger:info_msg("process_data_voltage(~p): ~p~n", [Sn, Voltage]),
+    error_logger:info_msg("process_data_voltage(~p): ~p : ~p~n", [Sn, SourcePid, Voltage]),
 
     %% save it to status table and as history data
     model_dev_status:update(Sn, voltage, Voltage),

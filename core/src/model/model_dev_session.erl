@@ -39,6 +39,7 @@ get(Id) ->
 		_ -> error
 	end.
 
+
 get_by_sn(Sn) ->
     Fun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_session), 
