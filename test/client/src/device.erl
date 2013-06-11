@@ -120,29 +120,23 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
 
 
 get_online_data(Count) ->
-    Mac6 = Count div (256 * 256 * 256 * 256 * 256),
-    Mac5 = (Count rem (256 * 256 * 256 * 256 * 256)) div (256 * 256 * 256 * 256),
-    Mac4 = (Count rem (256 * 256 * 256 * 256)) div (256 * 256 * 256),
-    Mac3 = (Count rem (256 * 256 * 256)) div (256 * 256),
-    Mac2 = (Count rem (256 * 256)) div 256,
-    Mac1 = Count rem 256,
+    MacString0 = erlang:integer_to_list(Count, 16),
+    MacString = tools:prefix_string(MacString0, 12, "0"),
 
-    Data = [16#A1,Mac6,Mac5,Mac4,Mac3,Mac2,Mac1],
+    Data = [16#41 | MacString],
 
     erlang:list_to_binary(Data).
 
 
-get_status_data(Count) ->
-    Mac6 = Count div (256 * 256 * 256 * 256 * 256),
-    Mac5 = (Count rem (256 * 256 * 256 * 256 * 256)) div (256 * 256 * 256 * 256),
-    Mac4 = (Count rem (256 * 256 * 256 * 256)) div (256 * 256 * 256),
-    Mac3 = (Count rem (256 * 256 * 256)) div (256 * 256),
-    Mac2 = (Count rem (256 * 256)) div 256,
-    Mac1 = Count rem 256,
+get_status_data(_Count) ->
+    {A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+    Temperature = random:uniform(1024),
 
-    Temperature = erlang:round(random:uniform() * 100),
-
-    Data = [16#A2,Mac6,Mac5,Mac4,Mac3,Mac2,Mac1,Temperature],
+    Temperature0 = Temperature rem 256,
+    Temperature1 = erlang:round((Temperature - Temperature0)/256),
+    
+    Data = [16#42, Temperature1, Temperature0],
 
     erlang:list_to_binary(Data).
     

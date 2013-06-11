@@ -103,25 +103,29 @@ if(!tp)
 
 		display_device_voltage: function($device, voltage)
 		{
-			var width = voltage * 100 / 100;
+			var width = window.parseInt(voltage * 100 / 1023);
 			var bgColor = this.get_device_voltage_bg_color(width);
 			var widthStr = $.utils.formatStr("{0}%", width);
 			var voltageText = $.utils.formatStr("{0}V / {1}", voltage, widthStr);				
 			$device.find(".voltageText").text(voltageText);
-			$device.find(".voltageProgress").animate({"width": widthStr, "background-color": bgColor});
+
+			//$device.find(".voltageProgress").animate({"width": widthStr, "background-color": bgColor});
+			$device.find(".voltageProgress").css("width", widthStr);
+			$device.find(".voltageProgress").css("background-color", bgColor);
 		},
 
 		get_device_voltage_bg_color: function(voltagePercentage)
 		{
-			var bgColor = "#0099FF";
+			var bgColor = "rgb(0,210,0)"; //#0099FF
 
-			if(voltagePercentage < 20){
-				var vol = 256 - window.parseInt(voltagePercentage*256/100);
-				bgColor = $.utils.formatStr("rgb(0, {0}, 0)", vol);
+			if(voltagePercentage < 30){
+				var b = 256 - window.parseInt(voltagePercentage*256/100);
+				var g = window.parseInt(b * 0.7);
+				bgColor = $.utils.formatStr("rgb(0, {0}, {1})", g, b);
 			}
-			else if(voltagePercentage > 80){
-				var vol = window.parseInt(voltagePercentage*256/100);
-				bgColor = $.utils.formatStr("rgb({0}, 0, 0)", vol);
+			else if(voltagePercentage > 90){
+				var r = window.parseInt(voltagePercentage*256/100);
+				bgColor = $.utils.formatStr("rgb({0}, 100, 100)", r);
 			}
 
 			return bgColor;

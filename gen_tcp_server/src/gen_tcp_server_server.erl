@@ -126,10 +126,8 @@ dispatch(terminate, State) ->
 
 
 extract_sn(Data, RequestType) ->
-    MacInt = case RequestType of
+    case RequestType of
         device ->
-            <<16#A1, MacInt0:48/integer, _/binary>> = Data,
-            MacInt0
-    end,
-    MacString = erlang:integer_to_list(MacInt, 16),
-    tools:prefix_string(MacString, 12, "0").
+            <<16#41, Mac11:8/integer, Mac10:8/integer, Mac9:8/integer, Mac8:8/integer, Mac7:8/integer, Mac6:8/integer, Mac5:8/integer, Mac4:8/integer, Mac3:8/integer, Mac2:8/integer, Mac1:8/integer, Mac0:8/integer, _/binary>> = Data,
+            [Mac11, Mac10, Mac9, Mac8, Mac7, Mac6, Mac5, Mac4, Mac3, Mac2, Mac1, Mac0]
+    end.

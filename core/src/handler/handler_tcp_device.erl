@@ -44,11 +44,11 @@ handle_data_inner(SourcePid, Socket, RawData, Sn) ->
     <<TypeCode:1/binary, _/binary>> = RawData,
 
     case TypeCode of
-        <<16#A1>> ->
-            <<Data:7/binary, RestRawData/binary>> = RawData,
+        <<16#41>> ->
+            <<Data:13/binary, RestRawData/binary>> = RawData,
             process_data_online(SourcePid, Socket, Data, Sn);
-        <<16#A2>> ->
-            <<Data:8/binary, RestRawData/binary>> = RawData,
+        <<16#42>> ->
+            <<Data:3/binary, RestRawData/binary>> = RawData,
             process_data_voltage(SourcePid, Socket, Data, Sn)
     end,
 
@@ -66,7 +66,7 @@ process_data_online(SourcePid, Socket, _Data, Sn) ->
             model_dev_device:create(#dev_device{
                 id = uuid:to_string(uuid:uuid1()), 
                 sn = Sn,
-                name = "Device" ++ erlang:integer_to_list(erlang:list_to_integer(Sn)),
+                name = "DEV" ++ Sn,
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
             });
         _ ->
@@ -121,5 +121,5 @@ process_data_voltage(SourcePid, _Socket, Data, Sn) ->
 
 
 extract_voltage(Data) ->
-    <<_:7/binary, Voltage:8/integer>> = Data,
+    <<_:1/binary, Voltage:16/integer>> = Data,
     Voltage.
