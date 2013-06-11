@@ -9,7 +9,7 @@ body {
 	box-shadow: 0 0 5px #BBBBBB inset;
 	margin: 3px;
 	padding: 3px;
-	height: 60px;
+	height: 80px;
 	width: 300px;
 	float: left;
 }
@@ -19,7 +19,7 @@ body {
 	box-shadow: 0 0 5px #BBBBBB inset;
 	margin-top: 3px;
 	height: 23px;
-	width: 290px;
+	width: 297px;
 }
 .voltageProgress{
 	background-color: #0099FF;
@@ -35,4 +35,7 @@ body {
 }
 .deviceSn{
 	margin-left: 12px;
+}
+.ledBtn{
+	margin-left: 4px;
 }

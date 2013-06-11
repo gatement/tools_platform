@@ -7,7 +7,8 @@
 			  	stdlib, 
 			  	core]},
   {env, [
-  	{connection_idle_timout, 20000}, % in milliseconds
+    {connection_idle_timout, 20000}, % in milliseconds
+    {heartbeat_checking_interval, 30000}, % in milliseconds
     {init_worker_count, 2}
   ]}
  ]}.

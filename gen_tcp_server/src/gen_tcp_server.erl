@@ -8,8 +8,9 @@
 
 behaviour_info(callbacks) ->
     [{init,1},
-     {handle_data, 3},
-     {terminate, 1}];
+     {handle_data, 5},
+     {terminate, 2},
+     {get_hearbeat_data, 0}];
 behaviour_info(_Other) ->
     undefined.
 
@@ -27,6 +28,7 @@ start_link(SupName, Callback, IP, Port, UserArgs) ->
 
 
 tcp_reply(Socket, Data) ->
+    error_logger:info_msg("send to socket ~p with data: ~p~n", [Socket, Data]),
     gen_tcp:send(Socket, Data).
 
 

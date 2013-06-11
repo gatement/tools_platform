@@ -52,6 +52,15 @@ device_status_changed_notification(Sn) ->
                 Vol -> Vol
             end
     end,
+    Led1 = case IsOnline of
+        false ->
+            0;
+        true ->
+            case model_dev_status:get_by_key(Sn, led1) of
+                undefined -> 0;
+                Led -> Led
+            end
+    end,
 
     Msg = json2:encode({struct, [
             {"cmd", "device_status_changed"}, 
@@ -60,7 +69,8 @@ device_status_changed_notification(Sn) ->
                 {"sn", Sn}, 
                 {"name", Device#dev_device.name}, 
                 {"is_online", IsOnline}, 
-                {"voltage", Voltage}
+                {"voltage", Voltage}, 
+                {"led1", Led1}
             ]}}
         ]}),
     notice(Msg).
@@ -89,6 +99,15 @@ notice(Msg) ->
 
 update_socket(_Data, _UserId, UserSession) ->
     model_usr_session:update_socket(UserSession#usr_session.id, erlang:self(), "/device"),
+    [{"success", true}, {"data", "ok."}].
+
+
+update_led_status(Data, _UserId, _UserSession) ->
+    {struct,[{"sn", Sn},{"status", Status}]} = Data,
+    Cmd = <<$#, $1, $#, Status>>,
+    DeviceSessions = model_dev_session:get_by_sn(Sn),
+    [X#dev_session.pid ! {send_tcp_data, Cmd} || X <- DeviceSessions],
+
     [{"success", true}, {"data", "ok."}].
 
 

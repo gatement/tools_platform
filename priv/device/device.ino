@@ -11,6 +11,9 @@
 #define DBG(message)
 #endif // DEBUG
 
+#define RETRY_HOST_TIMEOUT      10000
+#define RETRY_AP_TIMEOUT      10000
+
 #define HOST      "192.168.1.11"
 #define PORT      10000
 #define CONNECT_TIMEOUT 1000
@@ -22,7 +25,7 @@
 #define RECV_BUFFER_LEN      100
 
 byte mac[20];
-unsigned char macLen = 0;
+unsigned int macLen = 0;
 
 unsigned int lastVoltage = 0;
 unsigned int voltageCachedCount = 0;
@@ -32,19 +35,29 @@ unsigned int i, j;
 char recv_buffer[RECV_BUFFER_LEN];
 unsigned int byteCount;
 
+unsigned char led1 = 12;
+
 WiFly wifly(2, 3); //wifly(TX, RX)
 
 void setup() {
 #ifdef DEBUG
   Serial.begin(9600);
 #endif
+
+  pinMode(led1, OUTPUT);
   
   DBG("--------- MY WIFLY DEVICE --------");
   
   // wait for initilization of wifly
   delay(3000);
   
-  initDev();
+  while(!initWifi())
+  {
+    delay(5000);
+  }
+  
+  digitalWrite(led1, HIGH);
+  sendLed1Status();
 }
 
 void loop() {    
@@ -53,29 +66,74 @@ void loop() {
   {
     recv_buffer[byteCount] = '\0';
     String receivedStr = recv_buffer;    
+    DBG0("received: ");
     DBG(receivedStr);
+    
+    // server side heartbeat checking
+    if(receivedStr.indexOf("#0#") != -1)
+    {
+      sendHeartbeat();
+    }
+    
+    // led1 remote control
+    if(receivedStr.indexOf("#1#") != -1)
+    {
+      char val = receivedStr.charAt(receivedStr.indexOf("#1#") + 3);
+      controlLed1(val);
+    }
     
     // re-connect TCP
     if(receivedStr.indexOf("*CLOS*") != -1)
     {
-      delay(5000);
-      connectServer();
+      delay(RETRY_HOST_TIMEOUT);
+      while(!connectHost());
     }
-  }
+  } 
   
   monitorVoltage();
   
   delay(50);
 }
 
+void controlLed1(char val)
+{    
+    if(val == 1)
+    {
+      digitalWrite(led1, HIGH);
+      DBG("led1: on");
+    }
+    else
+    {
+      digitalWrite(led1, LOW);
+      DBG("led1: off");
+    }
+    
+    sendLed1Status();
+}
+
+void sendLed1Status()
+{
+    // send led status to remote
+    wifly.write('C');
+    wifly.write(digitalRead(led1));
+}
+
+void sendHeartbeat()
+{
+  wifly.write('D');
+  wifly.write('A');
+  wifly.write('A'); 
+}
+
 void monitorVoltage()
 { 
   unsigned int sensorVal = analogRead(A0);
   voltageCachedCount ++;
-  if(abs(sensorVal - lastVoltage) > 2 || voltageCachedCount == 50)
+  if(abs(sensorVal - lastVoltage) > 2 || voltageCachedCount == 100)
   {
     voltageCachedCount = 0;
     lastVoltage = sensorVal;
+    DBG0("voltage: ");
     DBG(sensorVal);
     
     byte byte1 = sensorVal/256;
@@ -87,16 +145,24 @@ void monitorVoltage()
   }
 }
 
-void initDev()
+boolean initWifi()
 { 
   wifly.reset();
+  delay(1000);
   wifly.sendCommand("set wlan join 0\r");  
   
   macLen = getMac(mac); 
   printMac();
   
-  joinAP();
-  connectServer();  
+  if(!joinAP())
+  {
+    return false;
+  }
+  
+  if(!connectHost())
+  {
+    return false;
+  }
   
   // back to data mode
   while(!wifly.dataMode())
@@ -105,42 +171,72 @@ void initDev()
   }
   
   DBG("init done.");
+  
+  return true;
 }
 
-void joinAP()
+boolean joinAP()
 { 
-  DBG("joining " SSID);
+  DBG("joining: " SSID);
+  int retry_times = 0;
   while(!wifly.join(SSID, KEY, AUTH))
   {
     DBG("  retrying...");
-    delay(3000);
+    retry_times++;
+    if(retry_times == 10)
+    {
+      break;
+    }
+    delay(RETRY_AP_TIMEOUT);
   }
-  DBG("  joined " SSID );
+  if(retry_times == 10)
+  {
+    DBG("  too many retry so give up.");
+    return false;
+  }
+  else
+  {
+    DBG("  joined: " SSID );
+    return true;
+  }
 }
 
-void connectServer()
+boolean connectHost()
 {  
-  DBG("connecting " HOST);
+  DBG("connecting: " HOST);
+  int retry_times = 0;
   while(!wifly.connect(HOST, PORT, CONNECT_TIMEOUT))
   {
     DBG("  retrying...");
-    delay(3000);
+    retry_times++;
+    if(retry_times == 10)
+    {
+      DBG("  too many retry so give up.");
+      break;
+    }
+    delay(RETRY_HOST_TIMEOUT);
   }
-  DBG("  connected " HOST );
   
-  sendOnlineData();
+  if(retry_times == 10)
+  {
+    DBG("  too many retry so give up.");
+    return false;
+  }
+  else
+  {
+    DBG("  connected: " HOST );
+    sendOnlineData();
+    return true;
+  }
 }
 
 void sendOnlineData()
 {
   wifly.write('A');
-  
+
   for(i=0; i < macLen; i++)
   {
-    if(mac[i] != 0x3A)
-    {
-      wifly.write(mac[i]);
-    }
+    wifly.write(mac[i]);
   }
 }
 

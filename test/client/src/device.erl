@@ -93,6 +93,7 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendO
         {tcp, Socket, Msg} -> 
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
+            handle_data(Socket, Msg),
             client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false, false);
 
         {tcp_closed, _Socket} ->
@@ -140,3 +141,24 @@ get_status_data(_Count) ->
 
     erlang:list_to_binary(Data).
     
+
+handle_data(_, <<>>) ->
+    ok;
+handle_data(Socket, RawData) ->
+    <<TypeCode:3/binary, _/binary>> = RawData,
+    case TypeCode of
+        <<$#, $0, $#>> ->
+            %% heart beat request
+            <<_:3/binary, RestRawData/binary>> = RawData,
+            ResponseData = <<$D, $A, $A>>,    
+            error_logger:info_msg("sending Heartbeat Response: ~p~n", [ResponseData]),
+            gen_tcp:send(Socket, ResponseData);
+        <<$#, $1, $#>> ->
+            %% led control
+            <<_:4/binary, RestRawData/binary>> = RawData,
+            ResponseData = <<16#43, 0>>,    
+            error_logger:info_msg("sending Led Status: ~p~n", [ResponseData]),
+            gen_tcp:send(Socket, ResponseData)
+    end,
+
+    handle_data(Socket, RestRawData).

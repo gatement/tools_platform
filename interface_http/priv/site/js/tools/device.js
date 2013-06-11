@@ -20,6 +20,25 @@ if(!tp)
 			this.socket_connect();
 		},
 
+		ledBtn_click: function(event)
+		{
+			var sn = $(event.target).parent().parent().attr("id");
+			var status = 1;
+			if($(event.target).text() == "on")
+			{
+				status = 0;
+			}
+
+			this.update_led_status(sn, status);
+		},
+
+		bindEvents: function()
+		{
+			var me = this;
+
+			$(".ledBtn").unbind().click(function(event){me.ledBtn_click(event)});
+		},
+
 
 		//============ web socket operations ===========================================================
 		update_socket: function() 
@@ -42,6 +61,26 @@ if(!tp)
 		},
 
 
+		update_led_status: function(sn, status) 
+		{
+			var msg = {
+				cmd: "update_led_status",
+				sid: $.cookie(this.sessionCookieId),
+				data: {"sn": sn, "status": status}
+			};
+		    this.socket_send_msg(msg);
+		},
+
+		update_led_status_success: function(data) 
+		{
+		},
+
+		update_led_status_error: function(data) 
+		{			
+			window.alert(data);
+		},
+
+
 		list_online_devices: function()
 		{
 			var msg = {
@@ -54,10 +93,14 @@ if(!tp)
 
 		list_online_devices_success: function(data) 
 		{
+			var me = this;
+
 			for(var i=0; i< data.length; i++)
 			{
 				this.update_device_display(data[i]);
 			}
+
+			this.bindEvents();
 		},
 
 		list_online_devices_error: function(data) 
@@ -69,6 +112,7 @@ if(!tp)
 		device_status_changed_success: function(data) 
 		{
 			this.update_device_display(data);
+			this.bindEvents();
 		},
 
 
@@ -81,8 +125,9 @@ if(!tp)
 					// create the element
 					$("#deviceTemplate").tmpl(data).appendTo($("#devicesContainer"));
 
-					// update the voltage display
-					$device = $("#"+data.sn);
+					// update the voltage display and led status
+					$device = $("#"+data.sn);					
+					this.display_device_led1($device, data.led1);
 					this.display_device_voltage($device, data.voltage);
 				}
 				else
@@ -91,6 +136,7 @@ if(!tp)
 					$device = $("#"+data.sn);
 					$device.find(".deviceName").text(data.name);
 					$device.find(".deviceSn").text(data.sn);
+					this.display_device_led1($device, data.led1);
 					this.display_device_voltage($device, data.voltage);
 				}
 			}
@@ -112,6 +158,18 @@ if(!tp)
 			//$device.find(".voltageProgress").animate({"width": widthStr, "background-color": bgColor});
 			$device.find(".voltageProgress").css("width", widthStr);
 			$device.find(".voltageProgress").css("background-color", bgColor);
+		},
+
+		display_device_led1: function($device, status)
+		{
+			if(status == 1)
+			{
+				$device.find(".ledBtn").text("on");
+			}
+			else
+			{
+				$device.find(".ledBtn").text("off");
+			}
 		},
 
 		get_device_voltage_bg_color: function(voltagePercentage)
