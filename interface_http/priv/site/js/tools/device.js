@@ -247,8 +247,17 @@ if(!tp)
 				window.setTimeout(function(){me.socket_connect();}, 6000);
 			};
 
-
-		    this.webSocket = new this.WebSocket("wss://" + window.location.host + "/device/socket");
+			var url = window.location.host + "/device/socket";
+			if(window.location.protocol == "http:")
+			{
+				url = "ws://" + url;
+			}
+			else
+			{
+				url = "wss://" + url;
+			}
+			
+		    this.webSocket = new this.WebSocket(url);
 		    this.webSocket.onopen = socket_on_open;
 		    this.webSocket.onmessage = socket_on_message;
 		    this.webSocket.onclose = socket_on_close;

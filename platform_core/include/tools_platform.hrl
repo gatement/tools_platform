@@ -45,7 +45,7 @@
 -record(gly_share, {id, item_id, user_id, share_type}).
 
 %% device --------------------
--record(dev_device, {id, sn, user_id, name, created}).
+-record(dev_device, {id, sn, user_id, name, created, type, keys}).
 -record(dev_session, {id, sn, pid, created}).
 -record(dev_status, {id, sn, key, value, updated}).
 -record(dev_data, {id, sn, key, value, datetime}).

@@ -6,30 +6,11 @@
 %% ===================================================================
 %% API functions
 %% ===================================================================
-init(_Args) ->
-    {ok, []}.
 
-
-handle_open(_WSState, State) ->
-    {ok, State}.
-
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-
-terminate(_Reason, _State) -> 
-    ok.
-
-
-handle_message(_Msg) ->
-    noreply.
-    
-
-handle_message({close, _, _}, _State) ->
+handle_message({close, _, _}) ->
     model_usr_session:clear_socket(erlang:self());
 
-handle_message({text, Request}, _State) ->
+handle_message({text, Request}) ->
     Text = erlang:binary_to_list(Request),
     %io:format("Socket receive: ~p~n", [json2:decode_string(Text)]),
 
@@ -61,24 +42,13 @@ handle_message({text, Request}, _State) ->
 
 device_status_changed_notification(Sn) ->
     [Device] = model_dev_device:get_by_sn(Sn),
-    IsOnline = model_dev_session:is_online(Sn),
-    Voltage = case IsOnline of
-        false ->
-            0;
-        true ->
-            case model_dev_status:get_by_key(Sn, voltage) of
-                undefined -> 0;
-                Vol -> Vol
-            end
+    Voltage = case model_dev_status:get_by_key(Sn, voltage) of
+        undefined -> 0;
+        Vol -> Vol
     end,
-    Led1 = case IsOnline of
-        false ->
-            0;
-        true ->
-            case model_dev_status:get_by_key(Sn, led1) of
-                undefined -> 0;
-                Led -> Led
-            end
+    Led1 = case model_dev_status:get_by_key(Sn, led1) of
+        undefined -> 0;
+        Led -> Led
     end,
 
     Msg = json2:encode({struct, [
@@ -87,7 +57,7 @@ device_status_changed_notification(Sn) ->
             {"data", {struct, [
                 {"sn", Sn}, 
                 {"name", Device#dev_device.name}, 
-                {"is_online", IsOnline}, 
+                {"is_online", true}, 
                 {"voltage", Voltage}, 
                 {"led1", Led1}
             ]}}
@@ -141,11 +111,16 @@ list_online_devices(_Data, _UserId, _UserSession) ->
             undefined -> 0;
             Vol -> Vol
         end,
+        Led1 = case model_dev_status:get_by_key(Sn, led1) of
+            undefined -> 0;
+            Led -> Led
+        end,
         {struct, [
                     {"sn", Sn}, 
                     {"name", Device#dev_device.name}, 
                     {"is_online", true}, 
-                    {"voltage", Voltage}
+                    {"voltage", Voltage},
+                    {"led1", Led1}
                 ]}
     end,
 
