@@ -6,11 +6,30 @@
 %% ===================================================================
 %% API functions
 %% ===================================================================
+init(_Args) ->
+    {ok, []}.
 
-handle_message({close, _, _}) ->
+
+handle_open(_WSState, State) ->
+    {ok, State}.
+
+
+handle_info(_Info, State) ->
+    {noreply, State}.
+
+
+terminate(_Reason, _State) -> 
+    ok.
+
+
+handle_message(_Msg) ->
+    noreply.
+    
+
+handle_message({close, _, _}, _State) ->
     model_usr_session:clear_socket(erlang:self());
 
-handle_message({text, Request}) ->
+handle_message({text, Request}, _State) ->
     Text = erlang:binary_to_list(Request),
     %io:format("Socket receive: ~p~n", [json2:decode_string(Text)]),
 

@@ -30,9 +30,12 @@ out(Arg) ->
 %% Web API
 %% ===================================================================
 
-out(Arg, ["socket"], _UserId) -> 
-	CallbackMod = socket_device,
-    Opts = [{origin, "http://" ++ (Arg#arg.headers)#headers.host}],
+out(Arg, ["socket"], _UserId) ->
+	{_, _, _, _, HostWithProtocal} = lists:keyfind("Origin", 3, (Arg#arg.headers)#headers.other),
+    Opts = [
+    	{origin, HostWithProtocal}
+    ],
+	CallbackMod = socket_device,    
     {websocket, CallbackMod, Opts};
 
 
