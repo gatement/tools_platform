@@ -27,7 +27,7 @@ run() ->
     DocRoot = PrivDir ++ "/site",
     LogDir = PrivDir ++ "/../../priv/log",
     IncludeDir1 = PrivDir ++ "/../include",
-    IncludeDir2 = PrivDir ++ "/../../core/include",
+    IncludeDir2 = PrivDir ++ "/../../platform_core/include",
 
     filelib:ensure_dir(LogDir ++ "/"),
 
