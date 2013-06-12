@@ -15,7 +15,9 @@
 		generate_id/1,		
 		record_to_list/2,
 		is_pid_alive/1,
-		prefix_string/3]).
+		prefix_string/3,
+		debug_log/1,
+		debug_log/2]).
 		
 -vsn("0.1.3").
 
@@ -172,6 +174,26 @@ prefix_string(Str, TotalLength, Prefix) ->
         true ->
             lists:flatten(Str)
     end.
+
+
+debug_log(Formater) ->
+	case application:get_env(platform_core, debug_mode) of
+		{ok, true} ->
+			io:format(Formater);
+		_ ->
+			do_nothing
+	end,
+	ok.
+
+
+debug_log(Formater, Data) ->
+	case application:get_env(platform_core, debug_mode) of
+		{ok, true} ->
+			io:format(Formater, Data);
+		_ ->
+			do_nothing
+	end,
+	ok.
 
 
 %% ===================================================================

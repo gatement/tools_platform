@@ -45,7 +45,7 @@ init([]) ->
 	end,
 
     State = #state{log_file = LogFile, interval = Interal, rrdtool_exe = RrdtoolExe, rrd_file = RrdFileName},
-    error_logger:info_msg("monitor was started.~n"),
+    error_logger:info_msg("[~p] was started.~n", [?MODULE]),
     {ok, State, Interal}.
 
 
@@ -67,7 +67,7 @@ handle_info(_Msg, State) ->
 terminate(_Reason, State) ->
 	LogFile = State#state.log_file,
     file:close(LogFile),
-    error_logger:info_msg("monitor was down.~n"),
+    error_logger:info_msg("[~p] was down.~n", [?MODULE]),
     ok.
 
 

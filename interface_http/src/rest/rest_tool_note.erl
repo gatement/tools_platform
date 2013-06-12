@@ -1,6 +1,6 @@
 -module(rest_tool_note).
 -include("yaws_api.hrl").
--include("../../core/include/tools_platform.hrl").
+-include("../../platform_core/include/tools_platform.hrl").
 -export([out/1]).
 
 

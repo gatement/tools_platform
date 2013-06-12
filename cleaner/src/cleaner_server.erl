@@ -8,6 +8,7 @@
 %% ===================================================================
 
 start_link() ->
+    error_logger:info_msg("[~p] was started.~n", [?MODULE]),
     {ok, proc_lib:spawn_link(?MODULE, run, [])}.
 
 

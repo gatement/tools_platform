@@ -22,6 +22,17 @@
     {database_backup_dir, "/app/tools_platform/priv/data"},
     {database_backup_interval, 3600} % in seconds
 ]},
+{iptracker, [
+    {receiver_email, "gatement@139.com"},
+    {ip_getting_url, "http://ddns.oray.com/checkip"},
+    {run_interval, 600}, % in second
+    {error_retry_interval, 600}, % in second
+
+    {peanuthull_enabled, true},
+    {peanuthull_service, "https://~s:~s@ddns.oray.com/ph/update"},
+    {peanuthull_user_id, "gatement"},
+    {peanuthull_user_password, "123456"}
+]},
 {gen_tcp_server, [
     {init_worker_count, 2}
 ]},

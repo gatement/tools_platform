@@ -1,11 +1,11 @@
 del .\cleaner\ebin\*.beam
 del .\cleaner\ebin\*.app
 
-del .\core\ebin\*.beam
-del .\core\ebin\*.app
+del .\platform_core\ebin\*.beam
+del .\platform_core\ebin\*.app
 
-del .\core\deps\uuid\ebin\*.beam
-del .\core\deps\uuid\ebin\*.app
+del .\platform_core\deps\uuid\ebin\*.beam
+del .\platform_core\deps\uuid\ebin\*.app
 
 del .\db_backup\ebin\*.beam
 del .\db_backup\ebin\*.app

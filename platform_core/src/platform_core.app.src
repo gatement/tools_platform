@@ -1,4 +1,4 @@
-{application, core,
+{application, platform_core,
  [
   {description, "tools_platform core"},
   {vsn, "0.1.0"},
@@ -7,6 +7,7 @@
                   kernel,
                   stdlib
                  ]},
-  {mod, { }},
-  {env, [ ]}
+  {env, [
+  	{debug_mode, false}
+  ]}
  ]}.

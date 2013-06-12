@@ -1,5 +1,5 @@
 -module(socket_device).
--include("../../core/include/tools_platform.hrl").
+-include("../../platform_core/include/tools_platform.hrl").
 -compile(export_all).
 
 

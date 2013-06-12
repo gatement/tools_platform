@@ -1,0 +1,24 @@
+{application, iptracker,
+ [
+  {description, "server iptracker"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  inets,
+                  ssl
+                 ]},
+  {mod, { iptracker_app, []}},
+  {env, [
+	{receiver_email, "gatement@139.com"},
+	{ip_getting_url, "http://ddns.oray.com/checkip"},
+	{run_interval, 600}, % in second
+	{error_retry_interval, 600}, % in second
+
+	{peanuthull_enabled, true},
+	{peanuthull_service, "https://~s:~s@ddns.oray.com/ph/update"},
+	{peanuthull_user_id, "gatement"},
+	{peanuthull_user_password, "123456"}
+  ]}
+ ]}.

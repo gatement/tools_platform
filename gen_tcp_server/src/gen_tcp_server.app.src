@@ -4,8 +4,8 @@
   {registered, []},
   {applications, [
 			  	kernel, 
-			  	stdlib, 
-			  	core]},
+			  	stdlib
+  ]},
   {env, [
     {connection_idle_timout, 20000}, % in milliseconds
     {heartbeat_checking_interval, 120000}, % in milliseconds
