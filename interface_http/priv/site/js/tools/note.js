@@ -24,12 +24,11 @@ if(!tp)
 
 		this.arrangeNotes.defaultLeft = 5;
 		this.arrangeNotes.defaultTop = 39;
-
 		this.arrangeNotes.defaultWidth = 220;
 		this.arrangeNotes.defaultHeight = 170;
 
-		this.arrangeNotes.defaultMinHeight = 18;
 		this.arrangeNotes.defaultMinWidth = 190;
+		this.arrangeNotes.defaultMinHeight = 18;
 
 		this.arrangeNotes.defaultActualWidth = 240;
 		this.arrangeNotes.defaultActualHeight = 203;
@@ -57,9 +56,16 @@ if(!tp)
 			$("#list_small_notes").click(function(){me.list_small_notes_locally()});
 			$("#list_left").click(function(){me.list_left_locally()});
 			$("#list2_left").click(function(){me.list2_left_locally()});
+			$("#list3_left").click(function(){me.list3_left_locally()});
 			$("#list_right").click(function(){me.list_right_locally()});
+			$("#list2_right").click(function(){me.list2_right_locally()});
+			$("#list3_right").click(function(){me.list3_right_locally()});
 			$("#list_top").click(function(){me.list_top_locally()});
+			$("#list2_top").click(function(){me.list2_top_locally()});
+			$("#list3_top").click(function(){me.list3_top_locally()});
 			$("#list_bottom").click(function(){me.list_bottom_locally()});
+			$("#list2_bottom").click(function(){me.list2_bottom_locally()});
+			$("#list3_bottom").click(function(){me.list3_bottom_locally()});
 			$("#refresh").click(function(){me.load_notes()});
 
 			$("#noteCategory").change(function()
@@ -88,6 +94,7 @@ if(!tp)
 			$("#shareMgmt").click(function(){me.open_category_share_dialog()});
 			$("#categoryMgmtAddButton").click(function(){me.add_category()});
 			$("#shareMgmtAddButton").click(function(){me.add_note_share()});
+			$("#clearHistoryBtn").click(function(){me.clear_note_history()});
 			$("#noteCategorySelect").change(function()
 			{
 				$("#noteCategoryDialog").dialog("close");
@@ -862,6 +869,26 @@ if(!tp)
 		    }
 		},
 
+		clear_note_history: function()
+		{
+			var me = this;
+
+			var noteId = $("#noteHistoryNoteId").val();
+			var data = {note_id: noteId};
+
+			var successFunc = function(data) 
+			{				
+				$("#noteHistoryDialog").dialog("close");
+			};
+
+			var errorFunc = function(data) 
+			{
+				window.alert(data);
+			};
+
+			this.send_msg("/note/history/clear", data, successFunc, errorFunc);
+		},
+
 		load_note_shares: function() 
 		{
 			var me = this;
@@ -1002,6 +1029,7 @@ if(!tp)
 		{
 			if(this.get_current_category_permission() === "owner")
 			{
+				$("#noteHistoryNoteId").val(noteId);
 				this.load_note_history(noteId);
 				$("#noteHistoryDialog").dialog({modal: true, width: 500, minWidth: 500});
 			}
@@ -1125,52 +1153,52 @@ if(!tp)
 		{
 			// get note array
 			var notes = this.get_sorted_notes(true);
-
-			// set note position/size values
-			var left = 0;
-			var top = 0;
-			var width = 0;
-			var height = 0;
-
-			var emphasizingNote = notes[0];
-
-			left = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap;
-			top = this.arrangeNotes.defaultTop;
-			width = this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
-
-			emphasizingNote.left = left;
-			emphasizingNote.top = top;
-			emphasizingNote.width = width;
-			emphasizingNote.height = height;
-
-			// update UI
-			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
-			
-
-			left = this.arrangeNotes.defaultLeft;
-			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultMinHeight;
-
-			for(var i = 1; i < notes.length; i++)
+			if(notes.length > 1)
 			{
-				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
-	
-				var note = notes[i];
-				note.left = left;
-				note.top = top;
-				note.width = width;
-				note.height = height;
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
 
-				// update UI
-				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
-			}
+				var emphasizingNote = notes[0];
 
-			// save the position and size if have permission
-			var permission = this.get_current_category_permission();
-			if(permission === "owner" || permission === "rw")
-			{
-				this.arrange_notes(notes);
+				left = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap;
+				top = this.arrangeNotes.defaultTop;
+				width = this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote.left = left;
+				emphasizingNote.top = top;
+				emphasizingNote.width = width;
+				emphasizingNote.height = height;
+				$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
+				
+
+				left = this.arrangeNotes.defaultLeft;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 1; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
 		},
 
@@ -1178,52 +1206,130 @@ if(!tp)
 		{
 			// get note array
 			var notes = this.get_sorted_notes(true);
-
-			// set note position/size values
-			var left = 0;
-			var top = 0;
-			var width = 0;
-			var height = 0;
-
-			var emphasizingNote = notes[0];
-
-			left = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap;
-			top = this.arrangeNotes.defaultTop;
-			width = this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
-
-			emphasizingNote.left = left;
-			emphasizingNote.top = top;
-			emphasizingNote.width = width;
-			emphasizingNote.height = height;
-			
-			// update UI
-			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
-			
-
-			left = this.arrangeNotes.defaultLeft;
-			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultMinHeight;
-
-			for(var i = 1; i < notes.length; i++)
+			if(notes.length > 2)
 			{
-				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
-	
-				var note = notes[i];
-				note.left = left;
-				note.top = top;
-				note.width = width;
-				note.height = height;
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
 
-				// update UI
-				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+
+				left = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding * 2 - this.arrangeNotes.horizontalGap * 2)/2);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = this.arrangeNotes.defaultLeft;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 2; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 2);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
+		},
 
-			// save the position and size if have permission
-			var permission = this.get_current_category_permission();
-			if(permission === "owner" || permission === "rw")
+		list3_left_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 3)
 			{
-				this.arrange_notes(notes);
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+				var emphasizingNote3 = notes[2];
+
+				left = this.arrangeNotes.defaultLeft + this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - left - this.arrangeNotes.noteHorizontalPadding * 3 - this.arrangeNotes.horizontalGap * 3)/3);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+
+				emphasizingNote3.left = left;
+				emphasizingNote3.top = top;
+				emphasizingNote3.width = width;
+				emphasizingNote3.height = height;
+				$("#"+emphasizingNote3.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = this.arrangeNotes.defaultLeft;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 3; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 3);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
 		},
 
@@ -1231,52 +1337,179 @@ if(!tp)
 		{
 			// get note array
 			var notes = this.get_sorted_notes(true);
-
-			// set note position/size values
-			var left = 0;
-			var top = 0;
-			var width = 0;
-			var height = 0;
-
-			var emphasizingNote = notes[0];
-
-			left = this.arrangeNotes.defaultLeft;
-			top = this.arrangeNotes.defaultTop;
-			width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth - this.arrangeNotes.horizontalGap;
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
-
-			emphasizingNote.left = left;
-			emphasizingNote.top = top;
-			emphasizingNote.width = width;
-			emphasizingNote.height = height;
-
-			// update UI
-			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
-			
-
-			left = this.get_client_width() - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth;
-			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultMinHeight;
-
-			for(var i = 1; i < notes.length; i++)
+			if(notes.length > 1)
 			{
-				top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
-	
-				var note = notes[i];
-				note.left = left;
-				note.top = top;
-				note.width = width;
-				note.height = height;
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
 
-				// update UI
-				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				var emphasizingNote = notes[0];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth - this.arrangeNotes.horizontalGap;
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote.left = left;
+				emphasizingNote.top = top;
+				emphasizingNote.width = width;
+				emphasizingNote.height = height;
+				$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = this.get_client_width() - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 1; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 1);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
+		},
 
-			// save the position and size if have permission
-			var permission = this.get_current_category_permission();
-			if(permission === "owner" || permission === "rw")
+		list2_right_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 2)
 			{
-				this.arrange_notes(notes);
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 2 - this.arrangeNotes.defaultActualWidth - this.arrangeNotes.horizontalGap * 3)/2);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.horizontalGap + this.arrangeNotes.noteHorizontalPadding;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = this.get_client_width() - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 2; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 2);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
+			}
+		},
+
+		list3_right_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 3)
+			{
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+				var emphasizingNote3 = notes[2];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 3 - this.arrangeNotes.defaultActualWidth - this.arrangeNotes.horizontalGap * 4)/3);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.horizontalGap + this.arrangeNotes.noteHorizontalPadding;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+
+				left = left + width + this.arrangeNotes.horizontalGap + this.arrangeNotes.noteHorizontalPadding;
+				emphasizingNote3.left = left;
+				emphasizingNote3.top = top;
+				emphasizingNote3.width = width;
+				emphasizingNote3.height = height;
+				$("#"+emphasizingNote3.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = this.get_client_width() - this.arrangeNotes.horizontalGap - this.arrangeNotes.defaultActualWidth;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 3; i < notes.length; i++)
+				{
+					top = this.arrangeNotes.defaultTop + (this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap) * (i - 3);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
 		},
 
@@ -1284,52 +1517,182 @@ if(!tp)
 		{
 			// get note array
 			var notes = this.get_sorted_notes(true);
-
-			// set note position/size values
-			var left = 0;
-			var top = 0;
-			var width = 0;
-			var height = 0;
-
-			var emphasizingNote = notes[0];
-
-			left = this.arrangeNotes.defaultLeft;
-			top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap;
-			width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
-
-			emphasizingNote.left = left;
-			emphasizingNote.top = top;
-			emphasizingNote.width = width;
-			emphasizingNote.height = height;
-
-			// update UI
-			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
-			
-
-			top = this.arrangeNotes.defaultTop;
-			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultMinHeight;
-
-			for(var i = 1; i < notes.length; i++)
+			if(notes.length > 1)
 			{
-				left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 1);
-	
-				var note = notes[i];
-				note.left = left;
-				note.top = top;
-				note.width = width;
-				note.height = height;
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote = notes[0];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap;
+				width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote.left = left;
+				emphasizingNote.top = top;
+				emphasizingNote.width = width;
+				emphasizingNote.height = height;
 
 				// update UI
-				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
-			}
+				$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
+				
 
-			// save the position and size if have permission
-			var permission = this.get_current_category_permission();
-			if(permission === "owner" || permission === "rw")
+				top = this.arrangeNotes.defaultTop;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 1; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 1);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
+			}
+		},
+
+		list2_top_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 2)
 			{
-				this.arrange_notes(notes);
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 2 - this.arrangeNotes.horizontalGap * 2)/2);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+				
+				var left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				top = this.arrangeNotes.defaultTop;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 2; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 2);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
+			}
+		},
+
+		list3_top_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 3)
+			{
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+				var emphasizingNote3 = notes[2];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop + this.arrangeNotes.defaultActualMinHeight + this.arrangeNotes.verticalGap;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 3 - this.arrangeNotes.horizontalGap * 3)/3);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+				
+				var left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				var left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote3.left = left;
+				emphasizingNote3.top = top;
+				emphasizingNote3.width = width;
+				emphasizingNote3.height = height;
+				$("#"+emphasizingNote3.id).animate({left: left, top: top, width: width, height: height});
+				
+				top = this.arrangeNotes.defaultTop;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 3; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 3);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
 		},
 
@@ -1337,52 +1700,182 @@ if(!tp)
 		{
 			// get note array
 			var notes = this.get_sorted_notes(true);
-
-			// set note position/size values
-			var left = 0;
-			var top = 0;
-			var width = 0;
-			var height = 0;
-
-			var emphasizingNote = notes[0];
-
-			left = this.arrangeNotes.defaultLeft;
-			top = this.arrangeNotes.defaultTop;
-			width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
-			height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap;
-
-			emphasizingNote.left = left;
-			emphasizingNote.top = top;
-			emphasizingNote.width = width;
-			emphasizingNote.height = height;
-
-			// update UI
-			$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
-			
-
-			top = this.get_client_height() - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap;
-			width = this.arrangeNotes.defaultWidth;
-			height = this.arrangeNotes.defaultMinHeight;
-
-			for(var i = 1; i < notes.length; i++)
+			if(notes.length > 1)
 			{
-				left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 1);
-	
-				var note = notes[i];
-				note.left = left;
-				note.top = top;
-				note.width = width;
-				note.height = height;
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote = notes[0];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding - this.arrangeNotes.horizontalGap;
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap;
+
+				emphasizingNote.left = left;
+				emphasizingNote.top = top;
+				emphasizingNote.width = width;
+				emphasizingNote.height = height;
 
 				// update UI
-				$("#"+note.id).animate({left: left, top: top, width: width, height: height});
-			}
+				$("#"+emphasizingNote.id).animate({left: left, top: top, width: width, height: height});
+				
 
-			// save the position and size if have permission
-			var permission = this.get_current_category_permission();
-			if(permission === "owner" || permission === "rw")
+				top = this.get_client_height() - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 1; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 1);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
+			}
+		},
+
+		list2_bottom_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 2)
 			{
-				this.arrange_notes(notes);
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 2 - this.arrangeNotes.horizontalGap * 2)/2);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				top = this.get_client_height() - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 2; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 2);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
+			}
+		},
+
+		list3_bottom_locally: function()
+		{
+			// get note array
+			var notes = this.get_sorted_notes(true);
+			if(notes.length > 3)
+			{
+				// set note position/size values
+				var left = 0;
+				var top = 0;
+				var width = 0;
+				var height = 0;
+
+				var emphasizingNote1 = notes[0];
+				var emphasizingNote2 = notes[1];
+				var emphasizingNote3 = notes[2];
+
+				left = this.arrangeNotes.defaultLeft;
+				top = this.arrangeNotes.defaultTop;
+				width = window.parseInt((this.get_client_width() - this.arrangeNotes.defaultLeft - this.arrangeNotes.noteHorizontalPadding * 3 - this.arrangeNotes.horizontalGap * 3)/3);
+				height = this.get_client_height() - this.arrangeNotes.defaultTop - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.noteVerticalPadding - this.arrangeNotes.verticalGap - this.arrangeNotes.verticalGap;
+
+				emphasizingNote1.left = left;
+				emphasizingNote1.top = top;
+				emphasizingNote1.width = width;
+				emphasizingNote1.height = height;
+				$("#"+emphasizingNote1.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote2.left = left;
+				emphasizingNote2.top = top;
+				emphasizingNote2.width = width;
+				emphasizingNote2.height = height;
+				$("#"+emphasizingNote2.id).animate({left: left, top: top, width: width, height: height});
+				
+				left = left + width + this.arrangeNotes.noteHorizontalPadding + this.arrangeNotes.horizontalGap;
+				emphasizingNote3.left = left;
+				emphasizingNote3.top = top;
+				emphasizingNote3.width = width;
+				emphasizingNote3.height = height;
+				$("#"+emphasizingNote3.id).animate({left: left, top: top, width: width, height: height});
+				
+				top = this.get_client_height() - this.arrangeNotes.defaultActualMinHeight - this.arrangeNotes.verticalGap;
+				width = this.arrangeNotes.defaultWidth;
+				height = this.arrangeNotes.defaultMinHeight;
+
+				for(var i = 3; i < notes.length; i++)
+				{
+					left = this.arrangeNotes.defaultLeft + (this.arrangeNotes.defaultActualWidth + this.arrangeNotes.horizontalGap) * (i - 3);
+		
+					var note = notes[i];
+					note.left = left;
+					note.top = top;
+					note.width = width;
+					note.height = height;
+
+					// update UI
+					$("#"+note.id).animate({left: left, top: top, width: width, height: height});
+				}
+
+				// save the position and size if have permission
+				var permission = this.get_current_category_permission();
+				if(permission === "owner" || permission === "rw")
+				{
+					this.arrange_notes(notes);
+				}
 			}
 		},
 

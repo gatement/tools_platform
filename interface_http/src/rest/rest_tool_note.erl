@@ -551,6 +551,25 @@ out(Arg, ["history", "list"], UserId) ->
     {content, "application/json", json2:encode({struct, Result})};
 
 
+out(Arg, ["history", "clear"], UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	NoteId = proplists:get_value("note_id", Vals),
+
+    Result = case model_nte_share:get_permission_by_note_id(UserId, NoteId) of
+                none -> [{"success", false}, {"data", "Don't have permission."}];
+                r -> [{"success", false}, {"data", "Don't have permission."}];
+                _ ->
+                    case model_nte_history:delete_by_noteId(NoteId) of
+                        error ->
+                            [{"success", false}, {"data", "Failed."}];
+                        ok ->
+				            [{"success", true}, {"data", "ok."}]
+                    end
+            end,
+
+    {content, "application/json", json2:encode({struct, Result})};
+
+
 %% ===================================================================
 %% Mobile specific API
 %% ===================================================================

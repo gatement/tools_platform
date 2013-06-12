@@ -169,22 +169,22 @@ body {
 	background-position: -336px -16px;
 }
 #list3_right{
-	background-position: -288px 0;
-}
-#list3_right:hover{
-	background-position: -288px -16px;
-}
-#list3_bottom{
 	background-position: -368px 0;
 }
-#list3_bottom:hover{
+#list3_right:hover{
 	background-position: -368px -16px;
 }
-#list3_top{
+#list3_bottom{
 	background-position: -384px 0;
 }
-#list3_top:hover{
+#list3_bottom:hover{
 	background-position: -384px -16px;
+}
+#list3_top{
+	background-position: -288px 0;
+}
+#list3_top:hover{
+	background-position: -288px -16px;
 }
 #logout{
 	background-position: -48px 0;
