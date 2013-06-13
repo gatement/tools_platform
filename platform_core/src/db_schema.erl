@@ -25,8 +25,8 @@ up() ->
 	%% == lowing function is not for initialization ====
 	%add_socket_to_usr_session(),
 
-	add_type_keys_to_dev_device(),
-	update_type_keys_of_dev_device(),
+	%add_type_keys_to_dev_device(),
+	%update_type_keys_of_dev_device(),
 
 	ok.
 

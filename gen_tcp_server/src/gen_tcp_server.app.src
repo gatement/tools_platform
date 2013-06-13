@@ -8,7 +8,6 @@
   ]},
   {env, [
     {connection_idle_timout, 20000}, % in milliseconds
-    {heartbeat_checking_interval, 120000}, % in milliseconds
     {init_worker_count, 2}
   ]}
  ]}.

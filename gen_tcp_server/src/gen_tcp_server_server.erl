@@ -1,7 +1,7 @@
 -module(gen_tcp_server_server).
 -behaviour(gen_server).
 %% API
--export([start_link/3]).
+-export([start_link/4]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
@@ -13,6 +13,7 @@
                 parent, 
                 user_data, 
                 opaque,
+                heartbeat_checking_interval,
                 is_checking_heartbeat}).
 
 -define(HEATBEAT_TIMEOUT, 10000). %% in milliseconds
@@ -21,21 +22,22 @@
 %% API functions
 %% ===================================================================
 
-start_link(Callback, LSocket, UserArgs) ->
-    gen_server:start_link(?MODULE, [LSocket, Callback, UserArgs, self()], []).
+start_link(Callback, LSocket, HeartbeatCheckingInterval, UserArgs) ->
+    gen_server:start_link(?MODULE, [LSocket, Callback, HeartbeatCheckingInterval, UserArgs, self()], []).
 
 
 %% ===================================================================
 %% gen_server callbacks
 %% ===================================================================
 
-init([LSocket, Callback, UserArgs, Parent]) ->
+init([LSocket, Callback, HeartbeatCheckingInterval, UserArgs, Parent]) ->
     {ok, UserData} = Callback:init(UserArgs),
     State = #state{
         lsocket = LSocket, 
         callback = Callback, 
         parent = Parent, 
         user_data = UserData,
+        heartbeat_checking_interval = HeartbeatCheckingInterval,
         is_checking_heartbeat = false},
 
     %error_logger:info_msg("a new gen_tcp_server_server was started.~n"),
@@ -55,9 +57,7 @@ handle_cast(_Msg, State) ->
 handle_info({tcp, _Socket, RawData}, State) ->
     %error_logger:info_msg("received tcp data: ~p~n", [RawData]),
     State2 = dispatch(handle_data, RawData, State),
-
-    {ok, HeartbeatCheckingInterval} = application:get_env(gen_tcp_server, heartbeat_checking_interval),
-    {noreply, State2, HeartbeatCheckingInterval};
+    {noreply, State2, State#state.heartbeat_checking_interval};
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
@@ -106,9 +106,7 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
 
 handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->
     gen_tcp_server:tcp_reply(Socket, Data),
-
-    {ok, HeartbeatCheckingInterval} = application:get_env(gen_tcp_server, heartbeat_checking_interval),
-    {noreply, State, HeartbeatCheckingInterval};
+    {noreply, State, State#state.heartbeat_checking_interval};
 
 handle_info(stop, State) ->
     error_logger:info_msg("process ~p was stopped~n", [erlang:self()]),
@@ -116,8 +114,7 @@ handle_info(stop, State) ->
     
 handle_info(_Msg, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [_Msg]),
-    {ok, HeartbeatCheckingInterval} = application:get_env(gen_tcp_server, heartbeat_checking_interval),
-    {noreply, State, HeartbeatCheckingInterval}.
+    {noreply, State, State#state.heartbeat_checking_interval}.
 
 
 terminate(_Reason, State) ->

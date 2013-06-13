@@ -7,7 +7,8 @@
 		interface_tcp_sup_controller]},
   {applications, [kernel, stdlib]},
   {env, [
-    {tcp_port_device, 10000}
+    {tcp_port_device, 10000},
+    {heartbeat_checking_interval_device, 120000} % in milliseconds
   ]},
   {mod, {interface_tcp_app, []}}
  ]}.

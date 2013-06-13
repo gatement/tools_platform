@@ -8,45 +8,5 @@
 ]},
 {mnesia, [
     {dir, "/app/tools_platform/priv/data/mnesia"}
-]},
-{monitor, [
-    {log_file_name, "/app/tools_platform/priv/log/monitor.csv"},
-    {rrdtool_exe, "C:/dev/rrdtool144-bin/rrdtool.exe"},
-    {rrd_file_name, "/app/tools_platform/priv/data/monitor.rrd"}
-]},
-{cleaner, [
-    {user_session_timeout, 57600}, % in seconds, = 16hr
-    {rrdtool_img_timeout, 60} % in seconds
-]},
-{db_backup, [
-    {database_backup_dir, "/app/tools_platform/priv/data"},
-    {database_backup_interval, 3600} % in seconds
-]},
-{iptracker, [
-    {receiver_email, "gatement@139.com"},
-    {ip_getting_url, "http://ddns.oray.com/checkip"},
-    {run_interval, 600}, % in second
-    {error_retry_interval, 600}, % in second
-
-    {peanuthull_enabled, true},
-    {peanuthull_service, "https://~s:~s@ddns.oray.com/ph/update"},
-    {peanuthull_user_id, "gatement"},
-    {peanuthull_user_password, "123456"}
-]},
-{gen_tcp_server, [
-    {init_worker_count, 2}
-]},
-{interface_tcp, [
-    {tcp_port_device, 10000}
-]},
-{interface_http,[   
-    {port, 8080},
-
-    {tool_gallery_original_dir, "/app/tools_platform/interface_http/priv/upload/original"},
-    {tool_gallery_thumbnail_dir, "/app/tools_platform/interface_http/priv/upload/thumbnails"},
-
-    {keyfile, "/root/certificates/johnson.uicp.net.key"},
-    {certfile, "/root/certificates/johnson.uicp.net.cer"}, 
-
-    {imagemagick_exe, "C:/dev/ImageMagick-6.8.5-Q16/convert.exe"}
-]}].
+]}
+].

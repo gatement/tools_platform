@@ -9,7 +9,7 @@ body {
 	box-shadow: 0 0 5px #BBBBBB inset;
 	margin: 3px;
 	padding: 3px;
-	height: 80px;
+	height: 85px;
 	width: 300px;
 	float: left;
 }
@@ -24,6 +24,7 @@ body {
 .voltageProgress{
 	background-color: #0099FF;
 	box-shadow: 0 0 1px #FFFFFF inset;
+	-webkit-transition: all 0.2s ease-in-out;
 	height: 23px;
 	width: 0;
 }

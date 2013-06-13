@@ -60,7 +60,7 @@ handle_data_inner(SourcePid, Socket, RawData, Sn) ->
         <<16#44>> ->
             %% device heartbeat response
             <<Data:3/binary, RestRawData/binary>> = RawData,
-            process_data_heatbeat(SourcePid, Socket, Data, Sn)
+            process_data_heartbeat(SourcePid, Socket, Data, Sn)
     end,
 
     handle_data_inner(SourcePid, Socket, RestRawData, Sn).
@@ -151,8 +151,8 @@ process_data_led1(SourcePid, _Socket, Data, Sn) ->
     ok.
 
 
-process_data_heatbeat(SourcePid, _Socket, _Data, Sn) ->
-    error_logger:info_msg("process_data_heatbeat(~p): ~p~n", [Sn, SourcePid]),
+process_data_heartbeat(SourcePid, _Socket, _Data, Sn) ->
+    error_logger:info_msg("process_data_heartbeat(~p): ~p~n", [Sn, SourcePid]),
 
     ok.
 
