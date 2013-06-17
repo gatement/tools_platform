@@ -13,20 +13,14 @@ up() ->
 	%% == initialization functions =====================
 	%create_base_schema(),
 	%init_base_data(),
-
 	%create_word_schema(),
-
 	%create_note_schema(),
-
 	%create_gallery_schema(),
-
-	%create_device_schema(),
+	create_mqtt_schema(),
+	create_device_schema(),
 
 	%% == lowing function is not for initialization ====
 	%add_socket_to_usr_session(),
-
-	%add_type_keys_to_dev_device(),
-	%update_type_keys_of_dev_device(),
 
 	ok.
 
@@ -86,9 +80,15 @@ create_gallery_schema() ->
 	ok.
 
 
+create_mqtt_schema() ->
+	mnesia:create_table(mqtt_session, [{attributes, record_info(fields, mqtt_session)}, {ram_copies, [node()]}]),
+	mnesia:create_table(mqtt_subscription, [{attributes, record_info(fields, mqtt_subscription)}, {disc_copies, [node()]}]),
+
+	ok.
+
+
 create_device_schema() ->
 	mnesia:create_table(dev_device, [{attributes, record_info(fields, dev_device)}, {disc_copies, [node()]}]),
-	mnesia:create_table(dev_session, [{attributes, record_info(fields, dev_session)}, {ram_copies, [node()]}]),
 	mnesia:create_table(dev_status, [{attributes, record_info(fields, dev_status)}, {ram_copies, [node()]}]),
 	mnesia:create_table(dev_data, [{attributes, record_info(fields, dev_data)}, {disc_copies, [node()]}]),
 
@@ -110,37 +110,6 @@ add_socket_to_usr_session() ->
 
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
 
-
-add_type_keys_to_dev_device() ->
-	%% add column type, keys to table dev_device
-	Fun = fun({dev_device, Id, Sn, UserId, Name, Created}) ->
-		#dev_device{id = Id, 
-			sn = Sn, 
-			user_id = UserId, 
-			name = Name, 
-			created = Created}
-	end,
-
-	mnesia:transform_table(dev_device, Fun, record_info(fields, dev_device)).
-
-
-update_type_keys_of_dev_device() ->
-    DeviceIds = model_dev_device:all_keys(),
-
-    Fun = fun(DeviceId) ->
-        Device = model_dev_device:get(DeviceId),
-        Device2 = Device#dev_device{type = device, keys=[voltage, led1]},
-
-		UpdateFun = fun() ->
-			mnesia:write(Device2)	  
-		end,
-
-		mnesia:transaction(UpdateFun)
-    end,
-
-    [ Fun(X) || X <- DeviceIds],
-	
-	ok.
 
 %% ===================================================================
 %% Local Functions

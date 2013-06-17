@@ -71,7 +71,7 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
 
             %% log
             {ok, {Address, Port}} = inet:peername(Socket),
-            {ok, ConnectionIdleTimeout} = application:get_env(gen_tcp_server, connection_idle_timout),
+            {ok, ConnectionIdleTimeout} = application:get_env(mqtt_broker, connection_idle_timout),
             {noreply, State#state{socket = Socket, ip = Address, port = Port}, ConnectionIdleTimeout}; %% this socket must recieve the first message in Idle Timeout seconds
         Socket ->
             case State#state.opaque of
@@ -79,7 +79,7 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
                     %% no first package income yet
                     Ip = State#state.ip,
                     Port = State#state.port,
-                    {ok, ConnectionIdleTimeout} = application:get_env(gen_tcp_server, connection_idle_timout),
+                    {ok, ConnectionIdleTimeout} = application:get_env(mqtt_broker, connection_idle_timout),
                     error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [Socket, Ip, Port, ConnectionIdleTimeout]),
                     {stop, normal, State}; %% no message arrived in time so suicide
                 _ ->

@@ -1,4 +1,4 @@
--module(interface_tcp_sup).
+-module(mqtt_broker_sup).
 -behaviour(supervisor).
 %% API
 -export([start_link/0]).
@@ -20,10 +20,10 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    ServerDevice = {interface_tcp_server_device, {interface_tcp_server_device, start_link, []},
-              permanent, 1000, supervisor, [interface_tcp_server_device]},
+    Server = {mqtt_broker_server, {mqtt_broker_server, start_link, []},
+              permanent, 1000, supervisor, [mqtt_broker_server]},
               
-    Children = [ServerDevice],
+    Children = [Server],
     RestartStrategy = {one_for_one, 10, 1},
     {ok, {RestartStrategy, Children}}.
 

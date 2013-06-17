@@ -1,4 +1,4 @@
--module(interface_tcp_app).
+-module(mqtt_broker_app).
 -behaviour(application).
 %% Application callbacks
 -export([start/2, stop/1]).
@@ -9,7 +9,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    interface_tcp_sup:start_link().
+    mqtt_broker_sup:start_link().
 
 
 stop(_State) ->

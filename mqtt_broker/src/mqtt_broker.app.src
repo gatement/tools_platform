@@ -1,0 +1,13 @@
+{application, mqtt_broker,
+ [{description, "mqtt_broker for tools_platform"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {env, [
+    {connection_idle_timout, 20000}, % in milliseconds
+    {init_worker_count, 2},
+    {tcp_port, 10000},
+    {heartbeat_checking_interval, 120000} % in milliseconds
+  ]},
+  {mod, {mqtt_broker_app, []}}
+ ]}.

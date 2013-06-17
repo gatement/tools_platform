@@ -4,17 +4,17 @@
 -export([get/2, 
         update/3,
         get_by_key/2,
-        get_all_values_by_sn/1]).
+        get_all_values_by_deviceId/1]).
 
 
 %% ===================================================================
 %% API functions
 %% ===================================================================
 
-get(Sn, Key) ->
+get(DeviceId, Key) ->
     ReadFun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_status), 
-                          X#dev_status.sn =:= Sn, 
+                          X#dev_status.device_id =:= DeviceId, 
                           X#dev_status.key =:= Key]))
     end,
     
@@ -25,10 +25,10 @@ get(Sn, Key) ->
     end.
 
 
-update(Sn, Key, Data) ->
+update(DeviceId, Key, Data) ->
     ReadFun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_status), 
-                          X#dev_status.sn =:= Sn, 
+                          X#dev_status.device_id =:= DeviceId, 
                           X#dev_status.key =:= Key]))
     end,
     
@@ -41,8 +41,7 @@ update(Sn, Key, Data) ->
     Model2 = case Model1 of
         undefined ->
             #dev_status{
-                id = uuid:to_string(uuid:uuid1()), 
-                sn = Sn, 
+                device_id = DeviceId, 
                 key = Key, 
                 value = Data,
                 updated = tools:datetime_string('yyyyMMdd_hhmmss')
@@ -61,10 +60,10 @@ update(Sn, Key, Data) ->
     end.
 
 
-get_by_key(Sn, Key) ->
+get_by_key(DeviceId, Key) ->
     ReadFun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_status), 
-                          X#dev_status.sn =:= Sn, 
+                          X#dev_status.device_id =:= DeviceId, 
                           X#dev_status.key =:= Key]))
     end,
     
@@ -75,10 +74,10 @@ get_by_key(Sn, Key) ->
     end.
 
 
-get_all_values_by_sn(Sn) ->
+get_all_values_by_deviceId(DeviceId) ->
     ReadFun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_status), 
-                          X#dev_status.sn =:= Sn]))
+                          X#dev_status.device_id =:= DeviceId]))
     end,
     
     case mnesia:transaction(ReadFun) of

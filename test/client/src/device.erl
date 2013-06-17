@@ -27,13 +27,40 @@ start_client(ServerHost, ServerPort, ClientId) ->
         {ok, Socket} ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
-            {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
+            MsgId = 1,
 
-            case application:get_env(client, run_mode) of
-                {ok, test} ->
-                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, true, true);
-                {ok, press} ->
-                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, true, false)
+            %% send CONNECT
+            {ok, MacBase} = application:get_env(client, mac_base),
+            ConnectData = get_connect_data(MacBase + ClientId, MsgId),
+            error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
+            gen_tcp:send(Socket, ConnectData),
+
+            %% waiting for CONNACK
+            receive
+                {tcp, Socket, Msg} -> 
+                    error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
+
+                    case is_valid_connack(Msg) of
+                        true ->            
+                            case application:get_env(client, run_mode) of
+                                {ok, once} ->
+                                    gen_tcp:close(Socket),
+                                    error_logger:info_msg("=================================================> pass~n", []),
+                                    init:stop();
+                                {ok, live} ->
+                                    {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
+                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId + 1)
+                            end;
+                        false ->
+                            gen_tcp:close(Socket),
+                            Reason = "not a good CONNACK",
+                            reconnect(ServerHost, ServerPort, ClientId, Reason)
+                    end
+            after
+                10000 ->
+                    gen_tcp:close(Socket),
+                    Reason = "no CONNACK",
+                    reconnect(ServerHost, ServerPort, ClientId, Reason)
             end;
         _ ->
             Reason = "connection error",
@@ -60,33 +87,17 @@ start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, Clien
     start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, ClientId + 1).
 
 
-client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendOnlineData, SendStatusData) ->
-    {ok, MacBase} = application:get_env(client, mac_base),
+client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId) ->
+    %% send StatusData
+    StatusData =  get_status_data(MsgId),
+    error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
+    gen_tcp:send(Socket, StatusData),
 
-    case SendOnlineData of
+    MsgId2 = if
+        MsgId > 65535 ->
+            1;
         true ->
-            OnlineData =  get_online_data(MacBase + ClientId),
-            error_logger:info_msg("sending OnlineData: ~p~n", [OnlineData]),
-            gen_tcp:send(Socket, OnlineData);
-        _ ->
-            no_send
-    end,
-
-    case SendStatusData of
-        true ->
-            StatusData =  get_status_data(MacBase + ClientId),
-            error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
-            gen_tcp:send(Socket, StatusData);
-        _ ->
-            no_send
-    end,
-
-    case application:get_env(client, run_mode) of
-        {ok, test} ->
-            error_logger:info_msg("=================================================> pass~n", []),
-            init:stop();
-        {ok, press} ->
-            do_nothing
+            MsgId 
     end,
 
     receive
@@ -94,7 +105,7 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendO
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
             handle_data(Socket, Msg),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false, false);
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2);
 
         {tcp_closed, _Socket} ->
             error_logger:info_msg("tcp_closed ~p~n", [erlang:self()]),
@@ -104,11 +115,11 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendO
 
         AnyMsg ->
             error_logger:info_msg("received any data ~p: ~p~n", [erlang:self(), AnyMsg]),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false, false)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2)
             
     after
         DataSendingInterval ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false, true)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2)
     end.
 
 
@@ -120,8 +131,8 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
     start_client(ServerHost, ServerPort, ClientId). %% reconnect
 
 
-get_online_data(Count) ->
-    MacString0 = erlang:integer_to_list(Count, 16),
+get_connect_data(MacInt, _MsgId) ->
+    MacString0 = erlang:integer_to_list(MacInt, 16),
     MacString = tools:prefix_string(MacString0, 12, "0"),
 
     Data = [16#41 | MacString],
@@ -129,7 +140,7 @@ get_online_data(Count) ->
     erlang:list_to_binary(Data).
 
 
-get_status_data(_Count) ->
+get_status_data(_MsgId) ->
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
     Temperature = random:uniform(1024),
@@ -140,7 +151,11 @@ get_status_data(_Count) ->
     Data = [16#42, Temperature1, Temperature0],
 
     erlang:list_to_binary(Data).
-    
+
+
+is_valid_connack(_Msg) ->
+    true.
+
 
 handle_data(_, <<>>) ->
     ok;

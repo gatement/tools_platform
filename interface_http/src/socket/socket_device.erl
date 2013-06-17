@@ -91,42 +91,43 @@ update_socket(_Data, _UserId, UserSession) ->
     [{"success", true}, {"data", "ok."}].
 
 
-update_led_status(Data, _UserId, _UserSession) ->
-    {struct,[{"sn", Sn},{"status", Status}]} = Data,
-    Cmd = <<$#, $1, $#, Status>>,
-    DeviceSessions = model_dev_session:get_by_sn(Sn),
-    [X#dev_session.pid ! {send_tcp_data, Cmd} || X <- DeviceSessions],
+update_led_status(_Data, _UserId, _UserSession) ->
+    %{struct,[{"sn", Sn},{"status", Status}]} = Data,
+    %Cmd = <<$#, $1, $#, Status>>,
+    %DeviceSessions = model_dev_session:get_by_sn(Sn),
+    %[X#dev_session.pid ! {send_tcp_data, Cmd} || X <- DeviceSessions],
 
     [{"success", true}, {"data", "ok."}].
 
 
 list_online_devices(_Data, _UserId, _UserSession) ->
-    DeviceSessionIds = model_dev_session:all_keys(),
+    %DeviceSessionIds = model_dev_session:all_keys(),
 
-    Fun = fun(SessionId) ->
-        DeviceSession = model_dev_session:get(SessionId),
-        Sn = DeviceSession#dev_session.sn,
-        [Device] = model_dev_device:get_by_sn(Sn),
-        Voltage = case model_dev_status:get_by_key(Sn, voltage) of
-            undefined -> 0;
-            Vol -> Vol
-        end,
-        Led1 = case model_dev_status:get_by_key(Sn, led1) of
-            undefined -> 0;
-            Led -> Led
-        end,
-        {struct, [
-                    {"sn", Sn}, 
-                    {"name", Device#dev_device.name}, 
-                    {"is_online", true}, 
-                    {"voltage", Voltage},
-                    {"led1", Led1}
-                ]}
-    end,
+    %Fun = fun(SessionId) ->
+        %DeviceSession = model_dev_session:get(SessionId),
+        %Sn = DeviceSession#dev_session.sn,
+        %[Device] = model_dev_device:get_by_sn(Sn),
+        %Voltage = case model_dev_status:get_by_key(Sn, voltage) of
+        %    undefined -> 0;
+        %    Vol -> Vol
+        %end,
+        %Led1 = case model_dev_status:get_by_key(Sn, led1) of
+        %    undefined -> 0;
+        %    Led -> Led
+        %end,
+        %{struct, [
+        %            {"sn", Sn}, 
+        %            {"name", Device#dev_device.name}, 
+        %            {"is_online", true}, 
+        %            {"voltage", Voltage},
+        %            {"led1", Led1}
+        %        ]}
+    %end,
 
-    Devices = [ Fun(X) || X <- DeviceSessionIds],
+    %Devices = [ Fun(X) || X <- DeviceSessionIds],
 
-   [{"success", true}, {"data", {array, Devices}}].
+    %[{"success", true}, {"data", {array, Devices}}].
+    [{"success", true}, {"data", "ok."}].
 
 
 %% ===================================================================

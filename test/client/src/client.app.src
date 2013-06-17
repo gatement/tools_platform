@@ -1,6 +1,6 @@
 {application, client,
  [
-  {description, "a test client for interface_tcp"},
+  {description, "a test client for mqtt_broker"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications, [
@@ -11,7 +11,7 @@
     {server_host, "wolf.com"},
     {server_port, 10000},
     
-    {run_mode, test}, % test/press
+    {run_mode, once}, % once/live
 
     {mac_base, 0},
 

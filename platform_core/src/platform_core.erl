@@ -40,8 +40,7 @@ start() ->
 			no_start
 	end,
 
-    application:start(gen_tcp_server),
-    application:start(interface_tcp),
+    application:start(mqtt_broker),
 	interface_http:start(),
 
 	ok.

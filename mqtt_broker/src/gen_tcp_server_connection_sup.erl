@@ -14,7 +14,7 @@ start_link(SupName, Callback, IP, Port, HeartbeatCheckingInterval, UserArgs) ->
     {ok, SupervisorPid} = supervisor:start_link({local, SupName}, ?MODULE, [Callback, IP, Port, HeartbeatCheckingInterval, UserArgs]),
 
     %% start child servers for connection listening
-    {ok, WorkerCount} = application:get_env(gen_tcp_server, init_worker_count),
+    {ok, WorkerCount} = application:get_env(mqtt_broker, init_worker_count),
     start_childs(SupervisorPid, WorkerCount),
 
     {ok, SupervisorPid}.

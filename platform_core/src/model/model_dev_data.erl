@@ -2,7 +2,7 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1, 
-		get_by_sn/1]).
+		get_by_deviceId/1]).
 
 %% ===================================================================
 %% API functions
@@ -19,10 +19,10 @@ create(Model) ->
 	end.
 
 
-get_by_sn(Sn) ->
+get_by_deviceId(DeviceId) ->
     Fun = fun() -> 
         qlc:e(qlc:q([X || X <- mnesia:table(dev_data), 
-                          X#dev_data.sn =:= Sn]))
+                          X#dev_data.device_id =:= DeviceId]))
     end,
     
     case mnesia:transaction(Fun) of
