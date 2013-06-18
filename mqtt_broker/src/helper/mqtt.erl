@@ -1,5 +1,6 @@
 -module(mqtt).
--export([build_connect/1]).
+-export([build_connect/2,
+		build_connack/1]).
 
 -vsn("0.1.0").
 
@@ -20,26 +21,39 @@
 -define(PINGRESP,    2#11010000).
 -define(DISCONNECT,  2#11100000).
 
--define(DUP0,  2#00000000).
--define(DUP1,  2#00001000).
+-define(DUP0,        2#00000000).
+-define(DUP1,        2#00001000).
 
--define(QOS0,  2#00000000).
--define(QOS1,  2#00000010).
--define(QOS2,  2#00000100).
+-define(QOS0,        2#00000000).
+-define(QOS1,        2#00000010).
+-define(QOS2,        2#00000100).
 
--define(RETAIN0,  2#00000000).
--define(RETAIN1,  2#00000001).
+-define(RETAIN0,     2#00000000).
+-define(RETAIN1,     2#00000001).
 
 
 %% ===================================================================
 %% API functions
 %% ===================================================================
 
-build_connect(_ClientId) ->
-	Length = 1,
-	FixedHeader = get_fixed_header(?CONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
-	erlang:list_to_binary(FixedHeader).
+build_connect(ClientId, KeepAliveTimer) ->
+	VariableHeader = get_connect_variable_header(KeepAliveTimer),
 
+	Payload = get_connect_payload(ClientId),
+
+	Length = erlang:size(VariableHeader) + erlang:size(Payload),
+	FixedHeader = get_fixed_header(?CONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
+
+
+build_connack(ReturnCode) ->
+	VariableHeader = [0, ReturnCode],
+
+	Length = 2,
+	FixedHeader = get_fixed_header(?CONNACK, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader, VariableHeader]).
 
 %% ===================================================================
 %% Local Functions
@@ -67,3 +81,28 @@ get_remaining_length(Length, Result) ->
 			Digit0
 	end,
 	get_remaining_length(X, [Digit|Result]).
+
+
+get_connect_payload(ClientId) ->	
+    ClientIdBin = unicode:characters_to_binary(ClientId, latin1),
+
+    ClientIdBinLen = erlang:size(ClientIdBin),
+    ClientIdBinLenH = ClientIdBinLen div 256,
+    ClientIdBinLenL = ClientIdBinLen rem 256,
+
+    erlang:list_to_binary([ClientIdBinLenH, ClientIdBinLenL, ClientIdBin]).
+
+
+get_connect_variable_header(KeepAliveTimer) ->
+	ProtocalName = [0, 6, <<"MQIsdp">>],
+	ProtocalVer = 3,
+
+	%% Connect flags.
+	%% bit     |7    |6        |5           |4    3   |2         |1             |0
+	%% byte 1  |User |Password |Will Retain |Will QoS |Will Flag |Clean Session |Reserved
+	ConnectFlags = 2#00000001,
+
+	KeepAliveTimerH = KeepAliveTimer div 256,
+	KeepAliveTimerL = KeepAliveTimer rem 256,
+
+	erlang:list_to_binary([ProtocalName, ProtocalVer, ConnectFlags, KeepAliveTimerH, KeepAliveTimerL]).

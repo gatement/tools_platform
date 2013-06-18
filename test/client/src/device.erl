@@ -31,7 +31,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
 
             %% send CONNECT
             {ok, MacBase} = application:get_env(client, mac_base),
-            ConnectData = get_connect_data(MacBase + ClientId, MsgId),
+            ConnectData = get_connect_data(MacBase + ClientId),
             error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
             gen_tcp:send(Socket, ConnectData),
 
@@ -40,7 +40,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
                 {tcp, Socket, Msg} -> 
                     error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-                    case is_valid_connack(Msg) of
+                    case is_connack_success(Msg) of
                         true ->            
                             case application:get_env(client, run_mode) of
                                 {ok, once} ->
@@ -49,7 +49,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
                                     init:stop();
                                 {ok, live} ->
                                     {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
-                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId + 1)
+                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId)
                             end;
                         false ->
                             gen_tcp:close(Socket),
@@ -131,13 +131,12 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
     start_client(ServerHost, ServerPort, ClientId). %% reconnect
 
 
-get_connect_data(MacInt, _MsgId) ->
-    MacString0 = erlang:integer_to_list(MacInt, 16),
-    MacString = tools:prefix_string(MacString0, 12, "0"),
+get_connect_data(MacInt) ->
+    MacString = erlang:integer_to_list(MacInt, 16),
+    ClientId = tools:prefix_string(MacString, 12, "0"),
 
-    Data = [16#41 | MacString],
-
-    erlang:list_to_binary(Data).
+    KeepAliveTimer = 300000,
+    mqtt:build_connect(ClientId, KeepAliveTimer).
 
 
 get_status_data(_MsgId) ->
@@ -153,8 +152,8 @@ get_status_data(_MsgId) ->
     erlang:list_to_binary(Data).
 
 
-is_valid_connack(_Msg) ->
-    true.
+is_connack_success(Data) ->
+    mqtt_utils:is_connack_success(Data).
 
 
 handle_data(_, <<>>) ->
