@@ -91,7 +91,7 @@ start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, Clien
 
 client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId) ->
     %% send StatusData
-    StatusData =  get_status_data(MsgId),
+    StatusData =  get_status_data(ClientId, MsgId),
     error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
     gen_tcp:send(Socket, StatusData),
 
@@ -139,19 +139,22 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
     start_client(ServerHost, ServerPort, ClientId). %% reconnect
 
 
-get_connect_data(MacInt) ->
-    MacString = erlang:integer_to_list(MacInt, 16),
-    ClientId = tools:prefix_string(MacString, 12, "0"),
+get_connect_data(ClientId) ->
+    ClientIdStr = get_client_id_string(ClientId),
 
     KeepAliveTimer = 300,
-    mqtt:build_connect(ClientId, KeepAliveTimer).
+    mqtt:build_connect(ClientIdStr, KeepAliveTimer).
 
 
-get_status_data(_MsgId) ->
+get_status_data(ClientId, _MsgId) ->
+    ClientIdStr = get_client_id_string(ClientId),
+    Topic = "/" ++ ClientIdStr ++ "/temperature",
+
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
-    Payload = random:uniform(1024),
-    Topic = "/test/temperature",
+    Payload0 = random:uniform(100),
+    Payload = erlang:integer_to_binary(Payload0),
+    %error_logger:info_msg("Payload: ~p~n", [Payload]),
 
     mqtt:build_publish(Topic, Payload).
 
@@ -176,3 +179,8 @@ handle_data(Socket, RawData, Result0) ->
     end,
 
     handle_data(Socket, RestRawData, Result).
+
+
+get_client_id_string(ClientId) ->
+    ClientIdStr = erlang:integer_to_list(ClientId, 16),
+    tools:prefix_string(ClientIdStr, 12, "0").

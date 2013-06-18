@@ -41,27 +41,26 @@ terminate(SourcePid, _UserData, _ClientId) ->
 handle_data_inner(_, _, <<>>, _) ->
     ok;
 handle_data_inner(SourcePid, Socket, RawData, ClientId) ->
-    <<TypeCode:4/integer, _/binary>> = RawData,
-
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
     RestRawData = case TypeCode of
         ?CONNECT -> 
             {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-            Data = binary:part(RawData, 0, FixedLength + RestLength),         
+            Data = binary:part(RawData, 0, FixedLength + RestLength), 
             process_data_online(SourcePid, Socket, Data, ClientId),
-            binary:part(RawData, FixedLength + RestLength, erlang:binary_size(RawData));
+            binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength);
         ?PUBLISH ->
             {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
             Data = binary:part(RawData, 0, FixedLength + RestLength),         
             process_data_publish(SourcePid, Socket, Data, ClientId),
-            binary:part(RawData, FixedLength + RestLength, erlang:binary_size(RawData))
+            binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength)
     end,
-
+        
     handle_data_inner(SourcePid, Socket, RestRawData, ClientId).
 
 
 process_data_online(SourcePid, _Socket, _Data, ClientId) ->
     error_logger:info_msg("process_data_online(~p): ~p~n", [ClientId, SourcePid]),
-
+       
     %% kick off the old session with the same ClientId
     case model_mqtt_session:get(ClientId) of
         undefined ->
@@ -69,23 +68,28 @@ process_data_online(SourcePid, _Socket, _Data, ClientId) ->
         Model ->
             Model#mqtt_session.pid ! stop
     end,
-
+     
     model_mqtt_session:delete(ClientId),
-
-    model_dev_session:create(#mqtt_session{
+      
+    model_mqtt_session:create(#mqtt_session{
         client_id = ClientId, 
         pid = SourcePid, 
         created = tools:datetime_string('yyyyMMdd_hhmmss')
     }),
-
+       
+    %% send CONNACK
+    ConnackData = mqtt:build_connack(0),
+    SourcePid ! {send_tcp_data, ConnackData},
+       
     %% TODO: publish client online(including IP) notice to subscribers
     %{ok, {Address, _Port}} = inet:peername(Socket),
 
     ok.
 
 
-process_data_publish(SourcePid, _Socket, _Data, Sn) ->
-    error_logger:info_msg("process_data_publish(~p): ~p~n", [Sn, SourcePid]),    
+process_data_publish(SourcePid, _Socket, Data, ClientId) ->
+    {Topic, Payload} = mqtt_utils:extract_publish_msg(Data),
+    error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, SourcePid, Topic, Payload]),    
 
     %% TODO: publish it to subscribers
 

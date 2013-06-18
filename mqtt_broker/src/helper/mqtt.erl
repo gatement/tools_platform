@@ -63,8 +63,8 @@ build_connack(ReturnCode) ->
 %% only Qos = 0 is supported
 build_publish(Topic, Payload) ->
 	VariableHeader = get_publish_variable_header(Topic),
-
-	Length = erlang:size(VariableHeader) + erlang:size(Payload),
+	
+	Length = erlang:byte_size(VariableHeader) + erlang:byte_size(Payload),
 	FixedHeader = get_fixed_header(?PUBLISH, ?DUP0, ?QOS0, ?RETAIN0, Length),
 
 	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
@@ -151,4 +151,4 @@ get_utf8(Content) ->
     ContentBinLenH = ContentBinLen div 256,
     ContentBinLenL = ContentBinLen rem 256,
 
-    erlang:list_to_binary([ContentBinLenH, ContentBinLenL, ContentBinLen]).
+    erlang:list_to_binary([ContentBinLenH, ContentBinLenL, ContentBin]).

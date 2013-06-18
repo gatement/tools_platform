@@ -51,7 +51,7 @@ handle_cast(_Msg, State) ->
 
 
 handle_info({tcp, _Socket, RawData}, State) ->
-    error_logger:info_msg("received tcp data: ~p~n", [RawData]),
+    %error_logger:info_msg("received tcp data: ~p~n", [RawData]),
     State2 = dispatch(handle_data, RawData, State),
     {noreply, State2, State#state.keep_alive_timer};
 
@@ -121,6 +121,7 @@ dispatch(handle_data, RawData, State) ->
     State2 = case State#state.client_id of
         undefined ->
             {ClientId, KeepAlivetimer} = extract_connect_info(RawData),
+            %error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
             State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000};
         _ ->
             State
