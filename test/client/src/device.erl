@@ -1,6 +1,8 @@
 -module(device).
+-include("../../mqtt_broker/include/mqtt.hrl").
 -export([start/0, start_client/3]).
 
+-define(CONNECTION_TIMEOUT, 10000).
 
 %% ===================================================================
 %% API functions
@@ -57,7 +59,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
                             reconnect(ServerHost, ServerPort, ClientId, Reason)
                     end
             after
-                10000 ->
+                ?CONNECTION_TIMEOUT ->
                     gen_tcp:close(Socket),
                     Reason = "no CONNACK",
                     reconnect(ServerHost, ServerPort, ClientId, Reason)
@@ -93,19 +95,25 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBa
     error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
     gen_tcp:send(Socket, StatusData),
 
-    MsgId2 = if
-        MsgId > 65535 ->
+    MsgId2 = MsgId + 1,
+    MsgId3 = if
+        MsgId2 > 65535 ->
             1;
         true ->
-            MsgId 
+            MsgId2
     end,
 
     receive
         {tcp, Socket, Msg} -> 
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-            handle_data(Socket, Msg),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2);
+            case handle_data(Socket, Msg, true) of
+                true ->
+                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3);
+                false ->
+                    Reason = "received DISCONNECT",
+                    reconnect(ServerHost, ServerPort, ClientId, Reason)
+            end;
 
         {tcp_closed, _Socket} ->
             error_logger:info_msg("tcp_closed ~p~n", [erlang:self()]),
@@ -115,11 +123,11 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBa
 
         AnyMsg ->
             error_logger:info_msg("received any data ~p: ~p~n", [erlang:self(), AnyMsg]),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2)
-            
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3)
+
     after
         DataSendingInterval ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId2)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3)
     end.
 
 
@@ -135,44 +143,36 @@ get_connect_data(MacInt) ->
     MacString = erlang:integer_to_list(MacInt, 16),
     ClientId = tools:prefix_string(MacString, 12, "0"),
 
-    KeepAliveTimer = 300000,
+    KeepAliveTimer = 300,
     mqtt:build_connect(ClientId, KeepAliveTimer).
 
 
 get_status_data(_MsgId) ->
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
-    Temperature = random:uniform(1024),
+    Payload = random:uniform(1024),
+    Topic = "/test/temperature",
 
-    Temperature0 = Temperature rem 256,
-    Temperature1 = erlang:round((Temperature - Temperature0)/256),
-    
-    Data = [16#42, Temperature1, Temperature0],
-
-    erlang:list_to_binary(Data).
+    mqtt:build_publish(Topic, Payload).
 
 
 is_connack_success(Data) ->
     mqtt_utils:is_connack_success(Data).
 
 
-handle_data(_, <<>>) ->
-    ok;
-handle_data(Socket, RawData) ->
-    <<TypeCode:3/binary, _/binary>> = RawData,
-    case TypeCode of
-        <<$#, $0, $#>> ->
+handle_data(_, <<>>, Result) ->
+    Result;
+handle_data(Socket, RawData, Result0) ->
+    <<TypeCode:4/integer, _/binary>> = RawData,
+    {Result, RestRawData} = case TypeCode of
+        %% disconnect
+        ?DISCONNECT ->
             %% heart beat request
-            <<_:3/binary, RestRawData/binary>> = RawData,
-            ResponseData = <<$D, $A, $A>>,    
-            error_logger:info_msg("sending Heartbeat Response: ~p~n", [ResponseData]),
-            gen_tcp:send(Socket, ResponseData);
-        <<$#, $1, $#>> ->
-            %% led control
-            <<_:4/binary, RestRawData/binary>> = RawData,
-            ResponseData = <<16#43, 0>>,    
-            error_logger:info_msg("sending Led Status: ~p~n", [ResponseData]),
-            gen_tcp:send(Socket, ResponseData)
+            <<_:2/binary, RestRawData0/binary>> = RawData,
+            gen_tcp:close(Socket),
+            {false, RestRawData0};
+        _ ->
+            {Result0, RawData}
     end,
 
-    handle_data(Socket, RestRawData).
+    handle_data(Socket, RestRawData, Result).

@@ -1,7 +1,7 @@
 -module(gen_tcp_server_server).
 -behaviour(gen_server).
 %% API
--export([start_link/4]).
+-export([start_link/3]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
@@ -12,33 +12,29 @@
                 callback, 
                 parent, 
                 user_data, 
-                opaque,
-                heartbeat_checking_interval,
-                is_checking_heartbeat}).
+                client_id,
+                keep_alive_timer}).
 
--define(HEATBEAT_TIMEOUT, 10000). %% in milliseconds
 
 %% ===================================================================
 %% API functions
 %% ===================================================================
 
-start_link(Callback, LSocket, HeartbeatCheckingInterval, UserArgs) ->
-    gen_server:start_link(?MODULE, [LSocket, Callback, HeartbeatCheckingInterval, UserArgs, self()], []).
+start_link(Callback, LSocket, UserArgs) ->
+    gen_server:start_link(?MODULE, [LSocket, Callback, UserArgs, self()], []).
 
 
 %% ===================================================================
 %% gen_server callbacks
 %% ===================================================================
 
-init([LSocket, Callback, HeartbeatCheckingInterval, UserArgs, Parent]) ->
+init([LSocket, Callback, UserArgs, Parent]) ->
     {ok, UserData} = Callback:init(UserArgs),
     State = #state{
         lsocket = LSocket, 
         callback = Callback, 
         parent = Parent, 
-        user_data = UserData,
-        heartbeat_checking_interval = HeartbeatCheckingInterval,
-        is_checking_heartbeat = false},
+        user_data = UserData},
 
     %error_logger:info_msg("a new gen_tcp_server_server was started.~n"),
     {ok, State, 0}.
@@ -57,7 +53,7 @@ handle_cast(_Msg, State) ->
 handle_info({tcp, _Socket, RawData}, State) ->
     error_logger:info_msg("received tcp data: ~p~n", [RawData]),
     State2 = dispatch(handle_data, RawData, State),
-    {noreply, State2, State#state.heartbeat_checking_interval};
+    {noreply, State2, State#state.keep_alive_timer};
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
@@ -71,42 +67,32 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
 
             %% log
             {ok, {Address, Port}} = inet:peername(Socket),
-            {ok, ConnectionIdleTimeout} = application:get_env(mqtt_broker, connection_idle_timout),
-            {noreply, State#state{socket = Socket, ip = Address, port = Port}, ConnectionIdleTimeout}; %% this socket must recieve the first message in Idle Timeout seconds
+            {ok, ConnectionTimeout} = application:get_env(mqtt_broker, connection_timout),
+            {noreply, State#state{socket = Socket, ip = Address, port = Port}, ConnectionTimeout}; %% this socket must recieve the first message in Timeout seconds
         Socket ->
-            case State#state.opaque of
+            case State#state.client_id of
                 undefined ->
                     %% no first package income yet
                     Ip = State#state.ip,
                     Port = State#state.port,
-                    {ok, ConnectionIdleTimeout} = application:get_env(mqtt_broker, connection_idle_timout),
-                    error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [Socket, Ip, Port, ConnectionIdleTimeout]),
+                    {ok, ConnectionTimeout} = application:get_env(mqtt_broker, connection_timout),
+                    error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [Socket, Ip, Port, ConnectionTimeout]),
                     {stop, normal, State}; %% no message arrived in time so suicide
                 _ ->
-                    case State#state.is_checking_heartbeat of
-                        false ->
-                            %% check if remote is still alive (heartbeat)
-                            Callback = State#state.callback,
-                            HeartbeatData = Callback:get_hearbeat_data(),
-                            gen_tcp_server:tcp_reply(Socket, HeartbeatData),
-                            State2 = State#state{is_checking_heartbeat = true},
-                            Ip = State#state.ip,
-                            Port = State#state.port,
-                            error_logger:info_msg("asking ~p ~p:~p for heartbeat (must reply within ~p ms).~n", [Socket, Ip, Port, ?HEATBEAT_TIMEOUT]),
-                            {noreply, State2, ?HEATBEAT_TIMEOUT};
-                        true ->
-                            %% the remote has no heartbeat
-                            Ip = State#state.ip,
-                            Port = State#state.port,
-                            error_logger:info_msg("disconnected ~p ~p:~p because of the remote has no heartbeat.~n", [Socket, Ip, Port]),
-                            {stop, normal, State} %% no message arrived in time so suicide
-                    end
+                    %% the remote has no heartbeat so disconnect it
+                    DisconnectMsg = mqtt:build_disconnect(),
+                    gen_tcp_server:tcp_reply(Socket, DisconnectMsg),
+
+                    Ip = State#state.ip,
+                    Port = State#state.port,
+                    error_logger:info_msg("disconnected ~p ~p:~p because of the remote has no heartbeat.~n", [Socket, Ip, Port]),
+                    {stop, normal, State} %% no message arrived in time so suicide
             end
-    end; 
+    end;
 
 handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->
     gen_tcp_server:tcp_reply(Socket, Data),
-    {noreply, State, State#state.heartbeat_checking_interval};
+    {noreply, State, State#state.keep_alive_timer};
 
 handle_info(stop, State) ->
     error_logger:info_msg("process ~p was stopped~n", [erlang:self()]),
@@ -114,7 +100,7 @@ handle_info(stop, State) ->
     
 handle_info(_Msg, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [_Msg]),
-    {noreply, State, State#state.heartbeat_checking_interval}.
+    {noreply, State, State#state.keep_alive_timer}.
 
 
 terminate(_Reason, State) ->
@@ -132,33 +118,35 @@ code_change(_OldVsn, State, _Extra) ->
 %% ===================================================================
 
 dispatch(handle_data, RawData, State) ->
-    State2 = case State#state.opaque of
+    State2 = case State#state.client_id of
         undefined ->
-            RequestType = State#state.user_data,
-            Opaque0 = extract_sn(RawData, RequestType),
-            State#state{opaque = Opaque0};
+            {ClientId, KeepAlivetimer} = extract_connect_info(RawData),
+            State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000};
         _ ->
             State
     end,
 
-    State3 = State2#state{is_checking_heartbeat = false},
-
-    #state{socket = Socket, callback = Callback, user_data = UserData, opaque = Opaque} = State3,
+    #state{socket = Socket, callback = Callback, user_data = UserData, client_id = ClientId2} = State2,
     SourcePid = erlang:self(),
-    Callback:handle_data(SourcePid, Socket, RawData, UserData, Opaque),
+    Callback:handle_data(SourcePid, Socket, RawData, UserData, ClientId2),
 
-    State3.
-    
+    State2.
+
 
 dispatch(terminate, State) ->
-    #state{callback = Callback, user_data = UserData, opaque = Opaque} = State,
-    Callback:terminate(UserData, Opaque),
+    #state{callback = Callback, user_data = UserData, client_id = ClientId} = State,
+    SourcePid = erlang:self(),
+    Callback:terminate(SourcePid, UserData, ClientId),
     ok.
 
 
-extract_sn(Data, RequestType) ->
-    case RequestType of
-        device ->
-            <<16#41, Mac11:8/integer, Mac10:8/integer, Mac9:8/integer, Mac8:8/integer, Mac7:8/integer, Mac6:8/integer, Mac5:8/integer, Mac4:8/integer, Mac3:8/integer, Mac2:8/integer, Mac1:8/integer, Mac0:8/integer, _/binary>> = Data,
-            [Mac11, Mac10, Mac9, Mac8, Mac7, Mac6, Mac5, Mac4, Mac3, Mac2, Mac1, Mac0]
-    end.
+extract_connect_info(Data) ->
+    RestData = mqtt_utils:strip_fixed_header(Data),
+
+    <<_:10/binary, KeepAliveTimerH:8/integer, KeepAliveTimerL:8/integer, RestData2/binary>> = RestData,
+    KeepAliveTimer = KeepAliveTimerH * 256 + KeepAliveTimerL,
+
+    <<_:2/binary, ClientId0/binary>> = RestData2,
+    ClientId = erlang:binary_to_list(ClientId0),
+
+    {ClientId, KeepAliveTimer}.

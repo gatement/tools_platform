@@ -4,10 +4,9 @@
   {registered, []},
   {applications, [kernel, stdlib]},
   {env, [
-    {connection_idle_timout, 20000}, % in milliseconds
+    {connection_timout, 20000}, % in milliseconds
     {init_worker_count, 2},
-    {tcp_port, 10000},
-    {heartbeat_checking_interval, 120000} % in milliseconds
+    {tcp_port, 10000}
   ]},
   {mod, {mqtt_broker_app, []}}
  ]}.

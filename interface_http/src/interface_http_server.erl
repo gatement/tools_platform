@@ -44,8 +44,8 @@ run() ->
     
     GconfList = [{id, Id},
                  {logdir, LogDir},
-		         {include_dir, [IncludeDir1, IncludeDir2]},
-		         {runmods, [cleaner, monitor, db_backup]}],
+		             {include_dir, [IncludeDir1, IncludeDir2]},
+		             {runmods, []}],
 
     SconfList = [{port, Port},
                  {listen, {0,0,0,0}},
@@ -54,8 +54,8 @@ run() ->
                  {errormod_404, nofound},
                  {ssl, Ssl},
                  {appmods, [
-    			    {"/user/", rest_usr_user},
-    			    {"/setting/", rest_gbl_setting},
+    			          {"/user/", rest_usr_user},
+    			          {"/setting/", rest_gbl_setting},
                     {"/monitor/", rest_tool_monitor},
                     {"/word/", rest_tool_word},
                     {"/note/", rest_tool_note},

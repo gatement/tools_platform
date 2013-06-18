@@ -9,18 +9,17 @@
 %% ===================================================================
 
 up() ->
-
 	%% == initialization functions =====================
-	%create_base_schema(),
-	%init_base_data(),
-	%create_word_schema(),
-	%create_note_schema(),
-	%create_gallery_schema(),
+	create_base_schema(),
+	init_base_data(),
+	create_word_schema(),
+	create_note_schema(),
+	create_gallery_schema(),
 	create_mqtt_schema(),
 	create_device_schema(),
 
 	%% == lowing function is not for initialization ====
-	%add_socket_to_usr_session(),
+	add_socket_to_usr_session(),
 
 	ok.
 

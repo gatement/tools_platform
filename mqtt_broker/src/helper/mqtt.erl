@@ -1,6 +1,10 @@
 -module(mqtt).
 -export([build_connect/2,
-		build_connack/1]).
+		build_connack/1,
+		build_publish/2,
+		build_pingreq/0,
+		build_pingresp/0,
+		build_disconnect/0]).
 
 -vsn("0.1.0").
 
@@ -55,6 +59,39 @@ build_connack(ReturnCode) ->
 
 	erlang:list_to_binary([FixedHeader, VariableHeader]).
 
+
+%% only Qos = 0 is supported
+build_publish(Topic, Payload) ->
+	VariableHeader = get_publish_variable_header(Topic),
+
+	Length = erlang:size(VariableHeader) + erlang:size(Payload),
+	FixedHeader = get_fixed_header(?PUBLISH, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
+
+
+build_pingreq() ->
+	Length = 0,
+	FixedHeader = get_fixed_header(?PINGREQ, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader]).
+
+
+build_pingresp() ->
+	Length = 0,
+	FixedHeader = get_fixed_header(?PINGRESP, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader]).
+
+
+build_disconnect() ->
+	Length = 0,
+	FixedHeader = get_fixed_header(?DISCONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader]).
+
+
+
 %% ===================================================================
 %% Local Functions
 %% ===================================================================
@@ -83,14 +120,8 @@ get_remaining_length(Length, Result) ->
 	get_remaining_length(X, [Digit|Result]).
 
 
-get_connect_payload(ClientId) ->	
-    ClientIdBin = unicode:characters_to_binary(ClientId, latin1),
-
-    ClientIdBinLen = erlang:size(ClientIdBin),
-    ClientIdBinLenH = ClientIdBinLen div 256,
-    ClientIdBinLenL = ClientIdBinLen rem 256,
-
-    erlang:list_to_binary([ClientIdBinLenH, ClientIdBinLenL, ClientIdBin]).
+get_connect_payload(ClientId) ->
+	get_utf8(ClientId).
 
 
 get_connect_variable_header(KeepAliveTimer) ->
@@ -106,3 +137,18 @@ get_connect_variable_header(KeepAliveTimer) ->
 	KeepAliveTimerL = KeepAliveTimer rem 256,
 
 	erlang:list_to_binary([ProtocalName, ProtocalVer, ConnectFlags, KeepAliveTimerH, KeepAliveTimerL]).
+
+
+get_publish_variable_header(Topic) ->
+	TopicBin = get_utf8(Topic),
+	TopicBin.
+
+
+get_utf8(Content) ->
+    ContentBin = unicode:characters_to_binary(Content, latin1),
+
+    ContentBinLen = erlang:size(ContentBin),
+    ContentBinLenH = ContentBinLen div 256,
+    ContentBinLenL = ContentBinLen rem 256,
+
+    erlang:list_to_binary([ContentBinLenH, ContentBinLenL, ContentBinLen]).
