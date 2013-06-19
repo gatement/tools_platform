@@ -192,11 +192,9 @@ if(!tp)
 		//============ web socket ======================================================================
 		socket_init: function()
 		{
-			var isSafari = navigator.userAgent.indexOf("Safari") != -1 && navigator.userAgent.indexOf("Chrome") === -1;
-
 			if (window.WebSocket) this.WebSocket = window.WebSocket;
 		    if (!this.WebSocket && window.MozWebSocket) this.WebSocket = window.MozWebSocket;
-		    if (!this.WebSocket || isSafari)
+		    if (!this.WebSocket)
 		    {
 		    	alert("Your browser is not supported. Please use Firefox or Google Chrome.");
 		    }
