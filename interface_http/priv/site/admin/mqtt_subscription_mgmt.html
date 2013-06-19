@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>MQTT Subscriptions - Admin - Tools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/admin/mqtt_subscription_mgmt.css" />
+			<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+			<script type="text/javascript" src="/js/admin/mqtt_subscription_mgmt.js"></script>
+		</head>
+		<body>
+			<h3>MQTT Subscriptions</h3><a href="/">Home</a>
+			<hr/>
+			<div id="content">
+				<table border="0">
+			        <thead id="tableTitle">
+			            <tr>
+			                <td class="clientId">Client Id</td>
+			                <td class="topic">Topic</td>
+			                <td class="action">Action</td>
+			            </tr>
+			        </thead>
+		            <tr>
+		                <td><input type="text" id="clientSearchInput" class="textbox" placeholder="input to search client" /></td>
+		                <td><input type="text" id="topicSearchInput" class="textbox" placeholder="input to search topic" /></td>
+		                <td><input id="clearSerachBtn" type="button" value="clear" /></td>
+		            </tr>
+			        <tbody id="subscriptions"></tbody>			        
+		            <tr>
+		                <td><input type="text" id="clientAddInput" class="textbox" placeholder="clinet id" /></td>
+		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="topic (#=all)" /></td>
+		                <td><input id="addBtn" type="button" value="add" /></td>
+		            </tr>
+			    </table>
+			</div>
+
+		
+			<script id="subscriptionTemplate" type="text/x-jquery-tmpl">
+				<tr class="subscription">
+					<td><span class="clientId">${client_id}</span><input type="hidden" class="subscriptionId" value="${id}"/></td>
+					<td><span class="topic">${topic}</span></td>
+					<td><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
+				</tr>
+			</script>
+		</body>
+	</html>

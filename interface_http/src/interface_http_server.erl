@@ -55,7 +55,8 @@ run() ->
                  {ssl, Ssl},
                  {appmods, [
     			          {"/user/", rest_usr_user},
-    			          {"/setting/", rest_gbl_setting},
+                    {"/setting/", rest_gbl_setting},
+                    {"/mqtt/", rest_mqtt},
                     {"/monitor/", rest_tool_monitor},
                     {"/word/", rest_tool_word},
                     {"/note/", rest_tool_note},

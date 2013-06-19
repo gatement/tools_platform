@@ -135,39 +135,47 @@ out(Arg, ["update"]) ->
 
 
 out(Arg, ["update_all"]) ->
-	Vals = yaws_api:parse_post(Arg),
-	UserId = proplists:get_value("id", Vals),
-	Name = proplists:get_value("name", Vals),
-	Email = proplists:get_value("email", Vals),
-	Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals, "false")),
-	Admin = erlang:list_to_atom(proplists:get_value("admin", Vals, "false")),
-	Note = erlang:list_to_atom(proplists:get_value("note", Vals, "false")),
-	Word = erlang:list_to_atom(proplists:get_value("word", Vals, "false")),
-	Gallery = erlang:list_to_atom(proplists:get_value("gallery", Vals, "false")),
-	Monitor = erlang:list_to_atom(proplists:get_value("monitor", Vals, "false")),
-	Device = erlang:list_to_atom(proplists:get_value("device", Vals, "false")),
+	UserId = (Arg#arg.state)#arg_state.user_id,		
+	IsAdmin = model_usr_user:is_admin(UserId),
+	case IsAdmin of
+		true ->
+			Vals = yaws_api:parse_post(Arg),
+			UserId = proplists:get_value("id", Vals),
+			Name = proplists:get_value("name", Vals),
+			Email = proplists:get_value("email", Vals),
+			Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals, "false")),
+			Admin = erlang:list_to_atom(proplists:get_value("admin", Vals, "false")),
+			Note = erlang:list_to_atom(proplists:get_value("note", Vals, "false")),
+			Word = erlang:list_to_atom(proplists:get_value("word", Vals, "false")),
+			Gallery = erlang:list_to_atom(proplists:get_value("gallery", Vals, "false")),
+			Monitor = erlang:list_to_atom(proplists:get_value("monitor", Vals, "false")),
+			Device = erlang:list_to_atom(proplists:get_value("device", Vals, "false")),
 
-	ReturnFunc = fun(Msg) ->
-		EncodedMsg = yaws_api:url_encode(Msg),
-		Url = lists:flatten(io_lib:format("/admin/user_edit.yaws?id=~s&msg=~s", [UserId, EncodedMsg])),
-		{redirect_local, Url}
-	end,
-	
-	case model_usr_user:get(UserId) of
-		error ->
-			Msg = "User does not exist.",
-			ReturnFunc(Msg);
-		User ->
-			model_usr_user:update(User#usr_user{name = Name, email = Email, enabled = Enabled, admin = Admin}),
+			ReturnFunc = fun(Msg) ->
+				EncodedMsg = yaws_api:url_encode(Msg),
+				Url = lists:flatten(io_lib:format("/admin/user_edit.yaws?id=~s&msg=~s", [UserId, EncodedMsg])),
+				{redirect_local, Url}
+			end,
+			
+			case model_usr_user:get(UserId) of
+				error ->
+					Msg = "User does not exist.",
+					ReturnFunc(Msg);
+				User ->
+					model_usr_user:update(User#usr_user{name = Name, email = Email, enabled = Enabled, admin = Admin}),
 
-			model_usr_preference:set(UserId, ?USR_PREFERENCE_NOTE_ENABLED, Note),
-			model_usr_preference:set(UserId, ?USR_PREFERENCE_WORD_ENABLED, Word),
-			model_usr_preference:set(UserId, ?USR_PREFERENCE_GALLERY_ENABLED, Gallery),
-			model_usr_preference:set(UserId, ?USR_PREFERENCE_MONITOR_ENABLED, Monitor),
-			model_usr_preference:set(UserId, ?USR_PREFERENCE_DEVICE_ENABLED, Device),
+					model_usr_preference:set(UserId, ?USR_PREFERENCE_NOTE_ENABLED, Note),
+					model_usr_preference:set(UserId, ?USR_PREFERENCE_WORD_ENABLED, Word),
+					model_usr_preference:set(UserId, ?USR_PREFERENCE_GALLERY_ENABLED, Gallery),
+					model_usr_preference:set(UserId, ?USR_PREFERENCE_MONITOR_ENABLED, Monitor),
+					model_usr_preference:set(UserId, ?USR_PREFERENCE_DEVICE_ENABLED, Device),
 
-			Msg = "Save succeeded.",
-			ReturnFunc(Msg)
+					Msg = "Save succeeded.",
+					ReturnFunc(Msg)
+			end;
+
+		false -> 
+			{status, 404}
 	end;
 
 
@@ -252,13 +260,21 @@ out(Arg, ["list"]) ->
 
 
 out(Arg, ["search"]) ->
-	Vals = yaws_api:parse_post(Arg),
-	ContainStr = proplists:get_value("term", Vals),
+	UserId = (Arg#arg.state)#arg_state.user_id,		
+	IsAdmin = model_usr_user:is_admin(UserId),
+	case IsAdmin of
+		true ->
+			Vals = yaws_api:parse_post(Arg),
+			ContainStr = proplists:get_value("term", Vals),
 
-	Users = model_usr_user:search(ContainStr),
+			Users = model_usr_user:search(ContainStr),
 
-	ReturnUsers = [{struct, tools:record_to_list(User, record_info(fields, user_search_result))} || User <- Users],	
-    {content, "application/json", json2:encode({array, ReturnUsers})};
+			ReturnUsers = [{struct, tools:record_to_list(User, record_info(fields, user_search_result))} || User <- Users],	
+		    {content, "application/json", json2:encode({array, ReturnUsers})};
+
+		false -> 
+			{status, 404}
+	end;
 
 
 out(Arg, ["session"]) ->
