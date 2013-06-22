@@ -62,7 +62,6 @@ get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
 						Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id, 
 						Sub#mqtt_subscription.topic =:= Topic]))
 	end,
-
 	{atomic, Pids} = mnesia:transaction(Fun),
 
 	Pids2 = if
@@ -80,7 +79,7 @@ get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
 			[]
 	end,
 
-	[Pids2 | Pids].
+	lists:append([Pids, Pids2]).
 	
 
 %% ===================================================================

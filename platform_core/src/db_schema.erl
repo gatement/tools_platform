@@ -20,6 +20,7 @@ up() ->
 
 	%% == lowing function is not for initialization ====
 	add_socket_to_usr_session(),
+	add_mqtt_main_client_subscription(),
 
 	ok.
 
@@ -108,6 +109,16 @@ add_socket_to_usr_session() ->
 	end,
 
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
+
+
+add_mqtt_main_client_subscription() ->
+	model_mqtt_subscription:create(#mqtt_subscription{
+		id = uuid:to_string(uuid:uuid1()), 
+		name = "MQTT main client",
+		client_id = "000000000001", 
+		topic = "#",
+		qos = 0
+	}).
 
 
 %% ===================================================================

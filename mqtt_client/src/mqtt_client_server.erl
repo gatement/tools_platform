@@ -9,7 +9,7 @@
 -record(state, {socket}).
 
 -define(CONNECTION_TIMEOUT, 10000).
--define(KEEP_ALIVE_TIMER, 20000).
+-define(KEEP_ALIVE_TIMER, 1800000).
 
 %% ===================================================================
 %% API functions

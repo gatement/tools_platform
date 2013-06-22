@@ -48,7 +48,7 @@ extract_publish_msg(Msg) ->
 	TopicLengthH = binary:at(Msg, FixedHeaderLength),
 	TopicLengthL = binary:at(Msg, FixedHeaderLength + 1),
 	TopicLength = TopicLengthH * 256 + TopicLengthL,
-	Topic = binary:part(Msg, FixedHeaderLength + 2, TopicLength),
+	Topic = erlang:binary_to_list(binary:part(Msg, FixedHeaderLength + 2, TopicLength)),
 
 	Qos = get_qos(Msg),
 

@@ -156,9 +156,8 @@ dispatch(terminate, State) ->
 
 
 filter_packages(Socket, RawData) -> 
-    <<TypeCode:8/integer, _/binary>> = RawData,
-    TypeCode2 = TypeCode bsr 4,
-    case TypeCode2 of
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
+    case TypeCode of
         ?PINGREQ ->
             PingRespData = mqtt:build_pingresp(),
             error_logger:info_msg("[~p] is sending PINGRESP: ~p~n", [?MODULE, PingRespData]),

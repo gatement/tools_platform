@@ -4,7 +4,8 @@
 -export([get/2, 
         update/3,
         get_by_key/2,
-        get_all_values_by_deviceId/1]).
+        get_all_values_by_deviceId/1, 
+        get_online_device_ids/0]).
 
 
 %% ===================================================================
@@ -82,10 +83,21 @@ get_all_values_by_deviceId(DeviceId) ->
     
     case mnesia:transaction(ReadFun) of
         {atomic, []} -> undefined;
-        {atomic, [Model]} -> {Model#dev_status.key, Model#dev_status.value};
+        {atomic, [Model]} -> {erlang:atom_to_string(Model#dev_status.key), Model#dev_status.value};
         _ -> error
     end.
 
+
+get_online_device_ids() ->
+    ReadFun = fun() -> 
+        qlc:e(qlc:q([X#dev_status.device_id || X <- mnesia:table(dev_status), 
+                          X#dev_status.key =:= online,
+                          X#dev_status.value =:= true]))
+    end,
+    
+    {atomic, DeviceIds} = mnesia:transaction(ReadFun),
+
+    DeviceIds.
 
 %% ===================================================================
 %% Local Functions

@@ -32,9 +32,7 @@ out(Arg) ->
 
 out(Arg, ["socket"], _UserId) ->
 	{_, _, _, _, HostWithProtocal} = lists:keyfind("Origin", 3, (Arg#arg.headers)#headers.other),
-    Opts = [
-    	{origin, HostWithProtocal}
-    ],
+    Opts = [{origin, HostWithProtocal}],
 	CallbackMod = socket_device,    
     {websocket, CallbackMod, Opts};
 

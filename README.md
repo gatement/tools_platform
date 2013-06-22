@@ -26,5 +26,5 @@ Please take the file `run.bat` as an example of starting up the service.
 
 ## Deployment
 * Delete tables by "mnesia:delete_table(table_name).": dev_device, dev_session, dev_status, dev_data
-* Run "db_schema:up()." to do "create_mqtt_schema", "create_device_schema"
+* Run "db_schema:up()." to do "create_mqtt_schema", "create_device_schema", "add_mqtt_main_client_subscription“"
 

@@ -154,10 +154,8 @@ get_disconnect_data() ->
 
 get_status_data(ClientId) ->
     ClientIdStr = get_client_id_string(ClientId),
-    Topic = "/" ++ ClientIdStr ++ "/status",
-
-    Payload = <<2#00000001>>,
-    mqtt:build_publish(Topic, Payload).
+    Status = 2#00000001,
+    mqtt_cmd:switch_status(ClientIdStr, Status).
 
 
 get_pingreq_data() ->
@@ -169,12 +167,12 @@ is_connack_success(Data) ->
 
 
 handle_data(Socket, RawData) ->
-    <<TypeCode:8/integer, _/binary>> = RawData,
-    TypeCode2 = TypeCode bsr 4,
-    case TypeCode2 of
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
+    case TypeCode of
         ?DISCONNECT ->
             gen_tcp:close(Socket),
             false;
+
         ?PINGRESP ->
             true
     end.

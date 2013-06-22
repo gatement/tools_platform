@@ -20,15 +20,11 @@
 		
 		<div id="devicesContainer"></div>
 
-		<script id="deviceTemplate" type="text/x-jquery-tmpl">
-			<div class="device" id="${sn}">
+		<script id="controllerTemplate" type="text/x-jquery-tmpl">
+			<div class="controller" id="${device_id}">
 				<div>Name: <span class="deviceName">${name}</span></div>
-				<div>Sn: <span class="deviceSn">${sn}</span></div>
-				<div>Led: <button class="ledBtn">on</button></div>
-				<div class="voltage">
-					<div class="voltageProgress"></div>
-					<div class="voltageTextContainer">Voltage: <span class="voltageText"></span></div>
-				</div>
+				<div>Id: <span class="deviceId">${device_id}</span></div>
+				<div>Switch1: <button class="switch1Btn">off</button></div>
 			</div>
 		</script>
 
