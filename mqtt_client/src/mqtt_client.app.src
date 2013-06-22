@@ -1,12 +1,16 @@
 {application, mqtt_client,
  [
-  {description, ""},
-  {vsn, "1"},
+  {description, "tools_platform main mqtt_client"},
+  {vsn, "0.1.0"},
   {registered, []},
   {applications, [
                   kernel,
                   stdlib
                  ]},
   {mod, { mqtt_client_app, []}},
-  {env, []}
+  {env, [
+    {mqtt_broker_host, "localhost"},
+    {mqtt_broker_port, 10000},
+    {client_id, "000000000001"}
+  ]}
  ]}.

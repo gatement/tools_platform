@@ -45,13 +45,13 @@
 -record(gly_share, {id, item_id, user_id, share_type}).
 
 %% device --------------------
--record(dev_device, {device_id, user_id, name, created, type, keys}).
+-record(dev_device, {device_id, user_id, is_online, name, created, type, keys}).
 -record(dev_status, {device_id, key, value, updated}).
 -record(dev_data, {id, device_id, key, value, datetime}).
 
 %% mqtt --------------------
 -record(mqtt_session, {client_id, pid, created}).
--record(mqtt_subscription, {id, client_id, topic}).
+-record(mqtt_subscription, {id, name, client_id, topic, qos}).
 
 %% runing records ===========================================
 -record(gly_item_upload, {item_id, item_name, album_item_id, mime_type, user_id, path, fd, file_full_name, last}).

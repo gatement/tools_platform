@@ -1,1 +1,3 @@
-erl -config c:/app/tools_platform/local_win -pa c:/app/tools_platform/platform_core/deps/uuid/ebin c:/app/tools_platform/platform_core/ebin c:/app/tools_platform/cleaner/ebin c:/app/tools_platform/db_backup/ebin c:/app/tools_platform/monitor/ebin c:/app/tools_platform/mqtt_broker/ebin c:/app/tools_platform/interface_http/ebin c:/app/tools_platform/iptracker/ebin C:/dev/Yaws/ebin -s platform_core
+set BASE_DIR=c:/app/tools_platform
+set YAWS_EBIN=C:/dev/Yaws/ebin
+erl -config %BASE_DIR%/local_win -pa %BASE_DIR%/platform_core/deps/uuid/ebin %BASE_DIR%/platform_core/ebin %BASE_DIR%/cleaner/ebin %BASE_DIR%/db_backup/ebin %BASE_DIR%/monitor/ebin %BASE_DIR%/mqtt_broker/ebin %BASE_DIR%/mqtt_client/ebin %BASE_DIR%/interface_http/ebin %BASE_DIR%/iptracker/ebin %YAWS_EBIN% -s platform_core

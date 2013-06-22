@@ -3,6 +3,7 @@
 -export([start/0, start_client/3]).
 
 -define(CONNECTION_TIMEOUT, 10000).
+-define(KEEP_ALIVE_TIMER, 300).
 
 %% ===================================================================
 %% API functions
@@ -10,8 +11,6 @@
 
 start() ->
     client:start(),
-
-    erlang:put(pids, []),
 
     {ok, ServerHost} = application:get_env(client, server_host),
     {ok, ServerPort} = application:get_env(client, server_port),
@@ -29,8 +28,6 @@ start_client(ServerHost, ServerPort, ClientId) ->
         {ok, Socket} ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
-            MsgId = 1,
-
             %% send CONNECT
             {ok, MacBase} = application:get_env(client, mac_base),
             ConnectData = get_connect_data(MacBase + ClientId),
@@ -46,12 +43,17 @@ start_client(ServerHost, ServerPort, ClientId) ->
                         true ->            
                             case application:get_env(client, run_mode) of
                                 {ok, once} ->
+                                    DisconnectData = get_disconnect_data(),
+                                    gen_tcp:send(Socket, DisconnectData),
+                                    error_logger:info_msg("sent DISCONNECT data: ~p~n", [DisconnectData]),
+
+                                    timer:sleep(500),
                                     gen_tcp:close(Socket),
                                     error_logger:info_msg("=================================================> pass~n", []),
                                     init:stop();
                                 {ok, live} ->
                                     {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
-                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId)
+                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false)
                             end;
                         false ->
                             gen_tcp:close(Socket),
@@ -89,27 +91,29 @@ start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, Clien
     start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, ClientId + 1).
 
 
-client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId) ->
-    %% send StatusData
-    StatusData =  get_status_data(ClientId, MsgId),
-    error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
-    gen_tcp:send(Socket, StatusData),
-
-    MsgId2 = MsgId + 1,
-    MsgId3 = if
-        MsgId2 > 65535 ->
-            1;
+client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, SendData) ->
+    case SendData of
         true ->
-            MsgId2
+            %% send StatusData
+            StatusData =  get_status_data(ClientId),
+            error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
+            gen_tcp:send(Socket, StatusData);
+
+            %% send PINGREQ
+            %PingReqData =  get_pingreq_data(),
+            %error_logger:info_msg("sending PINGREQ: ~p~n", [PingReqData]),
+            %gen_tcp:send(Socket, PingReqData);
+        _ ->
+            do_nothing
     end,
 
     receive
         {tcp, Socket, Msg} -> 
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-            case handle_data(Socket, Msg, true) of
+            case handle_data(Socket, Msg) of
                 true ->
-                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3);
+                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false);
                 false ->
                     Reason = "received DISCONNECT",
                     reconnect(ServerHost, ServerPort, ClientId, Reason)
@@ -123,11 +127,11 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBa
 
         AnyMsg ->
             error_logger:info_msg("received any data ~p: ~p~n", [erlang:self(), AnyMsg]),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false)
 
     after
         DataSendingInterval ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, MsgId3)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, true)
     end.
 
 
@@ -141,44 +145,39 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
 
 get_connect_data(ClientId) ->
     ClientIdStr = get_client_id_string(ClientId),
-
-    KeepAliveTimer = 300,
-    mqtt:build_connect(ClientIdStr, KeepAliveTimer).
+    mqtt:build_connect(ClientIdStr, ?KEEP_ALIVE_TIMER).
 
 
-get_status_data(ClientId, _MsgId) ->
+get_disconnect_data() ->
+    mqtt:build_disconnect().
+
+
+get_status_data(ClientId) ->
     ClientIdStr = get_client_id_string(ClientId),
-    Topic = "/" ++ ClientIdStr ++ "/temperature",
+    Topic = "/" ++ ClientIdStr ++ "/status",
 
-    {A1,A2,A3} = now(),
-    random:seed(A1, A2, A3),
-    Payload0 = random:uniform(100),
-    Payload = erlang:integer_to_binary(Payload0),
-    %error_logger:info_msg("Payload: ~p~n", [Payload]),
-
+    Payload = <<2#00000001>>,
     mqtt:build_publish(Topic, Payload).
+
+
+get_pingreq_data() ->
+    mqtt:build_pingreq().
 
 
 is_connack_success(Data) ->
     mqtt_utils:is_connack_success(Data).
 
 
-handle_data(_, <<>>, Result) ->
-    Result;
-handle_data(Socket, RawData, Result0) ->
-    <<TypeCode:4/integer, _/binary>> = RawData,
-    {Result, RestRawData} = case TypeCode of
-        %% disconnect
+handle_data(Socket, RawData) ->
+    <<TypeCode:8/integer, _/binary>> = RawData,
+    TypeCode2 = TypeCode bsr 4,
+    case TypeCode2 of
         ?DISCONNECT ->
-            %% heart beat request
-            <<_:2/binary, RestRawData0/binary>> = RawData,
             gen_tcp:close(Socket),
-            {false, RestRawData0};
-        _ ->
-            {Result0, RawData}
-    end,
-
-    handle_data(Socket, RestRawData, Result).
+            false;
+        ?PINGRESP ->
+            true
+    end.
 
 
 get_client_id_string(ClientId) ->

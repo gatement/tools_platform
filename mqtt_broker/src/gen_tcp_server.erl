@@ -27,7 +27,7 @@ start_link(SupName, Callback, IP, Port, UserArgs) ->
 
 
 tcp_reply(Socket, Data) ->
-    error_logger:info_msg("send to socket ~p with data: ~p~n", [Socket, Data]),
+    %error_logger:info_msg("send to socket ~p with data: ~p~n", [Socket, Data]),
     gen_tcp:send(Socket, Data).
 
 

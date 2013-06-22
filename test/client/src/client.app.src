@@ -13,7 +13,7 @@
     
     {run_mode, once}, % once/live
 
-    {mac_base, 0},
+    {mac_base, 1},
 
     {reconnect_wait_time, 10000},
     {data_sending_interval, 30000},

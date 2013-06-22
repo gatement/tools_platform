@@ -53,15 +53,17 @@ function load_subscriptions()
 
 function add_subscription()
 {
-	var clientId = $.trim($("#clientAddInput").val());
+	var clientId = $.trim($("#clientIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
+	var qos = $.trim($("#qosAddInput").val());
 	if(clientId === "" || topic === "")
 	{
-		window.alert("client id and topic are required to create a subscription.");
+		window.alert("Client Id, Topic, Qos are required to create a subscription.");
 	}
 	else
 	{
-		var data = {client_id: clientId, topic: topic};
+		var name = $.trim($("#nameAddInput").val());
+		var data = {name: name, client_id: clientId, topic: topic, qos: qos};
 
 		var url = "/mqtt/subscription/add";
 
@@ -81,9 +83,15 @@ function add_subscription()
 	}
 }
 
+function search_by_name()
+{
+	var key = $("#nameSearchInput").val().toLowerCase();
+	search_subscriptions(key, ".name")
+}
+
 function search_by_client_id()
 {
-	var key = $("#clientSearchInput").val().toLowerCase();
+	var key = $("#clientIdSearchInput").val().toLowerCase();
 	search_subscriptions(key, ".clientId")
 }
 
@@ -112,7 +120,8 @@ function search_subscriptions(key, field)
 
 function clear_search()
 {
-	$("#clientSearchInput").val("");
+	$("#nameSearchInput").val("");
+	$("#clientIdSearchInput").val("");
 	$("#topicSearchInput").val("");
 	$(".subscription").show();
 }
@@ -168,7 +177,10 @@ function check_client(event)
 }
 
 $(document).ready(function() {
-	$("#clientSearchInput").keyup(function(){
+	$("#nameSearchInput").keyup(function(){
+		search_by_name();
+	});
+	$("#clientIdSearchInput").keyup(function(){
 		search_by_client_id();
 	});
 	$("#topicSearchInput").keyup(function(){

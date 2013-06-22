@@ -33,8 +33,10 @@ out(_Arg, ["subscription", "list"], _UserId) ->
 
 out(Arg, ["subscription", "add"], _UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
+	Name = proplists:get_value("name", Vals),
 	ClientId = proplists:get_value("client_id", Vals),
 	Topic = proplists:get_value("topic", Vals),
+	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
 
 	case model_mqtt_subscription:exist(ClientId, Topic) of
 		true ->
@@ -42,8 +44,10 @@ out(Arg, ["subscription", "add"], _UserId) ->
 		false ->
 			model_mqtt_subscription:create(#mqtt_subscription{
 					id = uuid:to_string(uuid:uuid1()), 
+					name = Name,
 					client_id = ClientId, 
-					topic = Topic
+					topic = Topic,
+					qos = Qos
 				})
 	end,
 

@@ -74,21 +74,21 @@ build_pingreq() ->
 	Length = 0,
 	FixedHeader = get_fixed_header(?PINGREQ, ?DUP0, ?QOS0, ?RETAIN0, Length),
 
-	erlang:list_to_binary([FixedHeader]).
+	erlang:list_to_binary([FixedHeader, 0]).
 
 
 build_pingresp() ->
 	Length = 0,
 	FixedHeader = get_fixed_header(?PINGRESP, ?DUP0, ?QOS0, ?RETAIN0, Length),
 
-	erlang:list_to_binary([FixedHeader]).
+	erlang:list_to_binary([FixedHeader, 0]).
 
 
 build_disconnect() ->
 	Length = 0,
 	FixedHeader = get_fixed_header(?DISCONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
 
-	erlang:list_to_binary([FixedHeader]).
+	erlang:list_to_binary([FixedHeader, 0]).
 
 
 

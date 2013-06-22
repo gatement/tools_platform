@@ -25,11 +25,14 @@ handle_data(SourcePid, Socket, RawData, _UserData, ClientId) ->
     end.
 
 
-terminate(SourcePid, _UserData, _ClientId) ->
+terminate(SourcePid, _UserData, ClientId) ->
     model_mqtt_session:delete_by_pid(SourcePid),
     error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
 
-    %% TODO: pubish a offline notice to subscriber
+    %% pubish a offline notice to subscriber
+    PublishData = mqtt_cmd:offline(ClientId),
+    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, "#"),
+    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
 
     ok.
 
@@ -54,13 +57,13 @@ handle_data_inner(SourcePid, Socket, RawData, ClientId) ->
             process_data_publish(SourcePid, Socket, Data, ClientId),
             binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength)
     end,
-        
+    
     handle_data_inner(SourcePid, Socket, RestRawData, ClientId).
 
 
 process_data_online(SourcePid, _Socket, _Data, ClientId) ->
-    error_logger:info_msg("process_data_online(~p): ~p~n", [ClientId, SourcePid]),
-       
+    %error_logger:info_msg("process_data_online(~p): ~p~n", [ClientId, SourcePid]),
+    
     %% kick off the old session with the same ClientId
     case model_mqtt_session:get(ClientId) of
         undefined ->
@@ -80,17 +83,21 @@ process_data_online(SourcePid, _Socket, _Data, ClientId) ->
     %% send CONNACK
     ConnackData = mqtt:build_connack(0),
     SourcePid ! {send_tcp_data, ConnackData},
-       
-    %% TODO: publish client online(including IP) notice to subscribers
-    %{ok, {Address, _Port}} = inet:peername(Socket),
-
+    
+    %% publish client online(including IP) notice to subscribers
+    PublishData = mqtt_cmd:online(ClientId),
+    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, "#"),
+    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
     ok.
 
 
-process_data_publish(SourcePid, _Socket, Data, ClientId) ->
-    {Topic, Payload} = mqtt_utils:extract_publish_msg(Data),
-    error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, SourcePid, Topic, Payload]),    
+process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
+    {Topic, _Payload} = mqtt_utils:extract_publish_msg(Data),
+    %error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, SourcePid, Topic, Payload]),    
 
-    %% TODO: publish it to subscribers
+    %% publish it to subscribers
+    PublishData = Data,
+    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, Topic),
+    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
 
     ok.

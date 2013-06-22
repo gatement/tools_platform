@@ -1,4 +1,5 @@
 -module(gen_tcp_server_server).
+-include("mqtt.hrl").
 -behaviour(gen_server).
 %% API
 -export([start_link/3]).
@@ -15,6 +16,7 @@
                 client_id,
                 keep_alive_timer}).
 
+-define(GRACE, 10000).
 
 %% ===================================================================
 %% API functions
@@ -52,8 +54,12 @@ handle_cast(_Msg, State) ->
 
 handle_info({tcp, _Socket, RawData}, State) ->
     %error_logger:info_msg("received tcp data: ~p~n", [RawData]),
-    State2 = dispatch(handle_data, RawData, State),
-    {noreply, State2, State#state.keep_alive_timer};
+    case dispatch(handle_data, RawData, State) of
+        stop ->
+            {stop, normal, State};
+        State2 ->
+            {noreply, State2, State#state.keep_alive_timer}
+    end;
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
@@ -122,16 +128,24 @@ dispatch(handle_data, RawData, State) ->
         undefined ->
             {ClientId, KeepAlivetimer} = extract_connect_info(RawData),
             %error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
-            State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000};
+            State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000 + ?GRACE};
         _ ->
             State
     end,
 
-    #state{socket = Socket, callback = Callback, user_data = UserData, client_id = ClientId2} = State2,
-    SourcePid = erlang:self(),
-    Callback:handle_data(SourcePid, Socket, RawData, UserData, ClientId2),
+    case filter_packages(State#state.socket, RawData) of
+        stop ->
+            stop;
+        <<>> ->
+            State2;
 
-    State2.
+        RestData ->
+            #state{socket = Socket, callback = Callback, user_data = UserData, client_id = ClientId2} = State2,
+            SourcePid = erlang:self(),
+            Callback:handle_data(SourcePid, Socket, RestData, UserData, ClientId2),
+
+            State2
+    end.
 
 
 dispatch(terminate, State) ->
@@ -139,6 +153,25 @@ dispatch(terminate, State) ->
     SourcePid = erlang:self(),
     Callback:terminate(SourcePid, UserData, ClientId),
     ok.
+
+
+filter_packages(Socket, RawData) -> 
+    <<TypeCode:8/integer, _/binary>> = RawData,
+    TypeCode2 = TypeCode bsr 4,
+    case TypeCode2 of
+        ?PINGREQ ->
+            PingRespData = mqtt:build_pingresp(),
+            error_logger:info_msg("[~p] is sending PINGRESP: ~p~n", [?MODULE, PingRespData]),
+            gen_tcp:send(Socket, PingRespData),
+            <<_:2/binary, RestData/binary>> = RawData,
+            RestData;
+
+        ?DISCONNECT ->
+            stop;
+
+        _ ->
+            RawData
+    end.
 
 
 extract_connect_info(Data) ->

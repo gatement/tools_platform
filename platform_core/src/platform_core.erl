@@ -41,6 +41,8 @@ start() ->
 	end,
 
     application:start(mqtt_broker),
+    timer:sleep(1000),
+    application:start(mqtt_client),
 	interface_http:start(),
 
 	ok.

@@ -4,7 +4,8 @@
 -export([create/1,
 		exist/2,
 		list/0,
-		delete/1]).
+		delete/1,
+		get_online_subscription_client_pids/2]).
 
 %% ===================================================================
 %% API functions
@@ -52,6 +53,35 @@ delete(Id) ->
 		_ -> error
 	end.
 
+
+get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([Session#mqtt_session.pid || Session <- mnesia:table(mqtt_session), 
+						Sub <- mnesia:table(mqtt_subscription), 
+						Sub#mqtt_subscription.client_id =/= ExclusiveClientId,
+						Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id, 
+						Sub#mqtt_subscription.topic =:= Topic]))
+	end,
+
+	{atomic, Pids} = mnesia:transaction(Fun),
+
+	Pids2 = if
+		Topic =/= "#" ->
+			Fun2 = fun() -> 
+				qlc:e(qlc:q([Session#mqtt_session.pid || Session <- mnesia:table(mqtt_session), 
+								Sub <- mnesia:table(mqtt_subscription), 
+								Sub#mqtt_subscription.client_id =/= ExclusiveClientId,
+								Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id, 
+								Sub#mqtt_subscription.topic =:= "#"]))
+			end,
+			{atomic, Pids0} = mnesia:transaction(Fun2),
+			Pids0;
+		true ->
+			[]
+	end,
+
+	[Pids2 | Pids].
+	
 
 %% ===================================================================
 %% Local Functions
