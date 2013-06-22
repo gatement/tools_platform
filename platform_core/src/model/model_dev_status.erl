@@ -81,11 +81,9 @@ get_all_values_by_deviceId(DeviceId) ->
                           X#dev_status.device_id =:= DeviceId]))
     end,
     
-    case mnesia:transaction(ReadFun) of
-        {atomic, []} -> undefined;
-        {atomic, [Model]} -> {erlang:atom_to_string(Model#dev_status.key), Model#dev_status.value};
-        _ -> error
-    end.
+    {atomic, Models} = mnesia:transaction(ReadFun),
+
+    [{struct, [{X#dev_status.key, X#dev_status.value}]} || X <- Models].
 
 
 get_online_device_ids() ->

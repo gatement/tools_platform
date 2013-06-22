@@ -41,23 +41,24 @@ handle_message({text, Request}) ->
 %% ===================================================================
 
 device_status_changed_notification(DeviceId) ->
+io:format("~p~n", [1]),
     Device = model_dev_device:get(DeviceId),
-    [Values] = model_dev_status:get_all_values_by_deviceId(DeviceId),
+io:format("~p~n", [Device]),
+    Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
+io:format("~p~n", [3]),
 
-    Online = proplists:get_value(online, Values),
-
-    Msg = json2:encode({struct, [
+    Msg0 = {struct, [
             {"cmd", "device_status_changed"}, 
-            {"success", true}, 
+            {"success", true},
             {"data", {struct, [
                 {"device_id", DeviceId}, 
-                {"device_type", Device#dev_device.type}, 
+                {"type", Device#dev_device.type}, 
                 {"name", Device#dev_device.name}, 
-                {"is_online", Online},
-                {struct, Values}
+                {"values", {array, Values}}
             ]}}
-        ]}),
-
+        ]},
+io:format("~p~n", [Msg0]),
+    Msg = json2:encode(Msg0),
     notice(Msg).
 
 
@@ -84,21 +85,22 @@ list_online_devices(_Data, _UserId, _UserSession) ->
 
         {struct, [
                 {"device_id", DeviceId}, 
-                {"device_type", Device#dev_device.type}, 
+                {"type", Device#dev_device.type}, 
                 {"name", Device#dev_device.name}, 
-                {"is_online", true},
-                {struct, Values}
+                {"values", {array, Values}}
         ]}
     end,
 
-    Devices = [ Fun(X) || X <- DeviceIds],
+    Devices = [ Fun(X) || X <- DeviceIds,
+                            X =/= "000000000001"],
 
     [{"success", true}, {"data", {array, Devices}}].
 
 
 update_switch_status(Data, _UserId, _UserSession) ->
-    {struct,[{"device_id", _Device},{"switch_id", _SwitchId},{"switch_status", _SwitchStatus}]} = Data,
+    {struct,[{"device_id", Device},{"switch_id", SwitchId},{"status", Status}]} = Data,
 
+    io:format("~ndevice-id-switch_id-status: ~p-~p-~p~n~n", [Device, SwitchId, Status]),
     [{"success", true}, {"data", "ok."}].
 
 

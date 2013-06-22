@@ -20,23 +20,23 @@ if(!tp)
 			this.socket_connect();
 		},
 
-		ledBtn_click: function(event)
+		switch1Btn_click: function(event)
 		{
-			var sn = $(event.target).parent().parent().attr("id");
+			var deviceId = $(event.target).parent().parent().attr("id");
 			var status = 1;
 			if($(event.target).text() == "on")
 			{
 				status = 0;
 			}
 
-			this.update_led_status(sn, status);
+			this.update_switch1_status(deviceId, status);
 		},
 
 		bindEvents: function()
 		{
 			var me = this;
 
-			$(".ledBtn").unbind().click(function(event){me.ledBtn_click(event)});
+			$(".switch1Btn").unbind().click(function(event){me.switch1Btn_click(event)});
 		},
 
 
@@ -61,21 +61,21 @@ if(!tp)
 		},
 
 
-		update_led_status: function(sn, status) 
+		update_switch1_status: function(deviceId, status) 
 		{
 			var msg = {
-				cmd: "update_led_status",
+				cmd: "update_switch_status",
 				sid: $.cookie(this.sessionCookieId),
-				data: {"sn": sn, "status": status}
+				data: {"device_id": deviceId, "switch_id": "switch1", "status": status}
 			};
 		    this.socket_send_msg(msg);
 		},
 
-		update_led_status_success: function(data) 
+		update_switch1_status_success: function(data) 
 		{
 		},
 
-		update_led_status_error: function(data) 
+		update_switch1_status_error: function(data) 
 		{			
 			window.alert(data);
 		},
@@ -97,7 +97,7 @@ if(!tp)
 
 			for(var i=0; i< data.length; i++)
 			{
-				this.update_device_display(data[i]);
+				this.display_device(data[i]);
 			}
 
 			this.bindEvents();
@@ -111,82 +111,36 @@ if(!tp)
 
 		device_status_changed_success: function(data) 
 		{
-			this.update_device_display(data);
+			this.display_device(data);
 			this.bindEvents();
 		},
 
 
-		update_device_display: function(data)
+		display_device: function(data)
 		{			
-			if(data.is_online)
+			if(data.values.online)
 			{
-				if($("#"+data.sn).size() === 0)
+				if($("#"+data.device_id).size() === 0)
 				{
 					// create the element
-					$("#deviceTemplate").tmpl(data).appendTo($("#devicesContainer"));
-
-					// update the voltage display and led status
-					$device = $("#"+data.sn);					
-					this.display_device_led1($device, data.led1);
-					this.display_device_voltage($device, data.voltage);
+					$("#" + data.type + "Template").tmpl(data).appendTo($("#devicesContainer"));
 				}
 				else
 				{
 					// update the element
-					$device = $("#"+data.sn);
+					$device = $("#"+data.device_id);
 					$device.find(".deviceName").text(data.name);
-					$device.find(".deviceSn").text(data.sn);
-					this.display_device_led1($device, data.led1);
-					this.display_device_voltage($device, data.voltage);
+					for(var i = 0 i < data.values.length; i++)
+					{
+						$device.find(data.values[i].key).text(data.values[i].value);
+					}
 				}
 			}
 			else
 			{
 				// delete the element
-				$("#"+data.sn).remove();
+				$("#"+data.device_id).remove();
 			}
-		},
-
-		display_device_voltage: function($device, voltage)
-		{
-			var width = window.parseInt(voltage * 100 / 1023);
-			var bgColor = this.get_device_voltage_bg_color(width);
-			var widthStr = $.utils.formatStr("{0}%", width);
-			var voltageText = $.utils.formatStr("{0}V / {1}", voltage, widthStr);				
-			$device.find(".voltageText").text(voltageText);
-
-			//$device.find(".voltageProgress").animate({"width": widthStr, "background-color": bgColor});
-			$device.find(".voltageProgress").css("width", widthStr);
-			$device.find(".voltageProgress").css("background-color", bgColor);
-		},
-
-		display_device_led1: function($device, status)
-		{
-			if(status == 1)
-			{
-				$device.find(".ledBtn").text("on");
-			}
-			else
-			{
-				$device.find(".ledBtn").text("off");
-			}
-		},
-
-		get_device_voltage_bg_color: function(voltagePercentage)
-		{
-			var bgColor = "rgb(0,210,0)"; //#0099FF
-
-			if(voltagePercentage < 30){
-				var b = 256 - window.parseInt(voltagePercentage*256/100);
-				var g = window.parseInt(b * 0.7);
-				bgColor = $.utils.formatStr("rgb(0, {0}, {1})", g, b);
-			}
-			else if(voltagePercentage > 90){
-				var r = window.parseInt(voltagePercentage*256/100);
-				bgColor = $.utils.formatStr("rgb({0}, 100, 100)", r);
-			}
-
-			return bgColor;
 		},
 
 		//============ web socket ======================================================================

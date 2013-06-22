@@ -44,16 +44,7 @@ process_data_online(ClientId) ->
     %% check if device exist, if not, create it
     case model_dev_device:get(ClientId) of
         undefined ->
-        	DeviceType = case ClientId of
-        		"000000000001" ->
-        			main_mqtt_client;
-        		"000000000002" ->
-        			computer;
-        		"000000000003" ->
-        			controller;
-        		_ ->
-        			undefined
-        	end,
+        	DeviceType = get_device_type(ClientId),
 
             model_dev_device:create(#dev_device{
                 device_id = ClientId,
@@ -68,7 +59,7 @@ process_data_online(ClientId) ->
             do_nothing
     end,
 
-	model_dev_status:update(ClientId, online, true),
+	model_dev_status:update(ClientId, "online", true),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
@@ -79,7 +70,7 @@ process_data_online(ClientId) ->
 process_data_offline(ClientId) ->
     error_logger:info_msg("~p received [offline] data: ~p~n", [?MODULE, ClientId]),
 
-    model_dev_status:update(ClientId, online, false),
+    model_dev_status:update(ClientId, "online", false),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
@@ -90,9 +81,29 @@ process_data_offline(ClientId) ->
 process_data_switch_status(ClientId, SwitchStatus) ->
     error_logger:info_msg("~p received [switch status] data: ~p - ~p~n", [?MODULE, ClientId, SwitchStatus]),
 
-    model_dev_status:update(ClientId, switch1, SwitchStatus),
+    Switch1 = if
+        (SwitchStatus band 2#00000001) =:= 1 ->
+            "on";
+        true ->
+            "off"
+    end,
+
+    model_dev_status:update(ClientId, "switch1", Switch1),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
 
     ok.
+
+
+get_device_type(ClientId) ->
+    case ClientId of
+        "000000000001" ->
+            "main_mqtt_client";
+        "000000000002" ->
+            "controller";
+        "000000000003" ->
+            "computer";
+        _ ->
+            "undefined"
+    end.
