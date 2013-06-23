@@ -24,7 +24,7 @@ init([]) ->
               permanent, 1000, supervisor, [mqtt_client_server]},
               
     Children = [Server],
-    RestartStrategy = {one_for_one, 0, 1},
+    RestartStrategy = {one_for_one, 30, 10},
     {ok, {RestartStrategy, Children}}.
 
 

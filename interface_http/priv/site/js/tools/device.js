@@ -20,7 +20,7 @@ if(!tp)
 			this.socket_connect();
 		},
 
-		switch1Btn_click: function(event)
+		switch1_click: function(event)
 		{
 			var deviceId = $(event.target).parent().parent().attr("id");
 			var status = 1;
@@ -29,14 +29,14 @@ if(!tp)
 				status = 0;
 			}
 
-			this.update_switch1_status(deviceId, status);
+			this.update_switch_status(deviceId, "switch1", status);
 		},
 
 		bindEvents: function()
 		{
 			var me = this;
 
-			$(".switch1Btn").unbind().click(function(event){me.switch1Btn_click(event)});
+			$(".switch1").unbind().click(function(event){me.switch1_click(event)});
 		},
 
 
@@ -61,21 +61,21 @@ if(!tp)
 		},
 
 
-		update_switch1_status: function(deviceId, status) 
+		update_switch_status: function(deviceId, switchName, status) 
 		{
 			var msg = {
 				cmd: "update_switch_status",
 				sid: $.cookie(this.sessionCookieId),
-				data: {"device_id": deviceId, "switch_id": "switch1", "status": status}
+				data: {"device_id": deviceId, "switch": switchName, "status": status}
 			};
 		    this.socket_send_msg(msg);
 		},
 
-		update_switch1_status_success: function(data) 
+		update_switch_status_success: function(data) 
 		{
 		},
 
-		update_switch1_status_error: function(data) 
+		update_switch_status_error: function(data) 
 		{			
 			window.alert(data);
 		},
@@ -123,6 +123,11 @@ if(!tp)
 				if($("#"+data.device_id).size() === 0)
 				{
 					// create the element
+					for(var key in data.values)
+					{
+						data[key] = data.values[key];
+					}
+
 					$("#" + data.type + "Template").tmpl(data).appendTo($("#devicesContainer"));
 				}
 				else
@@ -130,9 +135,9 @@ if(!tp)
 					// update the element
 					$device = $("#"+data.device_id);
 					$device.find(".deviceName").text(data.name);
-					for(var i = 0 i < data.values.length; i++)
+					for(var key in data.values)
 					{
-						$device.find(data.values[i].key).text(data.values[i].value);
+						$device.find("."+key).text(data.values[key]);
 					}
 				}
 			}

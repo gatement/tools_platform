@@ -1,7 +1,8 @@
 -module(mqtt_cmd).
 -export([online/1,
 		offline/1,
-		switch_status/2]).
+		switch_status/2,
+        switch_control/3]).
 
 
 %% ===================================================================
@@ -21,8 +22,13 @@ offline(ClientId) ->
 
 
 switch_status(ClientId, Status) ->
-	Topic = lists:flatten(io_lib:format("/~s/switch_status", [ClientId])),
+    Topic = lists:flatten(io_lib:format("/~s/switch_status", [ClientId])),
     Payload = erlang:list_to_binary([3, Status]),
+    mqtt:build_publish(Topic, Payload).
+
+
+switch_control(Topic, SwitchId, Status) ->
+    Payload = erlang:list_to_binary([3, SwitchId, Status]),
     mqtt:build_publish(Topic, Payload).
 
 

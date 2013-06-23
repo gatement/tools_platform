@@ -3,7 +3,7 @@
 -include("mqtt.hrl").
 -behaviour(gen_tcp_server).
 %% gen_tcp_server callbacks
--export([init/1, handle_data/5, terminate/3]).
+-export([init/1, process_data_online/4, process_data_publish/4, terminate/3]).
 
 
 %% ===================================================================
@@ -12,52 +12,6 @@
 
 init(_) ->    
     {ok, undefined}.
-
-
-handle_data(SourcePid, Socket, RawData, _UserData, ClientId) -> 
-    %error_logger:info_msg("~p received tcp data [~p]: ~p~n", [?MODULE, ClientId, RawData]),
-    try
-        handle_data_inner(SourcePid, Socket, RawData, ClientId)
-    catch
-        _:_ ->
-            error_logger:info_msg("send stop signal to ~p because of handle_data exception.~n", [SourcePid]),
-            SourcePid ! stop
-    end.
-
-
-terminate(SourcePid, _UserData, ClientId) ->
-    model_mqtt_session:delete_by_pid(SourcePid),
-    error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
-
-    %% pubish a offline notice to subscriber
-    PublishData = mqtt_cmd:offline(ClientId),
-    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, "#"),
-    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
-
-    ok.
-
-
-%% ===================================================================
-%% Local Functions
-%% ===================================================================
-
-handle_data_inner(_, _, <<>>, _) ->
-    ok;
-handle_data_inner(SourcePid, Socket, RawData, ClientId) ->
-    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
-    {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-    Data = binary:part(RawData, 0, FixedLength + RestLength), 
-
-    case TypeCode of
-        ?CONNECT -> 
-            process_data_online(SourcePid, Socket, Data, ClientId);
-            
-        ?PUBLISH ->       
-            process_data_publish(SourcePid, Socket, Data, ClientId)
-    end,
-
-    RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
-    handle_data_inner(SourcePid, Socket, RestRawData, ClientId).
 
 
 process_data_online(SourcePid, _Socket, _Data, ClientId) ->
@@ -85,19 +39,56 @@ process_data_online(SourcePid, _Socket, _Data, ClientId) ->
 
     %% publish client online(including IP) notice to subscribers
     PublishData = mqtt_cmd:online(ClientId),
-    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, "#"),
-    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
+    mqtt_broker:publish(ClientId, "#", PublishData),
+
+    %% subscribe any PUBLISH starts with "/ClientId/"  
+    subscribe_any_publish_to_me(ClientId),
 
     ok.
 
 
 process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     {Topic, _Payload} = mqtt_utils:extract_publish_msg(Data),
-    %error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, SourcePid, Topic, Payload]),    
+    %error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, _SourcePid, Topic, _Payload]),    
 
     %% publish it to subscribers
-    PublishData = Data,
-    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ClientId, Topic),
-    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids],
+    mqtt_broker:publish(ClientId, Topic, Data),
 
     ok.
+
+
+terminate(SourcePid, Socket, ClientId) ->
+    %% send DISCONNECT
+    DisconnectMsg = mqtt:build_disconnect(),
+    gen_tcp_server:tcp_reply(Socket, DisconnectMsg),
+
+    model_mqtt_session:delete_by_pid(SourcePid),
+    error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
+
+    %% pubish a offline notice to subscriber
+    PublishData = mqtt_cmd:offline(ClientId),
+    mqtt_broker:publish(ClientId, "#", PublishData),
+
+    ok.
+
+
+%% ===================================================================
+%% Local Functions
+%% ===================================================================
+
+subscribe_any_publish_to_me(ClientId) ->
+    Topic = lists:flatten(io_lib:format("/~s/+", [ClientId])),
+
+    case model_mqtt_subscription:exist(ClientId, Topic) of
+        true ->
+            do_nothing;
+
+        false ->
+            model_mqtt_subscription:create(#mqtt_subscription{
+                    id = uuid:to_string(uuid:uuid1()), 
+                    name = "Publish to me",
+                    client_id = ClientId, 
+                    topic = Topic,
+                    qos = 0
+            })
+    end.

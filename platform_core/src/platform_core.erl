@@ -40,6 +40,13 @@ start() ->
 			no_start
 	end,
 
+	case application:get_env(platform_core, enable_remote) of
+		{ok, true} ->
+			remote:start();
+		_ ->
+			no_start
+	end,
+
     application:start(mqtt_broker),
     timer:sleep(1000),
     application:start(mqtt_client),

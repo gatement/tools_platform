@@ -8,7 +8,8 @@
 
 behaviour_info(callbacks) ->
     [{init,1},
-     {handle_data, 5},
+     {process_data_online, 4},
+     {process_data_publish, 4},
      {terminate, 3}];
 behaviour_info(_Other) ->
     undefined.

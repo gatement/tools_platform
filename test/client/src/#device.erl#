@@ -17,11 +17,10 @@ start() ->
     {ok, ClientCountInit} = application:get_env(client, client_count_init),
     {ok, ClientCountTotal} = application:get_env(client, client_count_total),
     {ok, ClientCreatingInterval} = application:get_env(client, client_creating_interval),
-    {ok, MacBase} = application:get_env(client, mac_base),
 
     error_logger:info_msg("connecting to ~p server - ~s:~p~n", [?MODULE, ServerHost, ServerPort]),
     
-    start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, MacBase, 1).
+    start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, 1).
 
 
 start_client(ServerHost, ServerPort, ClientId) ->
@@ -30,7 +29,8 @@ start_client(ServerHost, ServerPort, ClientId) ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
             %% send CONNECT
-            ConnectData = get_connect_data(ClientId),
+            {ok, MacBase} = application:get_env(client, mac_base),
+            ConnectData = get_connect_data(MacBase + ClientId),
             error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
             gen_tcp:send(Socket, ConnectData),
 
@@ -53,7 +53,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
                                     init:stop();
                                 {ok, live} ->
                                     {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
-                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false)
+                                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false)
                             end;
                         false ->
                             gen_tcp:close(Socket),
@@ -76,23 +76,22 @@ start_client(ServerHost, ServerPort, ClientId) ->
 %% Local Functions
 %% ===================================================================
 
-start_processes(_, _, _, ClientCountTotal, _, _, ClientNumber) when ClientCountTotal < ClientNumber ->
+start_processes(_, _, _, ClientCountTotal, _, ClientId) when ClientCountTotal < ClientId ->
     ok;
-start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, MacBase, ClientNumber) ->
-    ClientId = generate_client_id(MacBase, ClientNumber),
+start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, ClientId) ->
     erlang:spawn(?MODULE, start_client, [ServerHost, ServerPort, ClientId]),
 
     if
-        ClientCountInit > ClientNumber ->
+        ClientCountInit > ClientId ->
              timer:sleep(ClientCreatingInterval);
         true ->
             no_sleep
     end,
 
-    start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, MacBase, ClientNumber + 1).
+    start_processes(ServerHost, ServerPort, ClientCountInit, ClientCountTotal, ClientCreatingInterval, ClientId + 1).
 
 
-client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendData) ->
+client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, SendData) ->
     case SendData of
         true ->
             %% send StatusData
@@ -112,7 +111,13 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
         {tcp, Socket, Msg} -> 
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-            handle_data(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, Msg);
+            case handle_data(Socket, Msg) of
+                true ->
+                    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false);
+                false ->
+                    Reason = "received DISCONNECT",
+                    reconnect(ServerHost, ServerPort, ClientId, Reason)
+            end;
 
         {tcp_closed, _Socket} ->
             error_logger:info_msg("tcp_closed ~p~n", [erlang:self()]),
@@ -122,11 +127,11 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
 
         AnyMsg ->
             error_logger:info_msg("received any data ~p: ~p~n", [erlang:self(), AnyMsg]),
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, false)
 
     after
         DataSendingInterval ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, true)
+            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, MacBase, true)
     end.
 
 
@@ -139,7 +144,8 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
 
 
 get_connect_data(ClientId) ->
-    mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER).
+    ClientIdStr = get_client_id_string(ClientId),
+    mqtt:build_connect(ClientIdStr, ?KEEP_ALIVE_TIMER).
 
 
 get_disconnect_data() ->
@@ -147,8 +153,9 @@ get_disconnect_data() ->
 
 
 get_status_data(ClientId) ->
+    ClientIdStr = get_client_id_string(ClientId),
     Status = 2#00000001,
-    mqtt_cmd:switch_status(ClientId, Status).
+    mqtt_cmd:switch_status(ClientIdStr, Status).
 
 
 get_pingreq_data() ->
@@ -159,54 +166,18 @@ is_connack_success(Data) ->
     mqtt_utils:is_connack_success(Data).
 
 
-handle_data(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData) ->
-    handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData, true).
-
-
-handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, <<>>, Result) ->
-    case Result of
-        true ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false);
-        false ->
-            Reason = "received DISCONNECT",
-            reconnect(ServerHost, ServerPort, ClientId, Reason)
-    end;
-handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData, Result) ->
-    {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-    Data = binary:part(RawData, 0, FixedLength + RestLength),
-
-    <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
-    Result2 = case TypeCode of
+handle_data(Socket, RawData) ->
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
+    case TypeCode of
         ?DISCONNECT ->
             gen_tcp:close(Socket),
-            error_logger:info_msg("received ~p~n", ["DISCONNECT"]),
             false;
 
         ?PINGRESP ->
-            error_logger:info_msg("received ~p~n", ["PINGRESP"]),
-            true;
-
-        ?PUBLISH ->
-            error_logger:info_msg("received ~p~n", ["PUBLISH"]),
-
-            StatusData = get_status_data(ClientId),
-            error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
-            gen_tcp:send(Socket, StatusData),
-
             true
-    end,
-
-    Result3 = if
-        Result =:= false ->
-            false;
-        true ->
-            Result2
-    end,
-
-    RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
-    handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RestRawData, Result3).
+    end.
 
 
-generate_client_id(MacBase, ClientNumber) ->
-    ClientIdStr = erlang:integer_to_list(MacBase + ClientNumber, 16),
-    string:right(ClientIdStr, 12, $0).
+get_client_id_string(ClientId) ->
+    ClientIdStr = erlang:integer_to_list(ClientId, 16),
+    tools:prefix_string(ClientIdStr, 12, "0").

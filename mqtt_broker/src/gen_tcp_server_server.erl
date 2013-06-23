@@ -54,12 +54,7 @@ handle_cast(_Msg, State) ->
 
 handle_info({tcp, _Socket, RawData}, State) ->
     %error_logger:info_msg("received tcp data: ~p~n", [RawData]),
-    case dispatch(handle_data, RawData, State) of
-        stop ->
-            {stop, normal, State};
-        State2 ->
-            {noreply, State2, State#state.keep_alive_timer}
-    end;
+    dispatch(handle_data, RawData, State);
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
@@ -133,43 +128,53 @@ dispatch(handle_data, RawData, State) ->
             State
     end,
 
-    case filter_packages(State#state.socket, RawData) of
-        stop ->
-            stop;
-        <<>> ->
-            State2;
-
-        RestData ->
-            #state{socket = Socket, callback = Callback, user_data = UserData, client_id = ClientId2} = State2,
-            SourcePid = erlang:self(),
-            Callback:handle_data(SourcePid, Socket, RestData, UserData, ClientId2),
-
-            State2
-    end.
+    handle_packages(State2, RawData).
 
 
 dispatch(terminate, State) ->
-    #state{callback = Callback, user_data = UserData, client_id = ClientId} = State,
-    SourcePid = erlang:self(),
-    Callback:terminate(SourcePid, UserData, ClientId),
+    #state{callback = Callback, socket = Socket, client_id = ClientId} = State,
+    Callback:terminate(erlang:self(), Socket, ClientId),
     ok.
 
 
-filter_packages(Socket, RawData) -> 
-    <<TypeCode:4/integer, _:4/integer, _/binary>> = RawData,
-    case TypeCode of
+handle_packages(State, <<>>) ->
+    {noreply, State, State#state.keep_alive_timer};
+
+handle_packages(State, RawData) ->
+    #state{
+        socket = Socket, 
+        callback = Callback, 
+        client_id = ClientId} = State,
+
+    {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
+    Data = binary:part(RawData, 0, FixedLength + RestLength), 
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
+
+    Result = case TypeCode of
         ?PINGREQ ->
             PingRespData = mqtt:build_pingresp(),
             error_logger:info_msg("[~p] is sending PINGRESP: ~p~n", [?MODULE, PingRespData]),
             gen_tcp:send(Socket, PingRespData),
-            <<_:2/binary, RestData/binary>> = RawData,
-            RestData;
+            ok;
 
         ?DISCONNECT ->
             stop;
+        
+        ?CONNECT -> 
+            Callback:process_data_online(erlang:self(), Socket, Data, ClientId),
+            ok;
+            
+        ?PUBLISH ->     
+            Callback:process_data_publish(erlang:self(), Socket, Data, ClientId),
+            ok
+    end,
 
-        _ ->
-            RawData
+    case Result of
+        stop ->
+            {stop, normal, State};
+        ok ->
+            RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
+            handle_packages(State, RestRawData)
     end.
 
 

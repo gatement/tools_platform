@@ -44,12 +44,12 @@ process_data_online(ClientId) ->
     %% check if device exist, if not, create it
     case model_dev_device:get(ClientId) of
         undefined ->
-        	DeviceType = get_device_type(ClientId),
+        	{DeviceType, DeviceName} = get_device_info(ClientId),
 
             model_dev_device:create(#dev_device{
                 device_id = ClientId,
                 user_id = "admin",
-                name = "DEV" ++ ClientId,
+                name = DeviceName,
                 type = DeviceType,
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
             });
@@ -96,14 +96,16 @@ process_data_switch_status(ClientId, SwitchStatus) ->
     ok.
 
 
-get_device_type(ClientId) ->
+get_device_info(ClientId) ->
     case ClientId of
         "000000000001" ->
-            "main_mqtt_client";
+            {"main_mqtt_client", "main_mqtt_client"};
         "000000000002" ->
-            "controller";
+            {"controller", "controller"};
         "000000000003" ->
-            "computer";
+            {"computer", "linux server"};
+        "000000000004" ->
+            {"controller", "windows pc"};
         _ ->
-            "undefined"
+            {"undefined", "undefined"}
     end.

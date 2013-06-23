@@ -21,3 +21,6 @@ del .\mqtt_broker\ebin\*.app
 
 del .\monitor\ebin\*.beam
 del .\monitor\ebin\*.app
+
+del .\remote\ebin\*.beam
+del .\remote\ebin\*.app

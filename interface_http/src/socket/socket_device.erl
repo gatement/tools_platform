@@ -41,24 +41,20 @@ handle_message({text, Request}) ->
 %% ===================================================================
 
 device_status_changed_notification(DeviceId) ->
-io:format("~p~n", [1]),
     Device = model_dev_device:get(DeviceId),
-io:format("~p~n", [Device]),
     Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
-io:format("~p~n", [3]),
 
-    Msg0 = {struct, [
+    Msg = json2:encode({struct, [
             {"cmd", "device_status_changed"}, 
             {"success", true},
             {"data", {struct, [
                 {"device_id", DeviceId}, 
                 {"type", Device#dev_device.type}, 
                 {"name", Device#dev_device.name}, 
-                {"values", {array, Values}}
+                {"values", {struct, Values}}
             ]}}
-        ]},
-io:format("~p~n", [Msg0]),
-    Msg = json2:encode(Msg0),
+        ]}),
+
     notice(Msg).
 
 
@@ -81,26 +77,35 @@ list_online_devices(_Data, _UserId, _UserSession) ->
 
     Fun = fun(DeviceId) ->
         Device = model_dev_device:get(DeviceId),
-        [Values] = model_dev_status:get_all_values_by_deviceId(DeviceId),
+        Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
 
         {struct, [
                 {"device_id", DeviceId}, 
                 {"type", Device#dev_device.type}, 
                 {"name", Device#dev_device.name}, 
-                {"values", {array, Values}}
+                {"values", {struct, Values}}
         ]}
     end,
 
-    Devices = [ Fun(X) || X <- DeviceIds,
-                            X =/= "000000000001"],
+    Devices = [Fun(X) || X <- DeviceIds,
+                          X =/= "000000000001"],
 
     [{"success", true}, {"data", {array, Devices}}].
 
 
 update_switch_status(Data, _UserId, _UserSession) ->
-    {struct,[{"device_id", Device},{"switch_id", SwitchId},{"status", Status}]} = Data,
+    {struct,[{"device_id", DeviceId},{"switch", Switch},{"status", Status}]} = Data,
+    %io:format("~ndevice-id|switch|status: ~p|~p|~p~n~n", [DeviceId, Switch, Status]),
 
-    io:format("~ndevice-id-switch_id-status: ~p-~p-~p~n~n", [Device, SwitchId, Status]),
+    SwitchId = case Switch of
+        "switch1" -> 1
+    end,
+
+    %% publish it
+    Topic = lists:flatten(io_lib:format("/~s/switch_control", [DeviceId])),
+    PublishData = mqtt_cmd:switch_control(Topic, SwitchId, Status),
+    mqtt_broker:publish("000000000001", Topic, PublishData),
+
     [{"success", true}, {"data", "ok."}].
 
 

@@ -1,4 +1,4 @@
--module(mqtt_client_server).
+-module(remote_server).
 -include("../../mqtt_broker/include/mqtt.hrl").
 -behaviour(gen_server).
 %% API
@@ -6,10 +6,9 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
--record(state, {socket}).
+-record(state, {socket, keep_alive_timer}).
 
 -define(CONNECTION_TIMEOUT, 10000).
--define(KEEP_ALIVE_TIMER, 1800000).
 
 %% ===================================================================
 %% API functions
@@ -24,7 +23,8 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    State = #state{},
+	{ok, KeepAliveTimer} = application:get_env(keep_alive_timer),
+    State = #state{keep_alive_timer = KeepAliveTimer},
 
     error_logger:info_msg("[~p] was started.~n", [?MODULE]),
     {ok, State, 0}.
@@ -32,22 +32,17 @@ init([]) ->
 
 handle_call(_Msg, _From, State) ->
     %error_logger:info_msg("~p was called: ~p.~n", [?MODULE, _Msg]),
-    {reply, ok, State, ?KEEP_ALIVE_TIMER}.
+    {reply, ok, State, State#state.keep_alive_timer}.
 
 
 handle_cast(_Msg, State) ->
     %error_logger:info_msg("~p was casted: ~p.~n", [?MODULE, _Msg]),
-    {noreply, State, ?KEEP_ALIVE_TIMER}.
+    {noreply, State, State#state.keep_alive_timer}.
 
 
 handle_info({tcp, _Socket, RawData}, State) ->
     %error_logger:info_msg("~p received tcp data: ~p~n", [?MODULE, RawData]),
-    case dispatch(handle_data, RawData, State) of
-        stop ->
-            {stop, normal, State};
-        State2 ->
-            {noreply, State2, ?KEEP_ALIVE_TIMER}
-    end;
+    dispatch(handle_data, RawData, State);
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
@@ -62,7 +57,7 @@ handle_info(timeout, State) ->
                 {ok, Socket} ->
                     %% send CONNECT
                     {ok, ClientId} = application:get_env(client_id),
-                    ConnectData = get_connect_data(ClientId),
+                    ConnectData = get_connect_data(ClientId, State#state.keep_alive_timer),
                     %error_logger:info_msg("~p sending CONNECT: ~p~n", [?MODULE, ConnectData]),
                     gen_tcp:send(Socket, ConnectData),
 
@@ -73,7 +68,7 @@ handle_info(timeout, State) ->
                             case is_connack_success(Msg) of
                                 true ->            
                                     State2 = State#state{socket = Socket},            
-                                    {noreply, State2, ?KEEP_ALIVE_TIMER};
+                                    {noreply, State2, State#state.keep_alive_timer};
                                 false ->
                                     {stop, bad_connack, State}
                             end
@@ -89,14 +84,8 @@ handle_info(timeout, State) ->
             PingReqData = mqtt:build_pingreq(),
             error_logger:info_msg("[~p] is sending PINGREQ: ~p~n", [?MODULE, PingReqData]),
             gen_tcp:send(Socket, PingReqData),
-            {noreply, State, ?KEEP_ALIVE_TIMER}
+            {noreply, State, State#state.keep_alive_timer}
     end;
-
-
-handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->    
-    %error_logger:info_msg("[~p] send to socket ~p with data: ~p~n", [?MODULE, Socket, Data]),
-    gen_tcp:send(Socket, Data),
-    {noreply, State, ?KEEP_ALIVE_TIMER};
 
 handle_info(stop, State) ->
     error_logger:info_msg("process ~p(~p) was stopped~n", [?MODULE, erlang:self()]),
@@ -104,7 +93,7 @@ handle_info(stop, State) ->
     
 handle_info(_Msg, State) ->
     %error_logger:info_msg("~p was infoed: ~p.~n", [?MODULE, _Msg]),
-    {noreply, State, ?KEEP_ALIVE_TIMER}.
+    {noreply, State, State#state.keep_alive_timer}.
 
 
 terminate(_Reason, _State) ->
@@ -153,8 +142,8 @@ filter_packages(_Socket, RawData) ->
     end.
 
 
-get_connect_data(ClientId) ->
-    mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER div 1000).
+get_connect_data(ClientId, KeepAliveTimer) ->
+    mqtt:build_connect(ClientId, KeepAliveTimer div 1000).
 
 
 is_connack_success(Data) ->

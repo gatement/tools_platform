@@ -40,8 +40,11 @@ update(DeviceId, Key, Data) ->
     end,
 
     Model2 = case Model1 of
+        error ->
+            erlang:exit(mnesia_error);
         undefined ->
             #dev_status{
+                id = uuid:to_string(uuid:uuid1()),
                 device_id = DeviceId, 
                 key = Key, 
                 value = Data,
@@ -83,19 +86,20 @@ get_all_values_by_deviceId(DeviceId) ->
     
     {atomic, Models} = mnesia:transaction(ReadFun),
 
-    [{struct, [{X#dev_status.key, X#dev_status.value}]} || X <- Models].
+    [{X#dev_status.key, X#dev_status.value} || X <- Models].
 
 
 get_online_device_ids() ->
     ReadFun = fun() -> 
         qlc:e(qlc:q([X#dev_status.device_id || X <- mnesia:table(dev_status), 
-                          X#dev_status.key =:= online,
+                          X#dev_status.key =:= "online",
                           X#dev_status.value =:= true]))
     end,
     
     {atomic, DeviceIds} = mnesia:transaction(ReadFun),
 
     DeviceIds.
+
 
 %% ===================================================================
 %% Local Functions

@@ -55,31 +55,29 @@ delete(Id) ->
 
 
 get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
+	Topics = case Topic of
+		"#" ->
+			["#"];
+
+		_ ->
+			ClientId = lists:nth(1, string:tokens(Topic, "/")),
+			TempTopic = lists:flatten(io_lib:format("/~s/+", [ClientId])),
+
+			[Topic, "#", TempTopic]
+	end,
+
 	Fun = fun() -> 
 		qlc:e(qlc:q([Session#mqtt_session.pid || Session <- mnesia:table(mqtt_session), 
 						Sub <- mnesia:table(mqtt_subscription), 
 						Sub#mqtt_subscription.client_id =/= ExclusiveClientId,
-						Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id, 
-						Sub#mqtt_subscription.topic =:= Topic]))
+						Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id,
+						lists:any(fun(Elem) -> 
+							Elem =:= Sub#mqtt_subscription.topic
+						end, Topics)]))
 	end,
 	{atomic, Pids} = mnesia:transaction(Fun),
 
-	Pids2 = if
-		Topic =/= "#" ->
-			Fun2 = fun() -> 
-				qlc:e(qlc:q([Session#mqtt_session.pid || Session <- mnesia:table(mqtt_session), 
-								Sub <- mnesia:table(mqtt_subscription), 
-								Sub#mqtt_subscription.client_id =/= ExclusiveClientId,
-								Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id, 
-								Sub#mqtt_subscription.topic =:= "#"]))
-			end,
-			{atomic, Pids0} = mnesia:transaction(Fun2),
-			Pids0;
-		true ->
-			[]
-	end,
-
-	lists:append([Pids, Pids2]).
+	Pids.
 	
 
 %% ===================================================================
