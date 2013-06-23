@@ -5,7 +5,7 @@
   {applications, [kernel, stdlib]},
   {env, [
     {connection_timout, 20000}, % in milliseconds
-    {init_worker_count, 2},
+    {init_worker_count, 3},
     {tcp_port, 10000}
   ]},
   {mod, {mqtt_broker_app, []}}

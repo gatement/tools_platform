@@ -1,13 +1,13 @@
 -module(mqtt_client_handler).
 -include("../../platform_core/include/tools_platform.hrl").
--export([handle_data/3]).
+-export([process_data_publish/3]).
 
 
 %% ===================================================================
 %% API functions
 %% ===================================================================
 
-handle_data(SourcePid, Socket, RawData) -> 
+process_data_publish(SourcePid, Socket, RawData) -> 
     %error_logger:info_msg("~p received tcp data: ~p~n", [?MODULE, RawData]),
     handle_data_inner(SourcePid, Socket, RawData).
 

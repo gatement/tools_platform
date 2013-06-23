@@ -31,26 +31,21 @@ init([]) ->
 
 
 handle_call(_Msg, _From, State) ->
-    %error_logger:info_msg("~p was called: ~p.~n", [?MODULE, _Msg]),
+    %error_logger:info_msg("[~p] was called: ~p.~n", [?MODULE, _Msg]),
     {reply, ok, State, ?KEEP_ALIVE_TIMER}.
 
 
 handle_cast(_Msg, State) ->
-    %error_logger:info_msg("~p was casted: ~p.~n", [?MODULE, _Msg]),
+    %error_logger:info_msg("[~p] was casted: ~p.~n", [?MODULE, _Msg]),
     {noreply, State, ?KEEP_ALIVE_TIMER}.
 
 
 handle_info({tcp, _Socket, RawData}, State) ->
-    %error_logger:info_msg("~p received tcp data: ~p~n", [?MODULE, RawData]),
-    case dispatch(handle_data, RawData, State) of
-        stop ->
-            {stop, normal, State};
-        State2 ->
-            {noreply, State2, ?KEEP_ALIVE_TIMER}
-    end;
+    %error_logger:info_msg("[~p] received tcp data: ~p~n", [?MODULE, RawData]),
+    dispatch(handle_data, RawData, State);
 
 handle_info({tcp_closed, _Socket}, State) ->
-    %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
+    %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, tcp_closed]),
     {stop, normal, State};
 
 handle_info(timeout, State) ->
@@ -63,14 +58,14 @@ handle_info(timeout, State) ->
                     %% send CONNECT
                     {ok, ClientId} = application:get_env(client_id),
                     ConnectData = get_connect_data(ClientId),
-                    %error_logger:info_msg("~p sending CONNECT: ~p~n", [?MODULE, ConnectData]),
+                    %error_logger:info_msg("[~p] sending CONNECT: ~p~n", [?MODULE, ConnectData]),
                     gen_tcp:send(Socket, ConnectData),
 
                     %% waiting for CONNACK
                     receive
                         {tcp, Socket, Msg} -> 
-                            %error_logger:info_msg("~p received tcp data ~p: ~p~n", [?MODULE, erlang:self(), Msg]),
-                            case is_connack_success(Msg) of
+                            %error_logger:info_msg("[~p] received tcp data ~p: ~p~n", [?MODULE, erlang:self(), Msg]),
+                            case mqtt_utils:is_connack_success(Msg) of
                                 true ->            
                                     State2 = State#state{socket = Socket},            
                                     {noreply, State2, ?KEEP_ALIVE_TIMER};
@@ -99,16 +94,16 @@ handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->
     {noreply, State, ?KEEP_ALIVE_TIMER};
 
 handle_info(stop, State) ->
-    error_logger:info_msg("process ~p(~p) was stopped~n", [?MODULE, erlang:self()]),
+    %error_logger:info_msg("[~p] process ~p was stopped~n", [?MODULE, erlang:self()]),
     {stop, normal, State};
     
 handle_info(_Msg, State) ->
-    %error_logger:info_msg("~p was infoed: ~p.~n", [?MODULE, _Msg]),
+    %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, _Msg]),
     {noreply, State, ?KEEP_ALIVE_TIMER}.
 
 
 terminate(_Reason, _State) ->
-    %error_logger:info_msg("~p(~p) was terminated with reason: ~p.~n", [?MODULE, erlang:self(), _Reason]),
+    %error_logger:info_msg("[~p] process ~p was terminated with reason: ~p.~n", [?MODULE, erlang:self(), _Reason]),
     ok.
 
 
@@ -121,41 +116,39 @@ code_change(_OldVsn, State, _Extra) ->
 %% ===================================================================
 
 dispatch(handle_data, RawData, State) ->
-    case filter_packages(State#state.socket, RawData) of
-        stop ->
-            stop;
-
-        <<>> ->
-            State;
-
-        RestData ->
-            #state{socket = Socket} = State,
-            SourcePid = erlang:self(),
-            mqtt_client_handler:handle_data(SourcePid, Socket, RestData),
-
-            State
-    end.
+    handle_packages(State, RawData).
 
 
-filter_packages(_Socket, RawData) -> 
-    <<TypeCode:8/integer, _/binary>> = RawData,
-    TypeCode2 = TypeCode bsr 4,
-    case TypeCode2 of
+handle_packages(State, <<>>) ->
+    {noreply, State, State#state.keep_alive_timer};
+
+handle_packages(State, RawData) ->
+    #state{socket = Socket} = State,
+    {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
+    Data = binary:part(RawData, 0, FixedLength + RestLength), 
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
+
+    Result = case TypeCode of
+        ?PUBLISH ->     
+            mqtt_client_handler:process_data_publish(erlang:self(), Socket, Data),
+            ok;
+
         ?PINGRESP ->
-            <<_:2/binary, RestData/binary>> = RawData,
-            RestData;
+            ok;
 
         ?DISCONNECT ->
-            stop;
+            stop        
+    end,
 
-        _ ->
-            RawData
+    case Result of
+        stop ->
+            {stop, normal, State};
+        ok ->
+            RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
+            handle_packages(State, RestRawData)
     end.
 
 
 get_connect_data(ClientId) ->
     mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER div 1000).
 
-
-is_connack_success(Data) ->
-    mqtt_utils:is_connack_success(Data).

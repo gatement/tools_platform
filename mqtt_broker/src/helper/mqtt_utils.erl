@@ -3,7 +3,8 @@
 		strip_fixed_header/1,
 		get_qos/1,
 		get_msg_length/1,
-		extract_publish_msg/1]).
+		extract_publish_msg/1,
+		extract_connect_info/1]).
 
 -vsn("0.1.0").
 
@@ -66,6 +67,18 @@ extract_publish_msg(Msg) ->
 	Payload = binary:part(Msg, BytesBeforePayload, erlang:byte_size(Msg) - BytesBeforePayload),
 
 	{Topic, Payload}.
+
+
+extract_connect_info(Data) ->
+    RestData = mqtt_utils:strip_fixed_header(Data),
+
+    <<_:10/binary, KeepAliveTimerH:8/integer, KeepAliveTimerL:8/integer, RestData2/binary>> = RestData,
+    KeepAliveTimer = KeepAliveTimerH * 256 + KeepAliveTimerL,
+
+    <<_:2/binary, ClientId0/binary>> = RestData2,
+    ClientId = erlang:binary_to_list(ClientId0),
+
+    {ClientId, KeepAliveTimer}.
 
 
 %% ===================================================================

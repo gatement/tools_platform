@@ -3,7 +3,10 @@
 -include("mqtt.hrl").
 -behaviour(gen_tcp_server).
 %% gen_tcp_server callbacks
--export([init/1, process_data_online/4, process_data_publish/4, terminate/3]).
+-export([init/1, 
+    process_data_online/4, 
+    process_data_publish/4, 
+    terminate/3]).
 
 
 %% ===================================================================

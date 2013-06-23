@@ -1,5 +1,5 @@
 -module(gen_tcp_server).
--export([start_link/4, start_link/5, tcp_reply/2]).
+-export([start_link/4, start_link/5]).
 -export([behaviour_info/1]).
 
 %% ===================================================================
@@ -25,11 +25,6 @@ start_link(SupName, Callback, Port, UserArgs) ->
 
 start_link(SupName, Callback, IP, Port, UserArgs) ->
     gen_tcp_server_connection_sup:start_link(SupName, Callback, IP, Port, UserArgs).
-
-
-tcp_reply(Socket, Data) ->
-    %error_logger:info_msg("send to socket ~p with data: ~p~n", [Socket, Data]),
-    gen_tcp:send(Socket, Data).
 
 
 %% ===================================================================
