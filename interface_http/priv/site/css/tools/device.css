@@ -19,6 +19,9 @@ body {
 .deviceId{
 	margin-left: 31px;
 }
+.uptime{
+	margin-left: 6px;
+}
 .switch1{
 	margin-left: 0;
 }

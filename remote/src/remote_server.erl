@@ -6,7 +6,7 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
--record(state, {socket, keep_alive_timer}).
+-record(state, {socket, client_id, keep_alive_timer}).
 
 -define(CONNECTION_TIMEOUT, 10000).
 
@@ -23,8 +23,9 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-	{ok, KeepAliveTimer} = application:get_env(keep_alive_timer),
-    State = #state{keep_alive_timer = KeepAliveTimer},
+    {ok, KeepAliveTimer} = application:get_env(keep_alive_timer),
+    {ok, ClientId} = application:get_env(client_id),
+    State = #state{keep_alive_timer = KeepAliveTimer, client_id = ClientId},
 
     error_logger:info_msg("[~p] was started.~n", [?MODULE]),
     {ok, State, 0}.
@@ -79,11 +80,9 @@ handle_info(timeout, State) ->
                 _ ->
                     {stop, connection_failed, State}
             end;
-        Socket ->
-            %% do heartbeat (ping broker)
-            PingReqData = mqtt:build_pingreq(),
-            %error_logger:info_msg("[~p] is sending PINGREQ: ~p~n", [?MODULE, PingReqData]),
-            gen_tcp:send(Socket, PingReqData),
+        _Socket ->
+            %% do heartbeat (ping broker) by send Uptime
+            send_uptime(State),
             {noreply, State, State#state.keep_alive_timer}
     end;
 
@@ -136,3 +135,14 @@ handle_packages(State, RawData) ->
             handle_packages(State, RestRawData)
     end.
     
+
+send_uptime(State) ->
+    {Uptime0, _} = erlang:statistics(wall_clock), % in millisecond
+    Uptime = Uptime0 div 1000,
+
+    Topic = lists:flatten(io_lib:format("/~s/uptime", [State#state.client_id])),
+
+    UptimeData = mqtt_cmd:uptime(Topic, Uptime),
+
+    %error_logger:info_msg("[~p] is sending Uptime: ~p~n", [?MODULE, UptimeData]),
+    gen_tcp:send(State#state.socket, UptimeData).

@@ -21,6 +21,11 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
         ?CMD_OFFLINE ->
             process_data_offline(ClientId);
 
+        ?CMD_UPTIME ->
+            <<_:1/binary, Uptime4:8/integer, Uptime3:8/integer, Uptime2:8/integer, Uptime1:8/integer, _/binary>> = Payload,
+            Uptime = Uptime4 * 16777216 + Uptime3 * 65536 + Uptime2 * 256 + Uptime1,
+            process_data_uptime(ClientId, Uptime);
+
         ?CMD_SWITCH_STATUS ->
             <<_:1/binary, SwitchStatus:8/integer, _/binary>> = Payload,
             process_data_switch_status(ClientId, SwitchStatus)
@@ -64,6 +69,20 @@ process_data_offline(ClientId) ->
     error_logger:info_msg("[~p] received [offline] data: ~p~n", [?MODULE, ClientId]),
 
     model_dev_status:update(ClientId, "online", false),
+
+    %% push status to clients
+    socket_device:device_status_changed_notification(ClientId),
+
+    ok.
+
+
+process_data_uptime(ClientId, Uptime) ->
+    %% convert it to minutes
+    Uptime2 = Uptime div 60,
+
+    error_logger:info_msg("[~p] received [uptime] data: ~p - ~p minutes~n", [?MODULE, ClientId, Uptime2]),
+
+    model_dev_status:update(ClientId, "uptime", Uptime2),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),

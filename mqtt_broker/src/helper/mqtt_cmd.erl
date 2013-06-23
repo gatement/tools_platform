@@ -4,7 +4,8 @@
 		offline/1,
 		switch_status/2,
         switch_control/3,
-        send_command/2]).
+        send_command/2,
+        uptime/2]).
 
 
 %% ===================================================================
@@ -36,6 +37,15 @@ switch_control(Topic, SwitchId, Status) ->
 
 send_command(Topic, Cmd) ->
     Payload = erlang:list_to_binary([?CMD_SEND_COMMAND, Cmd]),
+    mqtt:build_publish(Topic, Payload).
+
+
+uptime(Topic, Uptime) ->
+    Uptime4 = Uptime div 16777216,
+    Uptime3 = Uptime div 65536,
+    Uptime2 = Uptime div 256,
+    Uptime1 = Uptime rem 256,
+    Payload = erlang:list_to_binary([?CMD_UPTIME, Uptime4, Uptime3, Uptime2, Uptime1]),
     mqtt:build_publish(Topic, Payload).
 
 

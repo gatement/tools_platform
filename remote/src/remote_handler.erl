@@ -46,11 +46,11 @@ process_data_send_command(ClientId, Cmd) ->
 shutdown() ->
     case os:type() of
         {unix, _} ->
-            %os:cmd("poweroff"),
+            os:cmd("poweroff"),
             ok;
 
         {win32, _} ->
-            %os:cmd("poweroff"),
+            os:cmd("shutdown /s /t 0"),
             ok
     end.
 
@@ -58,10 +58,10 @@ shutdown() ->
 reboot() ->
     case os:type() of
         {unix, _} ->
-            %os:cmd("reboot"),
+            os:cmd("reboot"),
             ok;
 
         {win32, _} ->
-            %os:cmd("reboot"),
+            os:cmd("shutdown /r /t 0"),
             ok
     end.

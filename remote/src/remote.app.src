@@ -13,10 +13,7 @@
     
     {client_id, "000000000003"},
 
-    {keep_alive_timer, 60000},
-
-    {reconnect_wait_time, 10000},
-    {data_sending_interval, 60000}
+    {keep_alive_timer, 60000}
   ]},
   {mod, {remote_app, []}}
  ]}.

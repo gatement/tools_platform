@@ -16,7 +16,7 @@
                 client_id,
                 keep_alive_timer}).
 
--define(GRACE, 10000).
+-define(GRACE, 30000).
 
 %% ===================================================================
 %% API functions
