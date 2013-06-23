@@ -1,4 +1,4 @@
-%% implementation of MQTT_V3.1
+%% MQTT_V3.1
 -define(CONNECT,     1).
 -define(CONNACK,     2).
 -define(PUBLISH,     3).
@@ -13,3 +13,10 @@
 -define(PINGREQ,     12).
 -define(PINGRESP,    13).
 -define(DISCONNECT,  14).
+
+%% COMMAND
+-define(CMD_ONLINE,          1).
+-define(CMD_OFFLINE,         2).
+-define(CMD_SWITCH_STATUS,   3).
+-define(CMD_SWITCH_CONTROL,  4).
+-define(CMD_SEND_COMMAND,    5).

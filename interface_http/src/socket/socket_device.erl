@@ -109,6 +109,18 @@ update_switch_status(Data, _UserId, _UserSession) ->
     [{"success", true}, {"data", "ok."}].
 
 
+send_command(Data, _UserId, _UserSession) ->
+    {struct,[{"device_id", DeviceId},{"cmd", Cmd}]} = Data,
+    %io:format("~ndevice-id|cmd: ~p|~p~n~n", [DeviceId, Cmd]),
+
+    %% publish it
+    Topic = lists:flatten(io_lib:format("/~s/cmd", [DeviceId])),
+    PublishData = mqtt_cmd:send_command(Topic, Cmd),
+    mqtt_broker:publish("000000000001", Topic, PublishData),
+
+    [{"success", true}, {"data", "ok."}].
+
+
 %% ===================================================================
 %% Local Functions
 %% ===================================================================

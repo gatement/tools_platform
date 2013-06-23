@@ -63,10 +63,10 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
 terminate(SourcePid, Socket, ClientId) ->
     %% send DISCONNECT
     DisconnectMsg = mqtt:build_disconnect(),
-    gen_tcp_server:tcp_reply(Socket, DisconnectMsg),
+    gen_tcp:send(Socket, DisconnectMsg),
 
     model_mqtt_session:delete_by_pid(SourcePid),
-    error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
+    %error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
 
     %% pubish a offline notice to subscriber
     PublishData = mqtt_cmd:offline(ClientId),

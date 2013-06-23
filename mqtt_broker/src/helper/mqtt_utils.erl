@@ -1,4 +1,5 @@
 -module(mqtt_utils).
+-include("mqtt.hrl").
 -export([is_connack_success/1,
 		strip_fixed_header/1,
 		get_qos/1,
@@ -15,17 +16,23 @@
 %% ===================================================================
 
 is_connack_success(Data) ->
-	case erlang:size(Data) of
-		4 ->
-			ReturnCode = binary:at(Data, 3),
+	if 
+		erlang:size(Data) < 4 ->
+			false;
+		true ->
+			<<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
 			if
-				ReturnCode =:= 0 ->
-					true;
+				TypeCode =/= ?CONNACK ->
+					false;
 				true ->
-					false
-			end;
-		_ ->
-			false
+					ReturnCode = binary:at(Data, 3),
+					if
+						ReturnCode =/= 0 ->
+							false;
+						true ->
+							true
+					end
+			end
 	end.
 
 

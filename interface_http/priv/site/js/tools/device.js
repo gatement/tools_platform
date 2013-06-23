@@ -9,8 +9,7 @@ if(!tp)
 	{
 		var me = this;
 
-		this.sessionCookieId = "usr_sid",
-		this.firstLoading = true;
+		this.sessionCookieId = "usr_sid";
 	};
 
 	$.extend(Device.prototype, {
@@ -32,11 +31,29 @@ if(!tp)
 			this.update_switch_status(deviceId, "switch1", status);
 		},
 
+		poweroff_click: function(event)
+		{
+			var deviceId = $(event.target).parent().parent().attr("id");
+			var cmd = "poweroff";
+
+			this.send_command(deviceId, cmd);
+		},
+
+		restart_click: function(event)
+		{
+			var deviceId = $(event.target).parent().parent().attr("id");
+			var cmd = "restart";
+
+			this.send_command(deviceId, cmd);
+		},
+
 		bindEvents: function()
 		{
 			var me = this;
 
 			$(".switch1").unbind().click(function(event){me.switch1_click(event)});
+			$(".poweroff").unbind().click(function(event){me.poweroff_click(event)});
+			$(".restart").unbind().click(function(event){me.restart_click(event)});
 		},
 
 
@@ -81,6 +98,26 @@ if(!tp)
 		},
 
 
+		send_command: function(deviceId, cmd) 
+		{
+			var msg = {
+				cmd: "send_command",
+				sid: $.cookie(this.sessionCookieId),
+				data: {"device_id": deviceId, "cmd": cmd}
+			};
+		    this.socket_send_msg(msg);
+		},
+
+		send_command_success: function(data) 
+		{
+		},
+
+		send_command_error: function(data) 
+		{			
+			window.alert(data);
+		},
+
+
 		list_online_devices: function()
 		{
 			var msg = {
@@ -94,6 +131,8 @@ if(!tp)
 		list_online_devices_success: function(data) 
 		{
 			var me = this;
+			
+			$("#devicesContainer").empty();
 
 			for(var i=0; i< data.length; i++)
 			{
@@ -165,14 +204,10 @@ if(!tp)
 
 			var socket_on_open = function()
 			{
-				if(me.firstLoading)
-				{
-					me.firstLoading = false;
-					me.list_online_devices();
-				}
-
 				// upate session to the new socket PID whenever connect(re-connect)
 				me.update_socket();
+
+				me.list_online_devices();
 			},
 			socket_on_message = function(msg)
 			{

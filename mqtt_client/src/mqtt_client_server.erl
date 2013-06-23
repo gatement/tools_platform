@@ -57,7 +57,7 @@ handle_info(timeout, State) ->
                 {ok, Socket} ->
                     %% send CONNECT
                     {ok, ClientId} = application:get_env(client_id),
-                    ConnectData = get_connect_data(ClientId),
+                    ConnectData = mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER div 1000),
                     %error_logger:info_msg("[~p] sending CONNECT: ~p~n", [?MODULE, ConnectData]),
                     gen_tcp:send(Socket, ConnectData),
 
@@ -82,7 +82,7 @@ handle_info(timeout, State) ->
         Socket ->
             %% do heartbeat (ping broker)
             PingReqData = mqtt:build_pingreq(),
-            error_logger:info_msg("[~p] is sending PINGREQ: ~p~n", [?MODULE, PingReqData]),
+            %error_logger:info_msg("[~p] is sending PINGREQ: ~p~n", [?MODULE, PingReqData]),
             gen_tcp:send(Socket, PingReqData),
             {noreply, State, ?KEEP_ALIVE_TIMER}
     end;
@@ -141,8 +141,3 @@ handle_packages(State, RawData) ->
             RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
             handle_packages(State, RestRawData)
     end.
-
-
-get_connect_data(ClientId) ->
-    mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER div 1000).
-

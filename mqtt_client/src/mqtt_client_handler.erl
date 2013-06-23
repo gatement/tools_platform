@@ -1,5 +1,6 @@
 -module(mqtt_client_handler).
 -include("../../platform_core/include/tools_platform.hrl").
+-include("../../mqtt_broker/include/mqtt.hrl").
 -export([process_data_publish/3]).
 
 
@@ -8,19 +9,21 @@
 %% ===================================================================
 
 process_data_publish(_SourcePid, _Socket, RawData) ->
-    %error_logger:info_msg("~p received data: ~p~n", [?MODULE, RawData]),
+    %error_logger:info_msg("[~p] received data: ~p~n", [?MODULE, RawData]),
     {Topic, Payload} = mqtt_utils:extract_publish_msg(RawData),
     ClientId = string:substr(Topic, 2, 12),
     <<TypeCode:8/integer, _/binary>> = Payload,
 
     case TypeCode of
-    	1 ->
-    		process_data_online(ClientId);
-    	2 ->
-    		process_data_offline(ClientId);
-    	3 ->
-    		<<_:1/binary, SwitchStatus:8/integer, _/binary>> = Payload,
-    		process_data_switch_status(ClientId, SwitchStatus)
+        ?CMD_ONLINE ->
+            process_data_online(ClientId);
+
+        ?CMD_OFFLINE ->
+            process_data_offline(ClientId);
+
+        ?CMD_SWITCH_STATUS ->
+            <<_:1/binary, SwitchStatus:8/integer, _/binary>> = Payload,
+            process_data_switch_status(ClientId, SwitchStatus)
     end.
 
 
@@ -29,12 +32,12 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
 %% ===================================================================
 
 process_data_online(ClientId) ->
-	error_logger:info_msg("~p received [online] data: ~p~n", [?MODULE, ClientId]),
+    error_logger:info_msg("[~p] received [online] data: ~p~n", [?MODULE, ClientId]),
 
     %% check if device exist, if not, create it
     case model_dev_device:get(ClientId) of
         undefined ->
-        	{DeviceType, DeviceName} = get_device_info(ClientId),
+            {DeviceType, DeviceName} = get_device_info(ClientId),
 
             model_dev_device:create(#dev_device{
                 device_id = ClientId,
@@ -49,7 +52,7 @@ process_data_online(ClientId) ->
             do_nothing
     end,
 
-	model_dev_status:update(ClientId, "online", true),
+    model_dev_status:update(ClientId, "online", true),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
@@ -58,7 +61,7 @@ process_data_online(ClientId) ->
 
 
 process_data_offline(ClientId) ->
-    error_logger:info_msg("~p received [offline] data: ~p~n", [?MODULE, ClientId]),
+    error_logger:info_msg("[~p] received [offline] data: ~p~n", [?MODULE, ClientId]),
 
     model_dev_status:update(ClientId, "online", false),
 
@@ -69,7 +72,7 @@ process_data_offline(ClientId) ->
 
 
 process_data_switch_status(ClientId, SwitchStatus) ->
-    error_logger:info_msg("~p received [switch status] data: ~p - ~p~n", [?MODULE, ClientId, SwitchStatus]),
+    error_logger:info_msg("[~p] received [switch status] data: ~p - ~p~n", [?MODULE, ClientId, SwitchStatus]),
 
     Switch1 = if
         (SwitchStatus band 2#00000001) =:= 1 ->
@@ -85,7 +88,7 @@ process_data_switch_status(ClientId, SwitchStatus) ->
 
     ok.
 
-
+%% return {DeviceType, DeviceName}
 get_device_info(ClientId) ->
     case ClientId of
         "000000000001" ->
@@ -96,6 +99,8 @@ get_device_info(ClientId) ->
             {"computer", "linux server"};
         "000000000004" ->
             {"controller", "windows pc"};
+        "000000000005" ->
+            {"test", "test device"};
         _ ->
             {"undefined", "undefined"}
     end.

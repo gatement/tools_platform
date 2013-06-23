@@ -17,5 +17,6 @@
 
     {reconnect_wait_time, 10000},
     {data_sending_interval, 60000}
-  ]}
+  ]},
+  {mod, {remote_app, []}}
  ]}.

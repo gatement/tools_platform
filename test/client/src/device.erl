@@ -96,12 +96,12 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
     case SendData of
         true ->
             %% send StatusData
-            StatusData =  get_status_data(ClientId),
+            StatusData = get_status_data(ClientId),
             error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
             gen_tcp:send(Socket, StatusData);
 
             %% send PINGREQ
-            %PingReqData =  mqtt:build_pingreq(),
+            %PingReqData = mqtt:build_pingreq(),
             %error_logger:info_msg("sending PINGREQ: ~p~n", [PingReqData]),
             %gen_tcp:send(Socket, PingReqData);
         _ ->
@@ -112,7 +112,7 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
         {tcp, Socket, Msg} -> 
             error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-            handle_data(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, Msg);
+            handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, Msg);
 
         {tcp_closed, _Socket} ->
             error_logger:info_msg("tcp_closed ~p~n", [erlang:self()]),
@@ -175,7 +175,7 @@ handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, R
             reconnect(ServerHost, ServerPort, ClientId, Reason);
         ok ->
             RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
-            handle_packages(State, RestRawData)
+            handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RestRawData)
     end.
 
 
