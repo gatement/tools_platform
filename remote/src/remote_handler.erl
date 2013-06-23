@@ -33,8 +33,8 @@ process_data_send_command(ClientId, Cmd) ->
         "poweroff" ->
             shutdown();
 
-        "reboot" ->
-            reboot();
+        "restart" ->
+            restart();
 
         _ ->
             ignore
@@ -55,7 +55,7 @@ shutdown() ->
     end.
 
 
-reboot() ->
+restart() ->
     case os:type() of
         {unix, _} ->
             os:cmd("reboot"),
