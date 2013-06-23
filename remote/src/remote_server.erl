@@ -31,21 +31,21 @@ init([]) ->
 
 
 handle_call(_Msg, _From, State) ->
-    %error_logger:info_msg("~p was called: ~p.~n", [?MODULE, _Msg]),
+    %error_logger:info_msg("[~p] was called: ~p.~n", [?MODULE, _Msg]),
     {reply, ok, State, State#state.keep_alive_timer}.
 
 
 handle_cast(_Msg, State) ->
-    %error_logger:info_msg("~p was casted: ~p.~n", [?MODULE, _Msg]),
+    %error_logger:info_msg("[~p] was casted: ~p.~n", [?MODULE, _Msg]),
     {noreply, State, State#state.keep_alive_timer}.
 
 
 handle_info({tcp, _Socket, RawData}, State) ->
-    %error_logger:info_msg("~p received tcp data: ~p~n", [?MODULE, RawData]),
+    %error_logger:info_msg("[~p] received tcp data: ~p~n", [?MODULE, RawData]),
     dispatch(handle_data, RawData, State);
 
 handle_info({tcp_closed, _Socket}, State) ->
-    %error_logger:info_msg("gen_tcp_server_server was infoed: ~p.~n", [tcp_closed]),
+    %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, tcp_closed]),
     {stop, normal, State};
 
 handle_info(timeout, State) ->

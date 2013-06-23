@@ -162,7 +162,7 @@ handle_packages(State, RawData) ->
             ok;
 
         ?DISCONNECT ->
-            stop;            
+            stop            
     end,
 
     case Result of

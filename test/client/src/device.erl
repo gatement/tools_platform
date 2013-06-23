@@ -30,7 +30,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
             %% send CONNECT
-            ConnectData = get_connect_data(ClientId),
+            ConnectData = mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER),
             error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
             gen_tcp:send(Socket, ConnectData),
 
@@ -39,11 +39,11 @@ start_client(ServerHost, ServerPort, ClientId) ->
                 {tcp, Socket, Msg} -> 
                     error_logger:info_msg("received tcp data ~p: ~p~n", [erlang:self(), Msg]),
 
-                    case is_connack_success(Msg) of
+                    case mqtt_utils:is_connack_success(Msg) of
                         true ->            
                             case application:get_env(client, run_mode) of
                                 {ok, once} ->
-                                    DisconnectData = get_disconnect_data(),
+                                    DisconnectData = mqtt:build_disconnect(),
                                     gen_tcp:send(Socket, DisconnectData),
                                     error_logger:info_msg("sent DISCONNECT data: ~p~n", [DisconnectData]),
 
@@ -101,7 +101,7 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
             gen_tcp:send(Socket, StatusData);
 
             %% send PINGREQ
-            %PingReqData =  get_pingreq_data(),
+            %PingReqData =  mqtt:build_pingreq(),
             %error_logger:info_msg("sending PINGREQ: ~p~n", [PingReqData]),
             %gen_tcp:send(Socket, PingReqData);
         _ ->
@@ -138,53 +138,22 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
     start_client(ServerHost, ServerPort, ClientId). %% reconnect
 
 
-get_connect_data(ClientId) ->
-    mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER).
-
-
-get_disconnect_data() ->
-    mqtt:build_disconnect().
-
-
 get_status_data(ClientId) ->
     Status = 2#00000001,
     mqtt_cmd:switch_status(ClientId, Status).
 
 
-get_pingreq_data() ->
-    mqtt:build_pingreq().
-
-
-is_connack_success(Data) ->
-    mqtt_utils:is_connack_success(Data).
-
-
-handle_data(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData) ->
-    handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData, true).
-
-
-handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, <<>>, Result) ->
-    case Result of
-        true ->
-            client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false);
-        false ->
-            Reason = "received DISCONNECT",
-            reconnect(ServerHost, ServerPort, ClientId, Reason)
-    end;
-handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData, Result) ->
+handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, <<>>) ->
+    client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false);
+handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RawData) ->
     {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-    Data = binary:part(RawData, 0, FixedLength + RestLength),
-
+    Data = binary:part(RawData, 0, FixedLength + RestLength), 
     <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
-    Result2 = case TypeCode of
-        ?DISCONNECT ->
-            gen_tcp:close(Socket),
-            error_logger:info_msg("received ~p~n", ["DISCONNECT"]),
-            false;
 
+    Result = case TypeCode of
         ?PINGRESP ->
             error_logger:info_msg("received ~p~n", ["PINGRESP"]),
-            true;
+            ok;
 
         ?PUBLISH ->
             error_logger:info_msg("received ~p~n", ["PUBLISH"]),
@@ -192,19 +161,22 @@ handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval,
             StatusData = get_status_data(ClientId),
             error_logger:info_msg("sending StatusData: ~p~n", [StatusData]),
             gen_tcp:send(Socket, StatusData),
+            ok;
 
-            true
+        ?DISCONNECT ->
+            gen_tcp:close(Socket),
+            error_logger:info_msg("received ~p~n", ["DISCONNECT"]),
+            stop          
     end,
 
-    Result3 = if
-        Result =:= false ->
-            false;
-        true ->
-            Result2
-    end,
-
-    RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
-    handle_data_inner(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, RestRawData, Result3).
+    case Result of
+        stop ->
+            Reason = "received DISCONNECT",
+            reconnect(ServerHost, ServerPort, ClientId, Reason);
+        ok ->
+            RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
+            handle_packages(State, RestRawData)
+    end.
 
 
 generate_client_id(MacBase, ClientNumber) ->

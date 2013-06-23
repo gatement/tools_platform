@@ -42,7 +42,7 @@ handle_cast(_Msg, State) ->
 
 handle_info({tcp, _Socket, RawData}, State) ->
     %error_logger:info_msg("[~p] received tcp data: ~p~n", [?MODULE, RawData]),
-    dispatch(handle_data, RawData, State);
+    handle_packages(State, RawData);
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, tcp_closed]),
@@ -115,22 +115,16 @@ code_change(_OldVsn, State, _Extra) ->
 %% Local Functions
 %% ===================================================================
 
-dispatch(handle_data, RawData, State) ->
-    handle_packages(State, RawData).
-
-
 handle_packages(State, <<>>) ->
-    {noreply, State, State#state.keep_alive_timer};
-
+    {noreply, State, ?KEEP_ALIVE_TIMER};
 handle_packages(State, RawData) ->
-    #state{socket = Socket} = State,
     {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
     Data = binary:part(RawData, 0, FixedLength + RestLength), 
     <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
 
     Result = case TypeCode of
         ?PUBLISH ->     
-            mqtt_client_handler:process_data_publish(erlang:self(), Socket, Data),
+            mqtt_client_handler:process_data_publish(erlang:self(), State#state.socket, Data),
             ok;
 
         ?PINGRESP ->

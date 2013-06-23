@@ -7,18 +7,8 @@
 %% API functions
 %% ===================================================================
 
-process_data_publish(SourcePid, Socket, RawData) -> 
-    %error_logger:info_msg("~p received tcp data: ~p~n", [?MODULE, RawData]),
-    handle_data_inner(SourcePid, Socket, RawData).
-
-
-%% ===================================================================
-%% Local Functions
-%% ===================================================================
-
-handle_data_inner(_, _, <<>>) ->
-    ok;
-handle_data_inner(SourcePid, Socket, RawData) ->
+process_data_publish(_SourcePid, _Socket, RawData) ->
+    %error_logger:info_msg("~p received data: ~p~n", [?MODULE, RawData]),
     {Topic, Payload} = mqtt_utils:extract_publish_msg(RawData),
     ClientId = string:substr(Topic, 2, 12),
     <<TypeCode:8/integer, _/binary>> = Payload,
@@ -31,12 +21,12 @@ handle_data_inner(SourcePid, Socket, RawData) ->
     	3 ->
     		<<_:1/binary, SwitchStatus:8/integer, _/binary>> = Payload,
     		process_data_switch_status(ClientId, SwitchStatus)
-    end,
+    end.
 
-	{FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-	RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
-	handle_data_inner(SourcePid, Socket, RestRawData).
 
+%% ===================================================================
+%% Local Functions
+%% ===================================================================
 
 process_data_online(ClientId) ->
 	error_logger:info_msg("~p received [online] data: ~p~n", [?MODULE, ClientId]),
