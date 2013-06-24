@@ -1,5 +1,6 @@
 -module(mqtt).
 -export([build_connect/2,
+		build_connect/4,
 		build_connack/1,
 		build_publish/2,
 		build_pingreq/0,
@@ -41,9 +42,28 @@
 %% ===================================================================
 
 build_connect(ClientId, KeepAliveTimer) ->
-	VariableHeader = get_connect_variable_header(KeepAliveTimer),
+	%% Connect flags.
+	%% bit     |7    |6        |5           |4    3   |2         |1             |0
+	%% byte 1  |User |Password |Will Retain |Will QoS |Will Flag |Clean Session |Reserved
+	ConnectFlags = 2#00000000,
+	VariableHeader = get_connect_variable_header(KeepAliveTimer, ConnectFlags),
 
 	Payload = get_connect_payload(ClientId),
+
+	Length = erlang:size(VariableHeader) + erlang:size(Payload),
+	FixedHeader = get_fixed_header(?CONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
+
+
+build_connect(ClientId, KeepAliveTimer, UserName, Password) ->
+	%% Connect flags.
+	%% bit     |7    |6        |5           |4    3   |2         |1             |0
+	%% byte 1  |User |Password |Will Retain |Will QoS |Will Flag |Clean Session |Reserved
+	ConnectFlags = 2#11000000,
+	VariableHeader = get_connect_variable_header(KeepAliveTimer, ConnectFlags),
+
+	Payload = get_connect_payload(ClientId, UserName, Password),
 
 	Length = erlang:size(VariableHeader) + erlang:size(Payload),
 	FixedHeader = get_fixed_header(?CONNECT, ?DUP0, ?QOS0, ?RETAIN0, Length),
@@ -121,17 +141,20 @@ get_remaining_length(Length, Result) ->
 
 
 get_connect_payload(ClientId) ->
-	get_utf8(ClientId).
+	get_utf8_bin(ClientId).
 
 
-get_connect_variable_header(KeepAliveTimer) ->
+get_connect_payload(ClientId, UserName, Password) ->
+	ClientIdList = get_utf8_list(ClientId),
+	UserNameList = get_utf8_list(UserName),
+	PasswordList = get_utf8_list(Password),
+	
+	erlang:list_to_binary(lists:append([ClientIdList, UserNameList, PasswordList])).
+
+
+get_connect_variable_header(KeepAliveTimer, ConnectFlags) ->
 	ProtocalName = [0, 6, <<"MQIsdp">>],
 	ProtocalVer = 3,
-
-	%% Connect flags.
-	%% bit     |7    |6        |5           |4    3   |2         |1             |0
-	%% byte 1  |User |Password |Will Retain |Will QoS |Will Flag |Clean Session |Reserved
-	ConnectFlags = 2#00000001,
 
 	KeepAliveTimerH = KeepAliveTimer div 256,
 	KeepAliveTimerL = KeepAliveTimer rem 256,
@@ -140,15 +163,19 @@ get_connect_variable_header(KeepAliveTimer) ->
 
 
 get_publish_variable_header(Topic) ->
-	TopicBin = get_utf8(Topic),
+	TopicBin = get_utf8_bin(Topic),
 	TopicBin.
 
 
-get_utf8(Content) ->
+get_utf8_bin(Content) ->
+    erlang:list_to_binary(get_utf8_list(Content)).
+
+
+get_utf8_list(Content) ->
     ContentBin = unicode:characters_to_binary(Content, latin1),
 
     ContentBinLen = erlang:size(ContentBin),
     ContentBinLenH = ContentBinLen div 256,
     ContentBinLenL = ContentBinLen rem 256,
 
-    erlang:list_to_binary([ContentBinLenH, ContentBinLenL, ContentBin]).
+    [ContentBinLenH, ContentBinLenL, ContentBin].
