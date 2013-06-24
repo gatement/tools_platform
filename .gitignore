@@ -11,4 +11,5 @@ priv/log
 priv/data
 local_linux.config
 run.sh
+compile_local.bat
 erl_crash.dump
