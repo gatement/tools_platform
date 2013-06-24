@@ -117,7 +117,7 @@ get_device_info(ClientId) ->
         "000000000003" ->
             {"computer", "linux server"};
         "000000000004" ->
-            {"controller", "windows pc"};
+            {"computer", "windows pc"};
         "000000000005" ->
             {"test", "test device"};
         _ ->
