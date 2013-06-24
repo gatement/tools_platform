@@ -18,7 +18,7 @@ init([]) ->
     Server = {remote_server, {remote_server, start_link, []},
               permanent, 10000, worker, [remote_server]},
 
-    {ok, {{one_for_one, 3000, 1000}, [Server]}}.
+    {ok, {{one_for_one, 1, 1}, [Server]}}.
 
 
 %% ===================================================================
