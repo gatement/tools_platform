@@ -57,8 +57,10 @@ handle_info(timeout, State) ->
             case gen_tcp:connect(ServerHost, ServerPort, [binary, {active, true}]) of
                 {ok, Socket} ->
                     %% send CONNECT
+                    {ok, UserName} = application:get_env(username),
+                    {ok, Password} = application:get_env(password),
                     {ok, ClientId} = application:get_env(client_id),
-                    ConnectData = mqtt:build_connect(ClientId, State#state.keep_alive_timer div 1000),
+                    ConnectData = mqtt:build_connect(ClientId, State#state.keep_alive_timer div 1000, UserName, Password),
                     gen_tcp:send(Socket, ConnectData),
                     %error_logger:info_msg("[~p] sent CONNECT: ~p~n", [?MODULE, ConnectData]),
 

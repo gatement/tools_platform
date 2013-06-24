@@ -15,12 +15,13 @@ up() ->
 	%create_word_schema(),
 	%create_note_schema(),
 	%create_gallery_schema(),
-	create_mqtt_schema(),
-	create_device_schema(),
+	%create_mqtt_schema(),
+	%create_device_schema(),
+	create_device_permission_schema(),
 
 	%% == lowing function is not for initialization ====
 	%add_socket_to_usr_session(),
-	add_mqtt_main_client_subscription(),
+	%add_mqtt_main_client_subscription(),
 
 	ok.
 
@@ -91,6 +92,12 @@ create_device_schema() ->
 	mnesia:create_table(dev_device, [{attributes, record_info(fields, dev_device)}, {disc_copies, [node()]}]),
 	mnesia:create_table(dev_status, [{attributes, record_info(fields, dev_status)}, {ram_copies, [node()]}]),
 	mnesia:create_table(dev_data, [{attributes, record_info(fields, dev_data)}, {disc_copies, [node()]}]),
+
+	ok.
+
+
+create_device_permission_schema() ->
+	mnesia:create_table(dev_permission, [{attributes, record_info(fields, dev_permission)}, {disc_copies, [node()]}]),
 
 	ok.
 

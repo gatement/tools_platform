@@ -48,6 +48,7 @@
 -record(dev_device, {device_id, user_id, name, type, created}).
 -record(dev_status, {id, device_id, key, value, updated}).
 -record(dev_data, {id, device_id, key, value, datetime}).
+-record(dev_permission, {id, device_id, user_id}).
 
 %% mqtt --------------------
 -record(mqtt_session, {client_id, pid, created}).

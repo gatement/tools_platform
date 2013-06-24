@@ -21,3 +21,12 @@
 -define(CMD_SWITCH_CONTROL,  4).
 -define(CMD_SEND_COMMAND,    5).
 -define(CMD_UPTIME,          6).
+
+
+%% CONNACK CODE
+-define(ACCEPTED,                    0).
+-define(UNACCEPTABLE_PROTOCOL_VER,   1).
+-define(IDENTIFIER_REJECTED,         2).
+-define(SERVER_UNAVAILABLE,          3).
+-define(BAD_USERNAME_OR_PASSWORD,    4).
+-define(NOT_AUTHORIZED,              5).

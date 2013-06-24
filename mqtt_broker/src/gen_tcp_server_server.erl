@@ -118,7 +118,7 @@ code_change(_OldVsn, State, _Extra) ->
 dispatch(handle_data, RawData, State) ->
     State2 = case State#state.client_id of
         undefined ->
-            {ClientId, KeepAlivetimer} = mqtt_utils:extract_connect_info(RawData),
+            {ClientId, KeepAlivetimer, _, _} = mqtt_utils:extract_connect_info(RawData),
             %error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
             State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000 + ?GRACE};
         _ ->

@@ -16,7 +16,8 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
 
     case TypeCode of
         ?CMD_ONLINE ->
-            process_data_online(ClientId);
+            <<_:3/binary, UserName/binary>> = Payload,
+            process_data_online(ClientId, erlang:binary_to_list(UserName));
 
         ?CMD_OFFLINE ->
             process_data_offline(ClientId);
@@ -36,7 +37,7 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
 %% Local Functions
 %% ===================================================================
 
-process_data_online(ClientId) ->
+process_data_online(ClientId, UserName) ->
     error_logger:info_msg("[~p] received [online] data: ~p~n", [?MODULE, ClientId]),
 
     %% check if device exist, if not, create it
@@ -46,7 +47,7 @@ process_data_online(ClientId) ->
 
             model_dev_device:create(#dev_device{
                 device_id = ClientId,
-                user_id = "admin",
+                user_id = UserName,
                 name = DeviceName,
                 type = DeviceType,
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
@@ -54,7 +55,7 @@ process_data_online(ClientId) ->
         error ->
             erlang:exit(error);
         _Model ->
-            do_nothing
+            model_dev_device:update_user_id(ClientId, UserName)
     end,
 
     model_dev_status:update(ClientId, "online", true),

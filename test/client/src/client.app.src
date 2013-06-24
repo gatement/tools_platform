@@ -10,6 +10,9 @@
   {env, [
     {server_host, "wolf.com"},
     {server_port, 10000},
+
+    {username, "admin"},
+    {password, "admin"},
     
     {run_mode, once}, % once/live
 

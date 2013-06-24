@@ -30,7 +30,9 @@ start_client(ServerHost, ServerPort, ClientId) ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
             %% send CONNECT
-            ConnectData = mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER),
+            {ok, UserName} = application:get_env(client, username),
+            {ok, Password} = application:get_env(client, password),
+            ConnectData = mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER, UserName, Password),
             error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
             gen_tcp:send(Socket, ConnectData),
 

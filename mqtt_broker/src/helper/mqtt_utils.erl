@@ -1,6 +1,8 @@
 -module(mqtt_utils).
 -include("mqtt.hrl").
--export([is_connack_success/1,
+-export([get_utf8_bin/1,
+		get_utf8_list/1,
+		is_connack_success/1,
 		strip_fixed_header/1,
 		get_qos/1,
 		get_msg_length/1,
@@ -14,6 +16,20 @@
 %% ===================================================================
 %% API functions
 %% ===================================================================
+
+get_utf8_bin(Content) ->
+    erlang:list_to_binary(get_utf8_list(Content)).
+
+
+get_utf8_list(Content) ->
+    ContentBin = unicode:characters_to_binary(Content, latin1),
+
+    ContentBinLen = erlang:size(ContentBin),
+    ContentBinLenH = ContentBinLen div 256,
+    ContentBinLenL = ContentBinLen rem 256,
+
+    [ContentBinLenH, ContentBinLenL, ContentBin].
+
 
 is_connack_success(Data) ->
 	if 
@@ -77,15 +93,38 @@ extract_publish_msg(Msg) ->
 
 
 extract_connect_info(Data) ->
-    RestData = mqtt_utils:strip_fixed_header(Data),
+    RestData1 = mqtt_utils:strip_fixed_header(Data),
 
-    <<_:10/binary, KeepAliveTimerH:8/integer, KeepAliveTimerL:8/integer, RestData2/binary>> = RestData,
-    KeepAliveTimer = KeepAliveTimerH * 256 + KeepAliveTimerL,
+    <<_:9/binary, ConnectFlags:8/integer, KeepAliveTimerLenH:8/integer, KeepAliveTimerLenL:8/integer, RestData2/binary>> = RestData1,
+    KeepAliveTimer = KeepAliveTimerLenH * 256 + KeepAliveTimerLenL,
 
-    <<_:2/binary, ClientId0/binary>> = RestData2,
-    ClientId = erlang:binary_to_list(ClientId0),
+    <<ClientIdLenH:8/integer, ClientIdLenL:8/integer, RestData3/binary>> = RestData2,
+    ClientIdLen = ClientIdLenH * 256 + ClientIdLenL,
+    ClientId = erlang:binary_to_list(binary:part(RestData3, 0, ClientIdLen)),
+    RestData4 = binary:part(RestData3, ClientIdLen, erlang:byte_size(RestData3) - ClientIdLen),
 
-    {ClientId, KeepAliveTimer}.
+    {UserName, RestData7} = if
+    	ConnectFlags band 2#10000000 =:= 2#10000000 ->
+    		<<UserNameLenH:8/integer, UserNameLenL:8/integer, RestData5/binary>> = RestData4,
+    		UserNameLen = UserNameLenH * 256 + UserNameLenL,
+		    UserName0 = erlang:binary_to_list(binary:part(RestData5, 0, UserNameLen)),
+    		RestData6 = binary:part(RestData5, UserNameLen, erlang:byte_size(RestData5) - UserNameLen),
+    		{UserName0, RestData6};
+    	true ->
+    		{undefined, RestData4}
+    end,
+
+    Password = if
+    	ConnectFlags band 2#01000000 =:= 2#01000000 ->
+    		<<PasswordLenH:8/integer, PasswordLenL:8/integer, RestData8/binary>> = RestData7,
+    		PasswordLen = PasswordLenH * 256 + PasswordLenL,
+		    Password0 = erlang:binary_to_list(binary:part(RestData8, 0, PasswordLen)),
+    		Password0;
+    	true ->
+    		undefined
+    end,
+
+    {ClientId, KeepAliveTimer, UserName, Password}.
 
 
 %% ===================================================================

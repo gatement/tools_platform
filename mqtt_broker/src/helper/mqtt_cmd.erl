@@ -1,6 +1,6 @@
 -module(mqtt_cmd).
 -include("mqtt.hrl").
--export([online/1,
+-export([online/2,
 		offline/1,
 		switch_status/2,
         switch_control/3,
@@ -12,9 +12,9 @@
 %% API functions
 %% ===================================================================
 
-online(ClientId) ->
+online(ClientId, UserName) ->
 	Topic = lists:flatten(io_lib:format("/~s/online", [ClientId])),
-    Payload = <<?CMD_ONLINE>>,
+    Payload = erlang:list_to_binary([?CMD_ONLINE | mqtt_utils:get_utf8_list(UserName)]),
     mqtt:build_publish(Topic, Payload).
 
 

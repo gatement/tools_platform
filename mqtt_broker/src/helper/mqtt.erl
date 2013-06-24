@@ -141,13 +141,13 @@ get_remaining_length(Length, Result) ->
 
 
 get_connect_payload(ClientId) ->
-	get_utf8_bin(ClientId).
+	mqtt_utils:get_utf8_bin(ClientId).
 
 
 get_connect_payload(ClientId, UserName, Password) ->
-	ClientIdList = get_utf8_list(ClientId),
-	UserNameList = get_utf8_list(UserName),
-	PasswordList = get_utf8_list(Password),
+	ClientIdList = mqtt_utils:get_utf8_list(ClientId),
+	UserNameList = mqtt_utils:get_utf8_list(UserName),
+	PasswordList = mqtt_utils:get_utf8_list(Password),
 	
 	erlang:list_to_binary(lists:append([ClientIdList, UserNameList, PasswordList])).
 
@@ -163,19 +163,5 @@ get_connect_variable_header(KeepAliveTimer, ConnectFlags) ->
 
 
 get_publish_variable_header(Topic) ->
-	TopicBin = get_utf8_bin(Topic),
+	TopicBin = mqtt_utils:get_utf8_bin(Topic),
 	TopicBin.
-
-
-get_utf8_bin(Content) ->
-    erlang:list_to_binary(get_utf8_list(Content)).
-
-
-get_utf8_list(Content) ->
-    ContentBin = unicode:characters_to_binary(Content, latin1),
-
-    ContentBinLen = erlang:size(ContentBin),
-    ContentBinLenH = ContentBinLen div 256,
-    ContentBinLenL = ContentBinLen rem 256,
-
-    [ContentBinLenH, ContentBinLenL, ContentBin].
