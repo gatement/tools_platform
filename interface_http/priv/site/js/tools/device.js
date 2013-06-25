@@ -15,6 +15,8 @@ if(!tp)
 	$.extend(Device.prototype, {
 		init: function()
 		{
+			var me = this;
+
 			this.socket_init();
 			this.socket_connect();
 
@@ -38,15 +40,8 @@ if(!tp)
 
 		delete_permission_success: function(data) 
 		{
-			if(data.success)
-			{
-				var deviceId = #("#currentDeviceId").val();
-				this.load_permissions(deviceId);
-			}
-			else
-			{
-				window.alert(data.data);
-			}
+			var deviceId = $("#currentDeviceId").val();
+			this.load_permissions(deviceId);
 		},
 
 		delete_permission_error: function(data) 
@@ -56,8 +51,8 @@ if(!tp)
 
 		add_permission: function(event)
 		{
-			var deviceId = #("#currentDeviceId").val();
-			var userId = $.trim(#("#permissionAddTextbox").val());
+			var deviceId = $("#currentDeviceId").val();
+			var userId = $.trim($("#permissionAddTextbox").val());
 
 			if(userId === "")
 			{
@@ -68,7 +63,7 @@ if(!tp)
 				var msg = {
 					cmd: "add_permission",
 					sid: $.cookie(this.sessionCookieId),
-					data: {"device_id": deviceId, "user_id", userId}
+					data: {"device_id": deviceId, "user_id": userId}
 				};
 				this.socket_send_msg(msg);
 		    }
@@ -76,15 +71,8 @@ if(!tp)
 
 		add_permission_success: function(data) 
 		{
-			if(data.success)
-			{
-				var deviceId = #("#currentDeviceId").val();
-				this.load_permissions(deviceId);
-			}
-			else
-			{
-				window.alert(data.data);
-			}
+			var deviceId = $("#currentDeviceId").val();
+			this.load_permissions(deviceId);
 		},
 
 		add_permission_error: function(data) 
@@ -94,8 +82,8 @@ if(!tp)
 
 		load_permissions: function(deviceId)
 		{
-			#("#permissionList").empty();
-			#("#currentDeviceId").val(deviceId);
+			$("#permissionList").empty();
+			$("#currentDeviceId").val(deviceId);
 
 			var msg = {
 				cmd: "load_permissions",
@@ -109,7 +97,7 @@ if(!tp)
 		{
 			var me = this;
 
-			$permissionList = #("#permissionList");
+			$permissionList = $("#permissionList");
 
 			for(var i=0; i< data.length; i++)
 			{

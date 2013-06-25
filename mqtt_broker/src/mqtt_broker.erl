@@ -8,7 +8,7 @@
 %% ===================================================================
 
 publish(ExclusiveClientId, Topic, ClientId, UserId, PublishData) ->
-	case model_mqtt_pub_permission:exist(Topic, ClientId, UserId) of
+	case model_mqtt_pub_permission:exist(ClientId, UserId, Topic) of
 		false ->
 			no_permission;
 		true ->

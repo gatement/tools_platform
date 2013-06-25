@@ -31,7 +31,7 @@ function load_pub_permissions()
 
 		for(var i = 0; i < result.data.length; i++)
 		{
-			$("#subscriptionTemplate").tmpl(result.data[i]).appendTo($pubPermissions);
+			$("#pubPermissionTemplate").tmpl(result.data[i]).appendTo($pubPermissions);
 		}
 
 		$(".deleteBtn").unbind().click(function(event){
@@ -65,7 +65,7 @@ function add_pub_permission()
 		var desc = $.trim($("#descAddInput").val());
 		var data = {client_id: clientId, user_id: userId, topic: topic, desc: desc};
 
-		var url = "/mqtt/sub_permission/add";
+		var url = "/mqtt/pub_permission/add";
 
 		var successFunc = function(result)
 		{
@@ -111,10 +111,10 @@ function search_by_desc()
 
 function search_pub_permissions(key, field)
 {
-	$subPermission = $(".subPermission");
-	for(var i = 0; i < $subPermission.length; i++)
+	$subPermissions = $(".pubPermission");
+	for(var i = 0; i < $subPermissions.length; i++)
 	{
-		var $subPermission = $($subPermission[i]);
+		var $subPermission = $($subPermissions[i]);
 		if($subPermission.find(field).text().toLowerCase().indexOf(key) == -1)
 		{
 			$subPermission.hide();
@@ -137,7 +137,7 @@ function clear_search()
 
 function delete_pub_permission(event)
 {
-	if(window.confirm("Confirm deleting the subscription?"))
+	if(window.confirm("Confirm deleting the permission?"))
 	{
 		var pubPermissionId = $(event.target).parent().parent().find(".pubPermissionId").val();
 		var data = {pub_permission_id: pubPermissionId};

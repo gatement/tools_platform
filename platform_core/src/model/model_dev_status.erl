@@ -44,7 +44,7 @@ update(DeviceId, Key, Data) ->
             erlang:exit(mnesia_error);
         undefined ->
             #dev_status{
-                id = uuid:to_string(uuid:uuid1()),
+                id = uuid:to_string(uuid:uuid3(uuid:uuid4(), DeviceId)),
                 device_id = DeviceId, 
                 key = Key, 
                 value = Data,
@@ -108,7 +108,6 @@ get_online_device_ids(UserId) ->
     end,
     
     {atomic, DeviceIds} = mnesia:transaction(ReadFun),
-
     DeviceIds.
 
 

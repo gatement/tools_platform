@@ -135,8 +135,8 @@ out(Arg, ["update"]) ->
 
 
 out(Arg, ["update_all"]) ->
-	UserId = (Arg#arg.state)#arg_state.user_id,		
-	IsAdmin = model_usr_user:is_admin(UserId),
+	CurrentUserId = (Arg#arg.state)#arg_state.user_id,		
+	IsAdmin = model_usr_user:is_admin(CurrentUserId),
 	case IsAdmin of
 		true ->
 			Vals = yaws_api:parse_post(Arg),

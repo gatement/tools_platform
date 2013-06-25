@@ -56,11 +56,13 @@ device_status_changed_notification(DeviceId) ->
             ]}}
         ]}),
 
-    notice(Msg).
+    notice(DeviceId, Msg).
 
 
-notice(Msg) ->
-    Pids = model_usr_session:get_socket_pid_by_socket_territory("/device"),
+notice(DeviceId, Msg) ->
+    UserPids = model_usr_session:get_socket_pid_by_socket_territory("/device"),
+    Pids = [Pids || {UserId, Pids} <- UserPids,
+                    model_dev_device_user:is_have_permission(DeviceId, UserId) =:= true],
     [yaws_api:websocket_send(Pid, {text, erlang:list_to_binary(Msg)}) || Pid <- Pids].
 
 
@@ -142,6 +144,8 @@ add_permission(Data, UserId, _UserSession) ->
         }, UserId) of
         ok ->
             [{"success", true}, {"data", "ok."}];
+        user_not_exist ->
+            [{"success", false}, {"data", "user id not exist."}];
         error ->
             [{"success", false}, {"data", "error."}]
     end.

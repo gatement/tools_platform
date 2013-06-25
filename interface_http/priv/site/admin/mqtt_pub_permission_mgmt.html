@@ -31,9 +31,9 @@
 		            </tr>
 			        <tbody id="pubPermissions"></tbody>			        
 		            <tr>
-		                <td><input type="text" id="clientIdAddInput" class="textbox" placeholder="Clinet Id" /></td>
-		                <td><input type="text" id="userIdAddInput" class="textbox" placeholder="Clinet Id" /></td>
-		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="Topic (#=all)" /></td>
+		                <td><input type="text" id="clientIdAddInput" class="textbox" placeholder="client id" /></td>
+		                <td><input type="text" id="userIdAddInput" class="textbox" placeholder="user id" /></td>
+		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="topic(#=all)" /></td>
 		                <td><input type="text" id="descAddInput" class="textbox" placeholder="desc" /></td>
 		                <td><input id="addBtn" type="button" value="add" /></td>
 		            </tr>
@@ -41,8 +41,8 @@
 			</div>
 
 		
-			<script id="subscriptionTemplate" type="text/x-jquery-tmpl">
-				<tr class="subPermission">
+			<script id="pubPermissionTemplate" type="text/x-jquery-tmpl">
+				<tr class="pubPermission">
 					<td><span class="clientId">${client_id}</span><input type="hidden" class="pubPermissionId" value="${id}"/></td>
 					<td><span class="userId">${user_id}</span></td>
 					<td><span class="topic">${topic}</span></td>
