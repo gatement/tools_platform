@@ -17,6 +17,24 @@ if(!tp)
 		{
 			this.socket_init();
 			this.socket_connect();
+
+			$(".permissionListItemDeleteButton").click(function(event){me.permissionListItemDeleteButton_click(event)});
+			$("#permissionAddButton").click(function(event){me.permissionAddButton_click(event)});
+		},
+
+		permissionListItemDeleteButton_click: function(event)
+		{
+
+		},
+
+		permissionAddButton_click: function(event)
+		{
+			
+		},
+
+		load_permissions: function()
+		{
+
 		},
 
 		switch1_click: function(event)
@@ -47,6 +65,17 @@ if(!tp)
 			this.send_command(deviceId, cmd);
 		},
 
+		permission_click: function(event)
+		{
+			var me = this;
+
+			var deviceId = $(event.target).parent().parent().attr("id");			
+
+			this.load_permissions();
+			$("#permissionMgmtDialog").dialog({modal: true, zIndex: 200000, width: 620, minWidth: 620});
+			$("#permissionAddTextbox").focus();
+		},
+
 		bindEvents: function()
 		{
 			var me = this;
@@ -54,6 +83,7 @@ if(!tp)
 			$(".switch1").unbind().click(function(event){me.switch1_click(event)});
 			$(".poweroff").unbind().click(function(event){me.poweroff_click(event)});
 			$(".restart").unbind().click(function(event){me.restart_click(event)});
+			$(".permission").unbind().click(function(event){me.permission_click(event)});
 		},
 
 

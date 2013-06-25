@@ -3,17 +3,19 @@
 	<head>
 		<title>Device - Tools</title>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="/css/lib/smoothness/jquery-ui-1.10.3.custom.min.css" />
 		<link type="text/css" rel="stylesheet" href="/css/tools/device.css" />
 		<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery-ui-1.10.3.custom.min.js"></script>
 		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
 		<script type="text/javascript" src="/js/lib/jquery.cookie.js"></script>
-		<script type="text/javascript" src="/js/lib/jquery.animate-colors-min.js"></script>
+		<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
 		<script type="text/javascript" src="/js/utils.js"></script>
 		<script type="text/javascript" src="/js/tools/device.js"></script>
 	</head>
 	<body>
 		<div>
-			Online Devices <a href="/">permission</a> <a href="/">home</a>
+			Online Devices <a href="/">home</a>
 		</div>		
 		<hr id="hr"/>		
 		<div id="devicesContainer"></div>
@@ -23,6 +25,7 @@
 				<div>Name: <span class="deviceName">${name}</span></div>
 				<div>Id: <span class="deviceId">${device_id}</span></div>
 				<div>Switch1: <button class="switch1">${switch1}</button></div>
+				<div><a class="permission" href="javascript:void">permission</a></div>
 			</div>
 		</script>
 
@@ -35,6 +38,23 @@
 					<button class="poweroff">poweroff</button>
 					<button class="restart">restart</button>
 				</div>
+				<div><a class="permission" href="javascript:void(0);">permission</a></div>
+			</div>
+		</script>
+
+		<div id="permissionMgmtDialog" title="permission management" style="display:none;">
+			<div id="permissionAddContainer">
+				<input id="permissionAddTextbox" type="text" />
+				<input id="permissionAddButton" type="button" value="add" />
+			</div>
+			<div id="permissionList">
+			</div>
+		</div>
+		
+		<script id="permissionListItemTemplate" type="text/x-jquery-tmpl">
+			<div class="permissionListItem">
+				<input class="permissionListItemTextbox" type="text" value="${name}" readonly="readonly" />
+				<input class="permissionListItemDeleteButton" data-id="${id}" type="button" value="delete" />
 			</div>
 		</script>
 	</body>
