@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>MQTT Pub Permission - Admin - Tools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/admin/mqtt_pub_permission_mgmt.css" />
+			<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+			<script type="text/javascript" src="/js/admin/mqtt_pub_permission_mgmt.js"></script>
+		</head>
+		<body>
+			<h3>MQTT Pub Permission</h3><a href="/">Home</a>
+			<hr/>
+			<div id="content">
+				<table border="0">
+			        <thead id="tableTitle">
+			            <tr>
+			                <td class="clientId">Client Id</td>
+			                <td class="userId">User Id</td>
+			                <td class="topic">Topic</td>
+			                <td class="desc">Desc</td>
+			                <td class="action">Action</td>
+			            </tr>
+			        </thead>
+		            <tr>
+		                <td><input type="text" id="clientIdSearchInput" class="textbox" placeholder="input to search client" /></td>
+		                <td><input type="text" id="userIdSearchInput" class="textbox" placeholder="input to search user" /></td>
+		                <td><input type="text" id="topicSearchInput" class="textbox" placeholder="input to search topic" /></td>
+		                <td><input type="text" id="descSearchInput" class="textbox" placeholder="input to search desc" /></td>
+		                <td><input id="clearSerachBtn" type="button" value="clear" /></td>
+		            </tr>
+			        <tbody id="pubPermissions"></tbody>			        
+		            <tr>
+		                <td><input type="text" id="clientIdAddInput" class="textbox" placeholder="Clinet Id" /></td>
+		                <td><input type="text" id="userIdAddInput" class="textbox" placeholder="Clinet Id" /></td>
+		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="Topic (#=all)" /></td>
+		                <td><input type="text" id="descAddInput" class="textbox" placeholder="desc" /></td>
+		                <td><input id="addBtn" type="button" value="add" /></td>
+		            </tr>
+			    </table>
+			</div>
+
+		
+			<script id="subscriptionTemplate" type="text/x-jquery-tmpl">
+				<tr class="subPermission">
+					<td><span class="clientId">${client_id}</span><input type="hidden" class="pubPermissionId" value="${id}"/></td>
+					<td><span class="userId">${user_id}</span></td>
+					<td><span class="topic">${topic}</span></td>
+					<td><span class="desc">${desc}</span></td>
+					<td><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
+				</tr>
+			</script>
+		</body>
+	</html>
