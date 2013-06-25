@@ -5,7 +5,7 @@
         update/3,
         get_by_key/2,
         get_all_values_by_deviceId/1, 
-        get_online_device_ids/0]).
+        get_online_device_ids/1]).
 
 
 %% ===================================================================
@@ -89,11 +89,22 @@ get_all_values_by_deviceId(DeviceId) ->
     [{X#dev_status.key, X#dev_status.value} || X <- Models].
 
 
-get_online_device_ids() ->
-    ReadFun = fun() -> 
-        qlc:e(qlc:q([X#dev_status.device_id || X <- mnesia:table(dev_status), 
-                          X#dev_status.key =:= "online",
-                          X#dev_status.value =:= true]))
+get_online_device_ids(UserId) ->
+    ReadFun = fun() ->
+        lists:append(
+            qlc:e(qlc:q([{"shared", S#dev_status.device_id} || S <- mnesia:table(dev_status), 
+                          U <- mnesia:table(dev_device_user), 
+                          U#dev_device_user.device_id =:= S#dev_status.device_id,
+                          U#dev_device_user.user_id =:= UserId,
+                          S#dev_status.key =:= "online",
+                          S#dev_status.value =:= true])),
+            qlc:e(qlc:q([{"owner", S#dev_status.device_id} || S <- mnesia:table(dev_status), 
+                          D <- mnesia:table(dev_device), 
+                          D#dev_device.device_id =:= S#dev_status.device_id,
+                          D#dev_device.user_id =:= UserId,
+                          S#dev_status.key =:= "online",
+                          S#dev_status.value =:= true]))
+        )
     end,
     
     {atomic, DeviceIds} = mnesia:transaction(ReadFun),

@@ -3,6 +3,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1, 
 		get/1,
+		get/2,
 		all_keys/0,
 		update_user_id/2]).
 
@@ -24,6 +25,20 @@ create(Model) ->
 get(DeviceId) ->
 	Fun = fun() ->
 		mnesia:read(dev_device, DeviceId)
+	end,
+
+	case mnesia:transaction(Fun) of
+        {atomic, []} -> undefined;
+		{atomic, [Model]} -> Model;
+		_ -> error
+	end.
+
+
+get(DeviceId, UserId) ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(dev_device), 
+						X#dev_device.user_id =:= UserId,
+						X#dev_device.device_id =:= DeviceId]))
 	end,
 
 	case mnesia:transaction(Fun) of

@@ -1,15 +1,20 @@
 -module(mqtt_broker).
 %% API
--export([publish/3]).
+-export([publish/5]).
 
 
 %% ===================================================================
 %% API functions
 %% ===================================================================
 
-publish(ExclusiveClientId, Topic, PublishData) ->
-    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ExclusiveClientId, Topic),
-    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids].
+publish(ExclusiveClientId, Topic, ClientId, UserId, PublishData) ->
+	case model_mqtt_pub_permission:exist(Topic, ClientId, UserId) of
+		false ->
+			no_permission;
+		true ->
+		    SubscriptionPids = model_mqtt_subscription:get_online_subscription_client_pids(ExclusiveClientId, Topic),
+		    [X ! {send_tcp_data, PublishData} || X <- SubscriptionPids]
+	end.
 
 
 %% ===================================================================

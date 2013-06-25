@@ -51,6 +51,7 @@ device_status_changed_notification(DeviceId) ->
                 {"device_id", DeviceId}, 
                 {"type", Device#dev_device.type}, 
                 {"name", Device#dev_device.name}, 
+                {"permission", "shared"},
                 {"values", {struct, Values}}
             ]}}
         ]}),
@@ -72,28 +73,33 @@ update_socket(_Data, _UserId, UserSession) ->
     [{"success", true}, {"data", "ok."}].
 
 
-list_online_devices(_Data, _UserId, _UserSession) ->
-    DeviceIds = model_dev_status:get_online_device_ids(),
+list_online_devices(_Data, UserId, _UserSession) ->
+    DeviceIds = model_dev_status:get_online_device_ids(UserId),
 
-    Fun = fun(DeviceId) ->
-        Device = model_dev_device:get(DeviceId),
-        Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
+    Fun = fun({Permission, DeviceId}) ->
+        case DeviceId of
+            "000000000001" ->
+                ignore;
+            _ ->
+                Device = model_dev_device:get(DeviceId),
+                Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
 
-        {struct, [
-                {"device_id", DeviceId}, 
-                {"type", Device#dev_device.type}, 
-                {"name", Device#dev_device.name}, 
-                {"values", {struct, Values}}
-        ]}
+                {struct, [
+                        {"device_id", DeviceId}, 
+                        {"type", Device#dev_device.type}, 
+                        {"name", Device#dev_device.name},
+                        {"permission", Permission},
+                        {"values", {struct, Values}}
+                ]}
+        end
     end,
 
-    Devices = [Fun(X) || X <- DeviceIds,
-                          X =/= "000000000001"],
+    Devices = [Fun(X) || X <- DeviceIds],
 
     [{"success", true}, {"data", {array, Devices}}].
 
 
-update_switch_status(Data, _UserId, _UserSession) ->
+update_switch_status(Data, UserId, _UserSession) ->
     {struct,[{"device_id", DeviceId},{"switch", Switch},{"status", Status}]} = Data,
     %io:format("~ndevice-id|switch|status: ~p|~p|~p~n~n", [DeviceId, Switch, Status]),
 
@@ -104,21 +110,51 @@ update_switch_status(Data, _UserId, _UserSession) ->
     %% publish it
     Topic = lists:flatten(io_lib:format("/~s/switch_control", [DeviceId])),
     PublishData = mqtt_cmd:switch_control(Topic, SwitchId, Status),
-    mqtt_broker:publish("000000000001", Topic, PublishData),
+    mqtt_broker:publish("000000000001", Topic, "000000000001", UserId, PublishData),
 
     [{"success", true}, {"data", "ok."}].
 
 
-send_command(Data, _UserId, _UserSession) ->
+send_command(Data, UserId, _UserSession) ->
     {struct,[{"device_id", DeviceId},{"cmd", Cmd}]} = Data,
     %io:format("~ndevice-id|cmd: ~p|~p~n~n", [DeviceId, Cmd]),
 
     %% publish it
     Topic = lists:flatten(io_lib:format("/~s/cmd", [DeviceId])),
     PublishData = mqtt_cmd:send_command(Topic, Cmd),
-    mqtt_broker:publish("000000000001", Topic, PublishData),
+    mqtt_broker:publish("000000000001", Topic, "000000000001", UserId, PublishData),
 
     [{"success", true}, {"data", "ok."}].
+
+
+load_permissions(Data, UserId, _UserSession) ->
+    {struct,[{"device_id", DeviceId}]} = Data,
+    Users = model_dev_device_user:list(DeviceId, UserId),
+    [{"success", true}, {"data", {array, Users}}].
+
+
+add_permission(Data, UserId, _UserSession) ->
+    {struct,[{"device_id", DeviceId},{"user_id", UserIdToAdd}]} = Data,
+    case model_dev_device_user:create(#dev_device_user{
+            id = uuid:to_string(uuid:uuid1()), 
+            device_id = DeviceId, 
+            user_id = UserIdToAdd
+        }, UserId) of
+        ok ->
+            [{"success", true}, {"data", "ok."}];
+        error ->
+            [{"success", false}, {"data", "error."}]
+    end.
+
+
+delete_permission(Data, UserId, _UserSession) ->
+    {struct,[{"id", Id}]} = Data,
+    case model_dev_device_user:delete(Id, UserId) of
+        ok ->
+            [{"success", true}, {"data", "ok."}];
+        error ->
+            [{"success", false}, {"data", "error."}]
+    end.
 
 
 %% ===================================================================

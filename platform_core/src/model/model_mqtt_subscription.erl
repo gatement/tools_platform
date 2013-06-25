@@ -78,7 +78,7 @@ get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
 	{atomic, Pids} = mnesia:transaction(Fun),
 
 	Pids.
-	
+
 
 %% ===================================================================
 %% Local Functions

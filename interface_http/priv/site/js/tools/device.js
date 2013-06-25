@@ -18,23 +18,110 @@ if(!tp)
 			this.socket_init();
 			this.socket_connect();
 
-			$(".permissionListItemDeleteButton").click(function(event){me.permissionListItemDeleteButton_click(event)});
-			$("#permissionAddButton").click(function(event){me.permissionAddButton_click(event)});
+			$("#permissionAddButton").click(function(event){me.add_permission(event)});
 		},
 
-		permissionListItemDeleteButton_click: function(event)
+		delete_permission: function(event)
 		{
+			var id = $(event.target).attr("data-id");
 
+			if(window.confirm("Confirm deleting the permission?"))
+			{
+				var msg = {
+					cmd: "delete_permission",
+					sid: $.cookie(this.sessionCookieId),
+					data: {"id": id}
+				};
+				this.socket_send_msg(msg);				
+			}
 		},
 
-		permissionAddButton_click: function(event)
+		delete_permission_success: function(data) 
 		{
-			
+			if(data.success)
+			{
+				var deviceId = #("#currentDeviceId").val();
+				this.load_permissions(deviceId);
+			}
+			else
+			{
+				window.alert(data.data);
+			}
 		},
 
-		load_permissions: function()
-		{
+		delete_permission_error: function(data) 
+		{			
+			window.alert(data);
+		},
 
+		add_permission: function(event)
+		{
+			var deviceId = #("#currentDeviceId").val();
+			var userId = $.trim(#("#permissionAddTextbox").val());
+
+			if(userId === "")
+			{
+				window.alert("user id is required!");
+			}
+			else
+			{
+				var msg = {
+					cmd: "add_permission",
+					sid: $.cookie(this.sessionCookieId),
+					data: {"device_id": deviceId, "user_id", userId}
+				};
+				this.socket_send_msg(msg);
+		    }
+		},
+
+		add_permission_success: function(data) 
+		{
+			if(data.success)
+			{
+				var deviceId = #("#currentDeviceId").val();
+				this.load_permissions(deviceId);
+			}
+			else
+			{
+				window.alert(data.data);
+			}
+		},
+
+		add_permission_error: function(data) 
+		{			
+			window.alert(data);
+		},
+
+		load_permissions: function(deviceId)
+		{
+			#("#permissionList").empty();
+			#("#currentDeviceId").val(deviceId);
+
+			var msg = {
+				cmd: "load_permissions",
+				sid: $.cookie(this.sessionCookieId),
+				data: {"device_id": deviceId}
+			};
+		    this.socket_send_msg(msg);
+		},
+
+		load_permissions_success: function(data) 
+		{
+			var me = this;
+
+			$permissionList = #("#permissionList");
+
+			for(var i=0; i< data.length; i++)
+			{
+				$("#permissionListItemTemplate").tmpl(data[i]).appendTo($permissionList);
+			}
+
+			$(".permissionListItemDeleteButton").unbind().click(function(event){me.delete_permission(event)});
+		},
+
+		load_permissions_error: function(data) 
+		{			
+			window.alert(data);
 		},
 
 		switch1_click: function(event)
@@ -71,7 +158,7 @@ if(!tp)
 
 			var deviceId = $(event.target).parent().parent().attr("id");			
 
-			this.load_permissions();
+			this.load_permissions(deviceId);
 			$("#permissionMgmtDialog").dialog({modal: true, zIndex: 200000, width: 620, minWidth: 620});
 			$("#permissionAddTextbox").focus();
 		},

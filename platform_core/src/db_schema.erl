@@ -9,19 +9,19 @@
 %% ===================================================================
 
 up() ->
+	clear_up(),
+
 	%% == initialization functions =====================
 	%create_base_schema(),
 	%init_base_data(),
 	%create_word_schema(),
 	%create_note_schema(),
 	%create_gallery_schema(),
-	%create_mqtt_schema(),
-	%create_device_schema(),
-	create_device_permission_schema(),
+	create_mqtt_schema(),
+	create_device_schema(),
 
 	%% == lowing function is not for initialization ====
 	%add_socket_to_usr_session(),
-	%add_mqtt_main_client_subscription(),
 
 	ok.
 
@@ -84,20 +84,32 @@ create_gallery_schema() ->
 create_mqtt_schema() ->
 	mnesia:create_table(mqtt_session, [{attributes, record_info(fields, mqtt_session)}, {ram_copies, [node()]}]),
 	mnesia:create_table(mqtt_subscription, [{attributes, record_info(fields, mqtt_subscription)}, {disc_copies, [node()]}]),
+	mnesia:create_table(mqtt_pub_permission, [{attributes, record_info(fields, mqtt_pub_permission)}, {disc_copies, [node()]}]),
+
+	model_mqtt_subscription:create(#mqtt_subscription{
+		id = uuid:to_string(uuid:uuid1()), 
+		client_id = "000000000001", 
+		topic = "#",
+		qos = 0,
+		desc = "MQTT main client"
+	}),
+
+	model_mqtt_pub_permission:create(#mqtt_pub_permission{
+		id = uuid:to_string(uuid:uuid1()), 
+		topic = "#",
+		client_id = "000000000000", 
+		user_id = "",
+		desc = "MQTT broker"
+	}),
 
 	ok.
 
 
 create_device_schema() ->
 	mnesia:create_table(dev_device, [{attributes, record_info(fields, dev_device)}, {disc_copies, [node()]}]),
+	mnesia:create_table(dev_device_user, [{attributes, record_info(fields, dev_device_user)}, {disc_copies, [node()]}]),
 	mnesia:create_table(dev_status, [{attributes, record_info(fields, dev_status)}, {ram_copies, [node()]}]),
 	mnesia:create_table(dev_data, [{attributes, record_info(fields, dev_data)}, {disc_copies, [node()]}]),
-
-	ok.
-
-
-create_device_permission_schema() ->
-	mnesia:create_table(dev_permission, [{attributes, record_info(fields, dev_permission)}, {disc_copies, [node()]}]),
 
 	ok.
 
@@ -105,6 +117,17 @@ create_device_permission_schema() ->
 %% ===================================================================
 %% migration update
 %% ===================================================================
+
+clear_up() ->
+	mnesia:delete_table(mqtt_session),
+	mnesia:delete_table(mqtt_subscription),
+	mnesia:delete_table(mqtt_pub_permission),
+	mnesia:delete_table(dev_device),
+	mnesia:delete_table(dev_device_user),
+	mnesia:delete_table(dev_status),
+	mnesia:delete_table(dev_data),
+	ok.
+
 
 add_socket_to_usr_session() ->
 	%% add column socket_pid, socket_territory to table usr_session
@@ -116,16 +139,6 @@ add_socket_to_usr_session() ->
 	end,
 
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
-
-
-add_mqtt_main_client_subscription() ->
-	model_mqtt_subscription:create(#mqtt_subscription{
-		id = uuid:to_string(uuid:uuid1()), 
-		name = "MQTT main client",
-		client_id = "000000000001", 
-		topic = "#",
-		qos = 0
-	}).
 
 
 %% ===================================================================
