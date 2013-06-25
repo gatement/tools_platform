@@ -33,10 +33,10 @@ out(_Arg, ["subscription", "list"], _UserId) ->
 
 out(Arg, ["subscription", "add"], _UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
-	Desc = proplists:get_value("desc", Vals),
 	ClientId = proplists:get_value("client_id", Vals),
 	Topic = proplists:get_value("topic", Vals),
 	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
+	Desc = proplists:get_value("desc", Vals),
 
 	case model_mqtt_subscription:exist(ClientId, Topic) of
 		true ->
@@ -60,6 +60,48 @@ out(Arg, ["subscription", "delete"], _UserId) ->
 	SubscriptionId = proplists:get_value("subscription_id", Vals),
 
 	model_mqtt_subscription:delete(SubscriptionId),
+
+    Result = [{"success", true}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+
+out(_Arg, ["pub_permission", "list"], _UserId) ->
+	PubPermissions = model_mqtt_pub_permission:list(),	
+    PubPermissionList = [{struct, tools:record_to_list(PubPermission, record_info(fields, mqtt_pub_permission))} || PubPermission <- PubPermissions],
+    Result = [{"success", true}, {"data", {array, PubPermissionList}}],
+
+	{content, "application/json", json2:encode({struct, Result})};
+
+
+out(Arg, ["pub_permission", "add"], _UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	ClientId = proplists:get_value("client_id", Vals),
+	UserId = proplists:get_value("user_id", Vals),
+	Topic = proplists:get_value("topic", Vals),
+	Desc = proplists:get_value("desc", Vals),
+
+	case model_mqtt_pub_permission:exist(ClientId, UserId, Topic) of
+		true ->
+			do_nothing;
+		false ->
+			model_mqtt_pub_permission:create(#mqtt_pub_permission{
+					id = uuid:to_string(uuid:uuid1()), 
+					client_id = ClientId,  
+					user_id = UserId, 
+					topic = Topic,
+					desc = Desc
+				})
+	end,
+
+    Result = [{"success", true}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+
+out(Arg, ["pub_permission", "delete"], _UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	PubPermissionId = proplists:get_value("pub_permission_id", Vals),
+
+	model_mqtt_pub_permission:delete(PubPermissionId),
 
     Result = [{"success", true}],
 	{content, "application/json", json2:encode({struct, Result})};

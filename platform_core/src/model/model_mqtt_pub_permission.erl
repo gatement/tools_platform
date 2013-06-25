@@ -21,7 +21,7 @@ create(Model) ->
 	end.
 
 
-exist(Topic, ClientId, UserId) ->
+exist(ClientId, UserId, Topic) ->
 	Fun = fun() ->
 		lists:append(
 			qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_permission), 

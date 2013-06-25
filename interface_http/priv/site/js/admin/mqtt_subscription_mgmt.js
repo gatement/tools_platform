@@ -71,6 +71,7 @@ function add_subscription()
 		{
 			$("#clientAddInput").val("");
 			$("#topicAddInput").val("");
+			$("#descAddInput").val("");
 			load_subscriptions();
 		};
 		
@@ -83,12 +84,6 @@ function add_subscription()
 	}
 }
 
-function search_by_desc()
-{
-	var key = $("#descSearchInput").val().toLowerCase();
-	search_subscriptions(key, ".desc")
-}
-
 function search_by_client_id()
 {
 	var key = $("#clientIdSearchInput").val().toLowerCase();
@@ -99,6 +94,12 @@ function search_by_topic()
 {
 	var key = $("#topicSearchInput").val().toLowerCase();
 	search_subscriptions(key, ".topic")
+}
+
+function search_by_desc()
+{
+	var key = $("#descSearchInput").val().toLowerCase();
+	search_subscriptions(key, ".desc")
 }
 
 function search_subscriptions(key, field)
@@ -120,9 +121,9 @@ function search_subscriptions(key, field)
 
 function clear_search()
 {
-	$("#descSearchInput").val("");
 	$("#clientIdSearchInput").val("");
 	$("#topicSearchInput").val("");
+	$("#descSearchInput").val("");
 	$(".subscription").show();
 }
 
@@ -177,14 +178,14 @@ function check_client(event)
 }
 
 $(document).ready(function() {
-	$("#descSearchInput").keyup(function(){
-		search_by_desc();
-	});
 	$("#clientIdSearchInput").keyup(function(){
 		search_by_client_id();
 	});
 	$("#topicSearchInput").keyup(function(){
 		search_by_topic();
+	});
+	$("#descSearchInput").keyup(function(){
+		search_by_desc();
 	});
 	$("#clearSerachBtn").click(function(){
 		clear_search();
