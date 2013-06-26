@@ -9,7 +9,7 @@
                  ]},
   {env, [
     {server_host, "wolf.com"},
-    {server_port, 10000},
+    {server_port, 1883},
 
     {username, "admin"},
     {password, "admin"},

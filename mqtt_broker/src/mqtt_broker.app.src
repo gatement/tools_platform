@@ -6,7 +6,7 @@
   {env, [
     {connection_timout, 20000}, % in milliseconds
     {init_worker_count, 3},
-    {tcp_port, 10000}
+    {tcp_port, 1883}
   ]},
   {mod, {mqtt_broker_app, []}}
  ]}.
