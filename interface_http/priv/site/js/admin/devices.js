@@ -55,7 +55,6 @@ function load_devices()
 	ajax(url, data, successFunc, errorFunc);
 }
 
-// TODO
 function save_device(event)
 {
 	var deviceId = $(event.target).parent().parent().find(".deviceId").val();
@@ -70,7 +69,7 @@ function save_device(event)
 	{
 		var data = {device_id: deviceId, name: name, user_id: userId, type: type};
 
-		var url = "/device_mgmt/add";
+		var url = "/device_mgmt/update";
 
 		var successFunc = function(result)
 		{
@@ -186,8 +185,8 @@ $(document).ready(function() {
 	$("#nameSearchInput").keyup(function(){
 		search_by_name();
 	});
-	$("#topicSearchInput").keyup(function(){
-		search_by_topic();
+	$("#userIdSearchInput").keyup(function(){
+		search_by_user_id();
 	});
 	$("#clearSerachBtn").click(function(){
 		clear_search();

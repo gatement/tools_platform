@@ -1,7 +1,7 @@
 -module(db_schema).
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
--compile(export_all).
+-export([up/0, setup/0]).
 
 
 %% ===================================================================
@@ -9,19 +9,34 @@
 %% ===================================================================
 
 up() ->
-	clear_up(),
+	mnesia:delete_table(mqtt_session),
+	mnesia:delete_table(mqtt_subscription),
+	mnesia:delete_table(mqtt_pub_permission),
+	mnesia:delete_table(dev_device),
+	mnesia:delete_table(dev_device_user),
+	mnesia:delete_table(dev_status),
+	mnesia:delete_table(dev_data),
 
-	%% == initialization functions =====================
-	%create_base_schema(),
-	%init_base_data(),
-	%create_word_schema(),
-	%create_note_schema(),
-	%create_gallery_schema(),
 	create_mqtt_schema(),
 	create_device_schema(),
+	
+	ok.
 
-	%% == lowing function is not for initialization ====
-	%add_socket_to_usr_session(),
+
+setup() ->
+	create_base_schema(),	
+	init_base_data(),
+	add_socket_to_usr_session(),
+
+	create_word_schema(),
+
+	create_note_schema(),
+
+	create_gallery_schema(),
+
+	create_mqtt_schema(),
+
+	create_device_schema(),
 
 	ok.
 
@@ -117,17 +132,6 @@ create_device_schema() ->
 %% ===================================================================
 %% migration update
 %% ===================================================================
-
-clear_up() ->
-	mnesia:delete_table(mqtt_session),
-	mnesia:delete_table(mqtt_subscription),
-	mnesia:delete_table(mqtt_pub_permission),
-	mnesia:delete_table(dev_device),
-	mnesia:delete_table(dev_device_user),
-	mnesia:delete_table(dev_status),
-	mnesia:delete_table(dev_data),
-	ok.
-
 
 add_socket_to_usr_session() ->
 	%% add column socket_pid, socket_territory to table usr_session

@@ -44,14 +44,6 @@ start() ->
     timer:sleep(3000),
 
     application:start(mqtt_client),
-    timer:sleep(3000),
-
-	case application:get_env(platform_core, enable_remote) of
-		{ok, true} ->
-			remote:start();
-		_ ->
-			no_start
-	end,
 
 	interface_http:start(),
 

@@ -58,7 +58,7 @@ handle_info({tcp, _Socket, RawData}, State) ->
 
 handle_info({tcp_closed, _Socket}, State) ->
     %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, tcp_closed]),
-    {stop, normal, State};
+    {stop, tcp_closed, State};
 
 handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent} = State) ->    
     case Socket0 of
@@ -78,12 +78,12 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
                     _Port = State#state.port,
                     {ok, _ConnectionTimeout} = application:get_env(connection_timout),
                     %error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [_Socket, _Ip, _Port, _ConnectionTimeout]),
-                    {stop, normal, State}; %% no message arrived in time so suicide
+                    {stop, connection_timout, State}; %% no message arrived in time so suicide
                 _ ->
                     _Ip = State#state.ip,
                     _Port = State#state.port,
                     %error_logger:info_msg("disconnected ~p ~p:~p because of the remote has no heartbeat.~n", [_Socket, _Ip, _Port]),
-                    {stop, normal, State} %% no message arrived in time so suicide
+                    {stop, no_heartbeat, State} %% no message arrived in time so suicide
             end
     end;
 
@@ -92,18 +92,18 @@ handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->
     gen_tcp:send(Socket, Data),
     {noreply, State, State#state.keep_alive_timer};
 
-handle_info(stop, State) ->
-    %error_logger:info_msg("[~p] process ~p was stopped~n", [?MODULE, erlang:self()]),
-    {stop, normal, State};
+handle_info({stop, Reason}, State) ->
+    %error_logger:info_msg("[~p] process ~p was stopped: ~p~n", [?MODULE, erlang:self(), Reason]),
+    {stop, Reason, State};
     
 handle_info(_Msg, State) ->
     %error_logger:info_msg("[~p] was infoed: ~p.~n", [?MODULE, _Msg]),
     {noreply, State, State#state.keep_alive_timer}.
 
 
-terminate(_Reason, State) ->
-    %error_logger:info_msg("gen_tcp_server_server ~p was terminated with reason: ~p.~n", [State#state.socket, _Reason]),
-    dispatch(terminate, State),
+terminate(Reason, State) ->
+    error_logger:info_msg("[~p] ~p was terminated with reason: ~p.~n", [?MODULE, State#state.socket, Reason]),
+    dispatch(terminate, State, Reason),
     ok.
 
 
@@ -125,12 +125,11 @@ dispatch(handle_data, RawData, State) ->
             State
     end,
 
-    handle_packages(State2, RawData).
+    handle_packages(State2, RawData);
 
-
-dispatch(terminate, State) ->
+dispatch(terminate, State, Reason) ->
     #state{callback = Callback, socket = Socket, client_id = ClientId} = State,
-    Callback:terminate(erlang:self(), Socket, ClientId),
+    Callback:terminate(erlang:self(), Socket, ClientId, Reason),
     ok.
 
 
@@ -162,12 +161,12 @@ handle_packages(State, RawData) ->
             ok;
 
         ?DISCONNECT ->
-            stop            
+            disconnect            
     end,
 
     case Result of
-        stop ->
-            {stop, normal, State};
+        disconnect ->
+            {stop, disconnected, State};
         ok ->
             RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
             handle_packages(State, RestRawData)

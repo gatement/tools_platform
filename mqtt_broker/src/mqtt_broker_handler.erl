@@ -6,7 +6,7 @@
 -export([init/1, 
     process_data_online/4, 
     process_data_publish/4, 
-    terminate/3]).
+    terminate/4]).
 
 
 %% ===================================================================
@@ -23,18 +23,21 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
     case {UserName, Password} of
         {undefined, _} ->
-            send_connack(SourcePid, ?NOT_AUTHORIZED);
+            send_connack(SourcePid, ?NOT_AUTHORIZED),
+            SourcePid ! {stop, bad_connect};
 
         {_, undefined} ->
-            send_connack(SourcePid, ?NOT_AUTHORIZED);
-
+            send_connack(SourcePid, ?NOT_AUTHORIZED),
+            SourcePid ! {stop, bad_connect};
         _ ->
             case model_usr_user:get(UserName, Password) of        
                 [] ->
-                    send_connack(SourcePid, ?BAD_USERNAME_OR_PASSWORD);
+                    send_connack(SourcePid, ?BAD_USERNAME_OR_PASSWORD),
+                    SourcePid ! {stop, bad_connect};
 
                 [User] when User#usr_user.enabled /= true ->
-                    send_connack(SourcePid, ?IDENTIFIER_REJECTED);
+                    send_connack(SourcePid, ?IDENTIFIER_REJECTED),
+                    SourcePid ! {stop, bad_connect};
 
                 [_User] ->
                     %% kick off the old session with the same ClientId
@@ -78,17 +81,40 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     ok.
 
 
-terminate(SourcePid, Socket, ClientId) ->
-    %% send DISCONNECT
-    DisconnectMsg = mqtt:build_disconnect(),
-    gen_tcp:send(Socket, DisconnectMsg),
-
+terminate(SourcePid, Socket, ClientId, Reason) ->
     model_mqtt_session:delete_by_pid(SourcePid),
     %error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
 
+    {SendDisconnect, PublishOffline} = case Reason of
+        %% no data come in after TCP was created
+        connection_timout -> {false, false};
+        %% user/pwd is missing or is bad
+        bad_connect -> {false, false};
+        %% did not receive client heartbeat within keep_alive_timer
+        no_heartbeat -> {true, true};
+        %% receive DISCONNECT msg
+        disconnected -> {false, true};
+        %% the TCP connection was closed
+        tcp_closed -> {false, true}
+    end,
+
+    %% send DISCONNECT
+    case SendDisconnect of
+        false ->
+            do_nothing;
+        true ->
+            DisconnectMsg = mqtt:build_disconnect(),
+            gen_tcp:send(Socket, DisconnectMsg)
+    end,
+
     %% pubish a offline notice to subscriber
-    PublishData = mqtt_cmd:offline(ClientId),
-    mqtt_broker:publish(ClientId, "#", "000000000000", "", PublishData),
+    case PublishOffline of
+        false ->
+            do_nothing;
+        true ->
+            PublishData = mqtt_cmd:offline(ClientId),
+            mqtt_broker:publish(ClientId, "#", "000000000000", "", PublishData)
+    end,
 
     ok.
 

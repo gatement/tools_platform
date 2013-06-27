@@ -10,7 +10,7 @@ behaviour_info(callbacks) ->
     [{init,1},
      {process_data_online, 4},
      {process_data_publish, 4},
-     {terminate, 3}];
+     {terminate, 4}];
 behaviour_info(_Other) ->
     undefined.
 
