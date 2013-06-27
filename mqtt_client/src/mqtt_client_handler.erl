@@ -43,13 +43,11 @@ process_data_online(ClientId, UserName) ->
     %% check if device exist, if not, create it
     case model_dev_device:get(ClientId) of
         undefined ->
-            {DeviceType, DeviceName} = get_device_info(ClientId),
-
             model_dev_device:create(#dev_device{
                 device_id = ClientId,
                 user_id = UserName,
-                name = DeviceName,
-                type = DeviceType,
+                name = "undefined",
+                type = "undefined",
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
             });
         error ->
@@ -107,20 +105,3 @@ process_data_switch_status(ClientId, SwitchStatus) ->
     socket_device:device_status_changed_notification(ClientId),
 
     ok.
-
-%% return {DeviceType, DeviceName}
-get_device_info(ClientId) ->
-    case ClientId of
-        "000000000001" ->
-            {"main_mqtt_client", "main_mqtt_client"};
-        "000000000002" ->
-            {"controller", "controller"};
-        "000000000003" ->
-            {"computer", "linux server"};
-        "000000000004" ->
-            {"computer", "windows pc"};
-        "000000000005" ->
-            {"test", "test device"};
-        _ ->
-            {"undefined", "undefined"}
-    end.

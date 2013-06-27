@@ -16,7 +16,7 @@
                 client_id,
                 keep_alive_timer}).
 
--define(GRACE, 15000).
+-define(GRACE, 10000).
 
 %% ===================================================================
 %% API functions
@@ -70,19 +70,19 @@ handle_info(timeout, #state{lsocket = LSocket, socket = Socket0, parent = Parent
             {ok, {Address, Port}} = inet:peername(Socket),
             {ok, ConnectionTimeout} = application:get_env(connection_timout),
             {noreply, State#state{socket = Socket, ip = Address, port = Port}, ConnectionTimeout}; %% this socket must recieve the first message in Timeout seconds
-        Socket ->
+        _Socket ->
             case State#state.client_id of
                 undefined ->
                     %% no first package income yet
-                    Ip = State#state.ip,
-                    Port = State#state.port,
-                    {ok, ConnectionTimeout} = application:get_env(connection_timout),
-                    error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [Socket, Ip, Port, ConnectionTimeout]),
+                    _Ip = State#state.ip,
+                    _Port = State#state.port,
+                    {ok, _ConnectionTimeout} = application:get_env(connection_timout),
+                    %error_logger:info_msg("disconnected ~p ~p:~p because of the first message doesn't arrive in ~p milliseconds.~n", [_Socket, _Ip, _Port, _ConnectionTimeout]),
                     {stop, normal, State}; %% no message arrived in time so suicide
                 _ ->
-                    Ip = State#state.ip,
-                    Port = State#state.port,
-                    error_logger:info_msg("disconnected ~p ~p:~p because of the remote has no heartbeat.~n", [Socket, Ip, Port]),
+                    _Ip = State#state.ip,
+                    _Port = State#state.port,
+                    %error_logger:info_msg("disconnected ~p ~p:~p because of the remote has no heartbeat.~n", [_Socket, _Ip, _Port]),
                     {stop, normal, State} %% no message arrived in time so suicide
             end
     end;
@@ -93,7 +93,7 @@ handle_info({send_tcp_data, Data}, #state{socket = Socket} = State) ->
     {noreply, State, State#state.keep_alive_timer};
 
 handle_info(stop, State) ->
-    error_logger:info_msg("[~p] process ~p was stopped~n", [?MODULE, erlang:self()]),
+    %error_logger:info_msg("[~p] process ~p was stopped~n", [?MODULE, erlang:self()]),
     {stop, normal, State};
     
 handle_info(_Msg, State) ->
@@ -119,7 +119,7 @@ dispatch(handle_data, RawData, State) ->
     State2 = case State#state.client_id of
         undefined ->
             {ClientId, KeepAlivetimer, _, _} = mqtt_utils:extract_connect_info(RawData),
-            error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
+            %error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
             State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000 + ?GRACE};
         _ ->
             State

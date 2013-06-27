@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Device - Admin - Tools</title>
+			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+			<link type="text/css" rel="stylesheet" href="/css/admin/devices.css" />
+			<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
+			<script type="text/javascript" src="/js/lib/jquery.tmpl.min.js"></script>
+			<script type="text/javascript" src="/js/admin/devices.js"></script>
+		</head>
+		<body>
+			<h3>Devices</h3><a href="/">Home</a>
+			<hr/>
+			<div id="content">
+				<table border="0">
+			        <thead id="tableTitle">
+			            <tr>
+			                <td class="deviceId">Device Id</td>
+			                <td class="name">Name</td>
+			                <td class="userId">User Id</td>
+			                <td class="type">Type</td>
+			                <td class="action">Action</td>
+			            </tr>
+			        </thead>
+		            <tr>
+		                <td><input type="text" id="deviceIdSearchInput" class="textbox" placeholder="input to search device" /></td>
+		                <td><input type="text" id="nameSearchInput" class="textbox" placeholder="input to search name" /></td>
+		                <td><input type="text" id="userIdSearchInput" class="textbox" placeholder="input to search user" /></td>
+		                <td></td>
+		                <td><input id="clearSerachBtn" type="button" value="clear" /></td>
+		            </tr>
+			        <tbody id="devices"></tbody>
+			    </table>
+			</div>
+
+		
+			<script id="deviceTemplate" type="text/x-jquery-tmpl">
+				<tr class="device">
+					<td><input type="text" class="deviceId" class="textbox" value=${device_id} readonly="readonly"/></td>
+					<td><input type="text" class="name" class="textbox" value=${name}/></td>
+					<td><input type="text" class="userId" class="textbox" value=${user_id}/></td>
+					<td>
+	                	<select class="type">
+				        {{if type == 'undefined'}}
+				        	<option value="undefined" selected="selected">undefined</option>
+				        {{else}}
+				        	<option value="undefined">undefined</option>
+				        {{/if}}
+				        {{if type == 'main_mqtt_client'}}
+				        	<option value="main_mqtt_client" selected="selected">main mqtt client</option>
+				        {{else}}
+				        	<option value="main_mqtt_client">main mqtt client</option>
+				        {{/if}}	
+				        {{if type == 'controller'}}
+				        	<option value="controller" selected="selected">controller</option>
+				        {{else}}
+				        	<option value="controller">controller</option>
+				        {{/if}}	
+				        {{if type == 'computer'}}
+				        	<option value="computer" selected="selected">computer</option>
+				        {{else}}
+				        	<option value="computer">computer</option>
+				        {{/if}}	
+				        {{if type == 'test'}}
+				        	<option value="test" selected="selected">test</option>
+				        {{else}}
+				        	<option value="test">test</option>
+				        {{/if}}
+	                	</select></td>
+					<td><input class="saveBtn" type="button" value="save" /><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
+				</tr>
+			</script>
+		</body>
+	</html>

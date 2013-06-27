@@ -3,7 +3,7 @@
 -export([start/0, start_client/3]).
 
 -define(CONNECTION_TIMEOUT, 10000).
--define(KEEP_ALIVE_TIMER, 300).
+-define(KEEP_ALIVE_TIMER, 10).
 
 %% ===================================================================
 %% API functions

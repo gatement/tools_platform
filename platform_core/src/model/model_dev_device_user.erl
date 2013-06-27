@@ -109,13 +109,13 @@ is_have_permission(DeviceId, UserId) ->
 	case model_dev_device:get(DeviceId, UserId) of
 		error ->
 			false;
-		undefined ->			
+		undefined ->		
 			Fun = fun() -> 
 				qlc:e(qlc:q([X || X <- mnesia:table(dev_device_user),
 								  X#dev_device_user.device_id =:= DeviceId,
 								  X#dev_device_user.user_id =:= UserId]))
 			end,
-
+	
 			case mnesia:transaction(Fun) of
 		        {atomic, []} -> false;
 				{atomic, [_Model]} -> true;

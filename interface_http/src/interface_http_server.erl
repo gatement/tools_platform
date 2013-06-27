@@ -61,7 +61,8 @@ run() ->
                     {"/word/", rest_tool_word},
                     {"/note/", rest_tool_note},
                     {"/gallery/", rest_tool_gallery},
-                    {"/device/", rest_tool_device}
+                    {"/device/", rest_tool_device},
+                    {"/device_mgmt/", rest_device_mgmt}
     			 ]}],
 
     {ok, SCList, GC, ChildSpecs} = yaws_api:embedded_start_conf(DocRoot, SconfList, GconfList, Id),

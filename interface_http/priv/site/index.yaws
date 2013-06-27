@@ -33,8 +33,9 @@
 					IsAdmin =:= true ->
 						AdminHtml = "<a href=\"/admin/setting.yaws\">setting</a>"
 									" <a href=\"/admin/user.html\">users</a>"
-									" <a href=\"/admin/mqtt_subscription_mgmt.html\">mqtt_subscriptions</a>"
-									" <a href=\"/admin/mqtt_pub_permission_mgmt.html\">mqtt_pub_permissions</a>"
+									" <a href=\"/admin/mqtt_subscription.html\">mqtt_subscription</a>"
+									" <a href=\"/admin/mqtt_pub_permission.html\">mqtt_pub_permission</a>"
+									" <a href=\"/admin/devices.html\">device</a>"
 									"<hr/>";
 					true -> 
 						AdminHtml = ""

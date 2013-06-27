@@ -146,7 +146,7 @@ update_last_active(Id) ->
 
 get_socket_pid_by_socket_territory(SocketTerritory) ->
 	Fun = fun() -> 
-		qlc:e(qlc:q([{X#usr_session.id, X#usr_session.socket_pid} || X <- mnesia:table(usr_session), 
+		qlc:e(qlc:q([{X#usr_session.user_id, X#usr_session.socket_pid} || X <- mnesia:table(usr_session), 
 						X#usr_session.socket_territory =:= SocketTerritory]))
 	end,
 

@@ -1,11 +1,14 @@
 -module(model_dev_device).
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
--export([create/1, 
+-export([create/1,
+		update/4,
 		get/1,
 		get/2,
+		list/0,
 		all_keys/0,
-		update_user_id/2]).
+		update_user_id/2,
+		delete/1]).
 
 %% ===================================================================
 %% API functions
@@ -19,6 +22,27 @@ create(Model) ->
 	case mnesia:transaction(Fun) of
 		{atomic, ok} -> Model;
 		_ -> error
+	end.
+
+
+update(DeviceId, Name, UserId, Type) ->
+	Model = ?MODULE:get(DeviceId),
+	case Model of
+		error ->
+			erlang:exit(mnesia_error);
+		undefined ->
+			do_nothing;
+		_ ->
+			Model2 = Model#dev_device{name = Name, user_id = UserId, type = Type},
+
+			Fun = fun() ->
+				mnesia:write(Model2)	  
+			end,
+
+			case mnesia:transaction(Fun) of
+				{atomic, ok} -> Model2;
+				_ -> error
+			end
 	end.
 
 
@@ -48,6 +72,15 @@ get(DeviceId, UserId) ->
 	end.
 
 
+list() ->
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(dev_device)]))
+	end,
+
+	{atomic, Models} = mnesia:transaction(Fun),
+	Models.
+
+
 all_keys() ->
 	Fun = fun() ->
 		mnesia:all_keys(dev_device)
@@ -68,6 +101,16 @@ update_user_id(DeviceId, UserId) ->
 	end,
 
 	mnesia:transaction(Fun).
+
+
+delete(Id) ->
+	Fun = fun() ->
+			mnesia:delete({dev_device, Id})
+	end,
+	case mnesia:transaction(Fun) of
+		{atomic, ok} -> ok;
+		_ -> error
+	end.
 
 
 %% ===================================================================
