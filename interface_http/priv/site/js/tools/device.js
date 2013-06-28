@@ -112,16 +112,17 @@ if(!tp)
 			window.alert(data);
 		},
 
-		switch1_click: function(event)
+		switch_click: function(event)
 		{
 			var deviceId = $(event.target).parent().parent().attr("id");
+			var switchName = $(event.target).attr("data-id");
 			var status = 1;
 			if($(event.target).text() == "on")
 			{
 				status = 0;
 			}
 
-			this.update_switch_status(deviceId, "switch1", status);
+			this.update_switch_status(deviceId, switchName, status);
 		},
 
 		poweroff_click: function(event)
@@ -155,7 +156,7 @@ if(!tp)
 		{
 			var me = this;
 
-			$(".switch1").unbind().click(function(event){me.switch1_click(event)});
+			$(".switch").unbind().click(function(event){me.switch_click(event)});
 			$(".poweroff").unbind().click(function(event){me.poweroff_click(event)});
 			$(".restart").unbind().click(function(event){me.restart_click(event)});
 			$(".permission").unbind().click(function(event){me.permission_click(event)});

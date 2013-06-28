@@ -35,7 +35,7 @@
 									" <a href=\"/admin/user.html\">users</a>"
 									" <a href=\"/admin/mqtt_subscription.html\">mqtt_subscription</a>"
 									" <a href=\"/admin/mqtt_pub_permission.html\">mqtt_pub_permission</a>"
-									" <a href=\"/admin/devices.html\">device</a>"
+									" <a href=\"/admin/devices.html\">devices</a>"
 									"<hr/>";
 					true -> 
 						AdminHtml = ""
