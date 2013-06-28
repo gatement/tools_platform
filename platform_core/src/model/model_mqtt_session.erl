@@ -72,7 +72,7 @@ get_count() ->
 
 is_online(ClientId) ->
     case ?MODULE:get(ClientId) of
-    	error -> error;
+    	error -> false;
         undefined -> false;
         _ -> true
     end.

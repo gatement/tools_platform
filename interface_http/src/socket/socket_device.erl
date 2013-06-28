@@ -50,7 +50,8 @@ device_status_changed_notification(DeviceId) ->
             {"data", {struct, [
                 {"device_id", DeviceId}, 
                 {"type", Device#dev_device.type}, 
-                {"name", Device#dev_device.name}, 
+                {"name", Device#dev_device.name},
+                {"online", model_mqtt_session:is_online(DeviceId)},
                 {"permission", "shared"},
                 {"values", {struct, Values}}
             ]}}
@@ -75,8 +76,8 @@ update_socket(_Data, _UserId, UserSession) ->
     [{"success", true}, {"data", "ok."}].
 
 
-list_online_devices(_Data, UserId, _UserSession) ->
-    DeviceIds = model_dev_status:get_online_device_ids(UserId),
+list_devices(_Data, UserId, _UserSession) ->
+    DeviceIds = model_dev_status:get_device_ids(UserId),
 
     Fun = fun({Permission, DeviceId}) ->
         case DeviceId of
@@ -90,6 +91,7 @@ list_online_devices(_Data, UserId, _UserSession) ->
                         {"device_id", DeviceId}, 
                         {"type", Device#dev_device.type}, 
                         {"name", Device#dev_device.name},
+                        {"online", model_mqtt_session:is_online(DeviceId)},
                         {"permission", Permission},
                         {"values", {struct, Values}}
                 ]}

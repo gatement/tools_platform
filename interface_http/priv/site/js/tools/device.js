@@ -223,17 +223,17 @@ if(!tp)
 		},
 
 
-		list_online_devices: function()
+		list_devices: function()
 		{
 			var msg = {
-				cmd: "list_online_devices",
+				cmd: "list_devices",
 				sid: $.cookie(this.sessionCookieId),
 				data: ""
 			};
 		    this.socket_send_msg(msg);
 		},
 
-		list_online_devices_success: function(data) 
+		list_devices_success: function(data) 
 		{
 			var me = this;
 			
@@ -247,7 +247,7 @@ if(!tp)
 			this.bindEvents();
 		},
 
-		list_online_devices_error: function(data) 
+		list_devices_error: function(data) 
 		{
 			window.alert(data);
 		},
@@ -262,7 +262,7 @@ if(!tp)
 
 		display_device: function(data)
 		{			
-			if(data.values.online)
+			if(data.online)
 			{
 				if($("#"+data.device_id).size() === 0)
 				{
@@ -312,7 +312,7 @@ if(!tp)
 				// upate session to the new socket PID whenever connect(re-connect)
 				me.update_socket();
 
-				me.list_online_devices();
+				me.list_devices();
 			},
 			socket_on_message = function(msg)
 			{
