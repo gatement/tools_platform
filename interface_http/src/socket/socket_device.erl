@@ -104,16 +104,12 @@ list_devices(_Data, UserId, _UserSession) ->
 
 
 update_switch_status(Data, UserId, _UserSession) ->
-    {struct,[{"device_id", DeviceId},{"switch", Switch},{"status", Status}]} = Data,
+    {struct,[{"device_id", DeviceId},{"switch_id", SwitchId},{"status", Status}]} = Data,
     %io:format("~ndevice-id|switch|status: ~p|~p|~p~n~n", [DeviceId, Switch, Status]),
-
-    SwitchId = case Switch of
-        "switch1" -> 1
-    end,
 
     %% publish it
     Topic = lists:flatten(io_lib:format("/~s/switch_control", [DeviceId])),
-    PublishData = mqtt_cmd:switch_control(Topic, SwitchId, Status),
+    PublishData = mqtt_cmd:switch_control(Topic, erlang:list_to_integer(SwitchId), Status),
     mqtt_broker:publish("000000000001", Topic, "000000000001", UserId, PublishData),
 
     [{"success", true}, {"data", "ok."}].

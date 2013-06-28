@@ -115,14 +115,14 @@ if(!tp)
 		switch_click: function(event)
 		{
 			var deviceId = $(event.target).parent().parent().attr("id");
-			var switchName = $(event.target).attr("data-id");
+			var switchId = $(event.target).attr("data-id");
 			var status = 1;
 			if($(event.target).text() == "on")
 			{
 				status = 0;
 			}
 
-			this.update_switch_status(deviceId, switchName, status);
+			this.update_switch_status(deviceId, switchId, status);
 		},
 
 		poweroff_click: function(event)
@@ -184,12 +184,12 @@ if(!tp)
 		},
 
 
-		update_switch_status: function(deviceId, switchName, status) 
+		update_switch_status: function(deviceId, switchId, status) 
 		{
 			var msg = {
 				cmd: "update_switch_status",
 				sid: $.cookie(this.sessionCookieId),
-				data: {"device_id": deviceId, "switch": switchName, "status": status}
+				data: {"device_id": deviceId, "switch_id": switchId, "status": status}
 			};
 		    this.socket_send_msg(msg);
 		},

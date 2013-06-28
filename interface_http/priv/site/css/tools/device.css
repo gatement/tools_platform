@@ -9,9 +9,17 @@ body {
 	box-shadow: 0 0 5px #BBBBBB inset;
 	margin: 3px;
 	padding: 3px;
-	height: 85px;
 	width: 300px;
 	float: left;
+}
+.test{
+	height: 85px;
+}
+.computer{
+	height: 85px;	
+}
+.controller{
+	height: 120px;	
 }
 .deviceName{
 	margin-left: 18px;

@@ -73,7 +73,7 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     {Topic, _Payload} = mqtt_utils:extract_publish_msg(Data),
-    %error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, _SourcePid, Topic, _Payload]),    
+    error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, _SourcePid, Topic, _Payload]),    
 
     %% publish it to subscribers
     mqtt_broker:publish(ClientId, Topic, "000000000000", "", Data),

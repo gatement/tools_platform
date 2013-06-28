@@ -98,8 +98,22 @@ process_data_switch_status(ClientId, SwitchStatus) ->
         true ->
             "off"
     end,
+    Switch2 = if
+        (SwitchStatus band 2#00000010) =:= 1 ->
+            "on";
+        true ->
+            "off"
+    end,
+    Switch3 = if
+        (SwitchStatus band 2#00000100) =:= 1 ->
+            "on";
+        true ->
+            "off"
+    end,
 
     model_dev_status:update(ClientId, "switch1", Switch1),
+    model_dev_status:update(ClientId, "switch2", Switch1),
+    model_dev_status:update(ClientId, "switch3", Switch1),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
