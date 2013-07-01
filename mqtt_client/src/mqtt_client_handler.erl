@@ -56,8 +56,6 @@ process_data_online(ClientId, UserName) ->
             model_dev_device:update_user_id(ClientId, UserName)
     end,
 
-    model_dev_status:update(ClientId, "online", true),
-
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
 
@@ -66,8 +64,6 @@ process_data_online(ClientId, UserName) ->
 
 process_data_offline(ClientId) ->
     error_logger:info_msg("[~p] received [offline] data: ~p~n", [?MODULE, ClientId]),
-
-    model_dev_status:update(ClientId, "online", false),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
@@ -99,21 +95,21 @@ process_data_switch_status(ClientId, SwitchStatus) ->
             "off"
     end,
     Switch2 = if
-        (SwitchStatus band 2#00000010) =:= 1 ->
+        (SwitchStatus band 2#00000010) =:= 2 ->
             "on";
         true ->
             "off"
     end,
     Switch3 = if
-        (SwitchStatus band 2#00000100) =:= 1 ->
+        (SwitchStatus band 2#00000100) =:= 4 ->
             "on";
         true ->
             "off"
     end,
 
     model_dev_status:update(ClientId, "switch1", Switch1),
-    model_dev_status:update(ClientId, "switch2", Switch1),
-    model_dev_status:update(ClientId, "switch3", Switch1),
+    model_dev_status:update(ClientId, "switch2", Switch2),
+    model_dev_status:update(ClientId, "switch3", Switch3),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),

@@ -19,7 +19,7 @@ init(_) ->
 
 process_data_online(SourcePid, _Socket, Data, ClientId) ->
     {_, _, UserName, Password} = mqtt_utils:extract_connect_info(Data),
-    %error_logger:info_msg("process_data_online(~p): ~p, username: ~p, password: ~p~n", [ClientId, SourcePid, UserName, Password]),
+    %error_logger:info_msg("[~p] process_data_online(~p): ~p, username: ~p, password: ~p~n", [?MODULE, ClientId, SourcePid, UserName, Password]),
 
     case {UserName, Password} of
         {undefined, _} ->
@@ -73,7 +73,7 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     {Topic, _Payload} = mqtt_utils:extract_publish_msg(Data),
-    error_logger:info_msg("process_data_publish(~p) - ~p, Topic: ~p, Payload: ~p~n", [ClientId, _SourcePid, Topic, _Payload]),    
+    %error_logger:info_msg("[~p] process_data_publish(~p) topic: ~p, payload: ~p~n", [?MODULE, ClientId, Topic, _Payload]),    
 
     %% publish it to subscribers
     mqtt_broker:publish(ClientId, Topic, "000000000000", "", Data),
@@ -83,7 +83,7 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
 
 terminate(SourcePid, Socket, ClientId, Reason) ->
     model_mqtt_session:delete_by_pid(SourcePid),
-    %error_logger:info_msg("deleted mqtt session by pid: ~p~n", [SourcePid]), 
+    %error_logger:info_msg("[~p] deleted mqtt session by pid: ~p~n", [?MODULE, SourcePid]), 
 
     {SendDisconnect, PublishOffline} = case Reason of
         %% no data come in after TCP was created
