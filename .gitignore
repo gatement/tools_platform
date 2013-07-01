@@ -3,6 +3,7 @@
 *.beam
 *.plt
 *.*~
+*.swp
 ebin
 deps
 interface_http/priv/site/rrdtool_img

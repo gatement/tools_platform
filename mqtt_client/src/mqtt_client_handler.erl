@@ -38,7 +38,7 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
 %% ===================================================================
 
 process_data_online(ClientId, UserName) ->
-    error_logger:info_msg("[~p] received [online] data: ~p~n", [?MODULE, ClientId]),
+    %error_logger:info_msg("[~p] received [online] data: ~p~n", [?MODULE, ClientId]),
 
     %% check if device exist, if not, create it
     case model_dev_device:get(ClientId) of
@@ -63,7 +63,7 @@ process_data_online(ClientId, UserName) ->
 
 
 process_data_offline(ClientId) ->
-    error_logger:info_msg("[~p] received [offline] data: ~p~n", [?MODULE, ClientId]),
+    %error_logger:info_msg("[~p] received [offline] data: ~p~n", [?MODULE, ClientId]),
 
     %% push status to clients
     socket_device:device_status_changed_notification(ClientId),
@@ -75,7 +75,7 @@ process_data_uptime(ClientId, Uptime) ->
     %% convert it to minutes
     Uptime2 = Uptime div 60,
 
-    error_logger:info_msg("[~p] received [uptime] data: ~p - ~p minutes~n", [?MODULE, ClientId, Uptime2]),
+    %error_logger:info_msg("[~p] received [uptime] data: ~p - ~p minutes~n", [?MODULE, ClientId, Uptime2]),
 
     model_dev_status:update(ClientId, "uptime", Uptime2),
 
@@ -86,7 +86,7 @@ process_data_uptime(ClientId, Uptime) ->
 
 
 process_data_switch_status(ClientId, SwitchStatus) ->
-    error_logger:info_msg("[~p] received [switch status] data: ~p - ~p~n", [?MODULE, ClientId, SwitchStatus]),
+    %error_logger:info_msg("[~p] received [switch status] data: ~p - ~p~n", [?MODULE, ClientId, SwitchStatus]),
 
     Switch1 = if
         (SwitchStatus band 2#00000001) =:= 1 ->
