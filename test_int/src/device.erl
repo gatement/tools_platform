@@ -1,5 +1,5 @@
 -module(device).
--include("../../mqtt_broker/include/mqtt.hrl").
+-include("../../apps/mqtt_broker/include/mqtt.hrl").
 -export([start/0, start_client/3]).
 
 -define(CONNECTION_TIMEOUT, 10000).
@@ -10,14 +10,14 @@
 %% ===================================================================
 
 start() ->
-    client:start(),
+    test_int:start(),
 
-    {ok, ServerHost} = application:get_env(client, server_host),
-    {ok, ServerPort} = application:get_env(client, server_port),
-    {ok, ClientCountInit} = application:get_env(client, client_count_init),
-    {ok, ClientCountTotal} = application:get_env(client, client_count_total),
-    {ok, ClientCreatingInterval} = application:get_env(client, client_creating_interval),
-    {ok, MacBase} = application:get_env(client, mac_base),
+    {ok, ServerHost} = application:get_env(test_int, server_host),
+    {ok, ServerPort} = application:get_env(test_int, server_port),
+    {ok, ClientCountInit} = application:get_env(test_int, client_count_init),
+    {ok, ClientCountTotal} = application:get_env(test_int, client_count_total),
+    {ok, ClientCreatingInterval} = application:get_env(test_int, client_creating_interval),
+    {ok, MacBase} = application:get_env(test_int, mac_base),
 
     error_logger:info_msg("connecting to ~p server - ~s:~p~n", [?MODULE, ServerHost, ServerPort]),
     
@@ -30,8 +30,8 @@ start_client(ServerHost, ServerPort, ClientId) ->
             error_logger:info_msg("client===============================> ~p~n", [ClientId]), 
 
             %% send CONNECT
-            {ok, UserName} = application:get_env(client, username),
-            {ok, Password} = application:get_env(client, password),
+            {ok, UserName} = application:get_env(test_int, username),
+            {ok, Password} = application:get_env(test_int, password),
             ConnectData = mqtt:build_connect(ClientId, ?KEEP_ALIVE_TIMER, UserName, Password),
             error_logger:info_msg("sending CONNECT: ~p~n", [ConnectData]),
             gen_tcp:send(Socket, ConnectData),
@@ -43,7 +43,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
 
                     case mqtt_utils:is_connack_success(Msg) of
                         true ->            
-                            case application:get_env(client, run_mode) of
+                            case application:get_env(test_int, run_mode) of
                                 {ok, once} ->
                                     DisconnectData = mqtt:build_disconnect(),
                                     gen_tcp:send(Socket, DisconnectData),
@@ -54,7 +54,7 @@ start_client(ServerHost, ServerPort, ClientId) ->
                                     error_logger:info_msg("=================================================> pass~n", []),
                                     init:stop();
                                 {ok, live} ->
-                                    {ok, DataSendingInterval} = application:get_env(client, data_sending_interval),
+                                    {ok, DataSendingInterval} = application:get_env(test_int, data_sending_interval),
                                     client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, false)
                             end;
                         false ->
@@ -133,7 +133,7 @@ client_loop(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, SendD
 
 
 reconnect(ServerHost, ServerPort, ClientId, Reason) ->
-    {ok, ReconnectWaitTime} = application:get_env(client, reconnect_wait_time),
+    {ok, ReconnectWaitTime} = application:get_env(test_int, reconnect_wait_time),
     timer:sleep(ReconnectWaitTime),
 
     error_logger:info_msg("reconnecting because of ~p ~p~n", [Reason, erlang:self()]),

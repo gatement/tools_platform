@@ -1,4 +1,4 @@
-{application, client,
+{application, test_int,
  [
   {description, "a test client for mqtt_broker"},
   {vsn, "0.1.0"},

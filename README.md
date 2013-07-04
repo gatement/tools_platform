@@ -19,12 +19,8 @@ A platform that runs multiform tools.
 Move file `priv/conf/local.config.sample` to root with name `local.config` and update the settings in it to proper values.
 
 ## Setup/update database
-Startup with interactive mode, then execute "db_schema:up().". 
+Startup with interactive mode, then execute `db_schema:setup().` to setup for the first time or execute `db_schema:up().` to update. 
 
 ## Run
 Please take the file `run.bat` as an example of starting up the service. 
-
-## Deployment
-* Delete tables by "mnesia:delete_table(table_name).": dev_device, dev_session, dev_status, dev_data
-* Run "db_schema:up()." to do "create_mqtt_schema", "create_device_schema", "add_mqtt_main_client_subscription“"
 

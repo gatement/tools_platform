@@ -1,4 +1,4 @@
--module(client).
+-module(test_int).
 -export([start/0]).
 
 
@@ -7,7 +7,7 @@
 %% ===================================================================
 
 start() ->
-    application:start(client).
+    application:start(test_int).
 
 
 %% ===================================================================

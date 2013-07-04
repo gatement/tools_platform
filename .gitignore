@@ -6,8 +6,8 @@
 *.swp
 ebin
 deps
-interface_http/priv/site/rrdtool_img
-interface_http/priv/upload
+apps/interface_http/priv/site/rrdtool_img
+apps/interface_http/priv/upload
 priv/log
 priv/data
 local_linux.config
