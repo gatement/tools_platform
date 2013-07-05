@@ -25,7 +25,7 @@ run() ->
 
     PrivDir = code:priv_dir(interface_http),
     DocRoot = PrivDir ++ "/site",
-    LogDir = PrivDir ++ "/../../priv/log",
+    LogDir = PrivDir ++ "/../../../priv/log",
     IncludeDir1 = PrivDir ++ "/../include",
     IncludeDir2 = PrivDir ++ "/../../platform_core/include",
 
