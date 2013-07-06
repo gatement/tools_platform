@@ -4,8 +4,7 @@
 -export([get/2, 
         update/3,
         get_by_key/2,
-        get_all_values_by_deviceId/1, 
-        get_device_ids/1]).
+        get_all_values_by_deviceId/1]).
 
 
 %% ===================================================================
@@ -87,24 +86,6 @@ get_all_values_by_deviceId(DeviceId) ->
     {atomic, Models} = mnesia:transaction(ReadFun),
 
     [{X#dev_status.key, X#dev_status.value} || X <- Models].
-
-
-get_device_ids(UserId) ->
-    ReadFun = fun() ->
-        lists:append(
-            qlc:e(qlc:q([{"shared", S#dev_status.device_id} || S <- mnesia:table(dev_status), 
-                          U <- mnesia:table(dev_device_user), 
-                          U#dev_device_user.device_id =:= S#dev_status.device_id,
-                          U#dev_device_user.user_id =:= UserId])),
-            qlc:e(qlc:q([{"owner", S#dev_status.device_id} || S <- mnesia:table(dev_status), 
-                          D <- mnesia:table(dev_device), 
-                          D#dev_device.device_id =:= S#dev_status.device_id,
-                          D#dev_device.user_id =:= UserId]))
-        )
-    end,
-    
-    {atomic, DeviceIds} = mnesia:transaction(ReadFun),
-    DeviceIds.
 
 
 %% ===================================================================

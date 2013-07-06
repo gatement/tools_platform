@@ -71,9 +71,11 @@ no_auth_paths() ->
 	"/css/forgot_password.css",
 	"/js/forgot_password.js",
 	"/user/session",
+	"/user/session/jsonp",
 	"/user/login",
 	"/user/add",
-	"/user/password/reset"
+	"/user/password/reset",
+	"/device/socket"
 	 ].
 
 

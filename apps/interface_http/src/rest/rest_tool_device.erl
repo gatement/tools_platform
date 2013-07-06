@@ -9,20 +9,23 @@
 %% ===================================================================
 
 out(Arg) ->
-	UserId = (Arg#arg.state)#arg_state.user_id,
-	DeviceEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_DEVICE_ENABLED),
-
-	case DeviceEnabled of
-		true ->
-			case Arg#arg.pathinfo of
-				undefined -> 
-					device_html();
-				_ -> 
-					out(Arg, string:tokens(Arg#arg.pathinfo, "/"), UserId)
-			end;
-
-		false -> 
-			{status, 404}
+	case Arg#arg.pathinfo of
+		undefined -> 
+			device_html();
+		_ -> 
+			case string:tokens(Arg#arg.pathinfo, "/") of
+				["socket"] ->
+					web_socket(Arg);
+				Paths ->
+					UserId = (Arg#arg.state)#arg_state.user_id,
+					DeviceEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_DEVICE_ENABLED),
+					case DeviceEnabled of
+						true ->
+							out(Arg, Paths, UserId);
+						false -> 
+							{status, 404}
+					end
+			end
 	end.
 
 
@@ -30,12 +33,12 @@ out(Arg) ->
 %% Web API
 %% ===================================================================
 
-out(_Arg, ["socket"], _UserId) ->
+web_socket(_Arg) ->
 	%{_, _, _, _, HostWithProtocal} = lists:keyfind("Origin", 3, (Arg#arg.headers)#headers.other),
     %Opts = [{origin, HostWithProtocal}],
     Opts = [],
 	CallbackMod = socket_device,    
-    {websocket, CallbackMod, Opts};
+    {websocket, CallbackMod, Opts}.
 
 
 out(_Arg, _, _UserId) ->

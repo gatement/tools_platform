@@ -277,12 +277,34 @@ out(Arg, ["search"]) ->
 	end;
 
 
+out(Arg, ["session", "jsonp"]) ->
+	Vals = yaws_api:parse_query(Arg),
+	Id = proplists:get_value("id", Vals),
+	Pwd = proplists:get_value("pwd", Vals),
+	Callback = proplists:get_value("callback", Vals),
+	
+	Result = json2:encode({struct, get_session(Id, Pwd)}),
+	Result2 = io_lib:format("~s(~s);", [Callback, Result]),
+
+	{content, "application/json", Result2};
+
+
 out(Arg, ["session"]) ->
 	Vals = yaws_api:parse_post(Arg),
 	Id = proplists:get_value("id", Vals),
 	Pwd = proplists:get_value("pwd", Vals),
 	
-	Result = case model_usr_user:get(Id, Pwd) of
+	Result = get_session(Id, Pwd),
+
+	{content, "application/json", json2:encode({struct, Result})};
+
+
+out(_Arg, _) ->
+	{status, 404}.
+
+
+get_session(Id, Pwd) ->
+	case model_usr_user:get(Id, Pwd) of
 		[] ->
 			[{"success", false}, {"data", "Failed to create session."}];
 
@@ -298,14 +320,7 @@ out(Arg, ["session"]) ->
 											             user_name=User#usr_user.name}),
 			
 			[{"success", true}, {"data", SessionId}]
-	end,
-
-	{content, "application/json", json2:encode({struct, Result})};
-
-
-out(_Arg, _) ->
-	{status, 404}.
-
+	end.
 
 
 logout(Arg) ->

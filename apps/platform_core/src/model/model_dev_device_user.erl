@@ -6,7 +6,8 @@
 		list/2,
 		exist/2,
 		delete/2,
-		is_have_permission/2]).
+		is_have_permission/2,
+		get_device_ids/1]).
 
 %% ===================================================================
 %% API functions
@@ -124,6 +125,22 @@ is_have_permission(DeviceId, UserId) ->
 		_ ->
 			true
 	end.
+
+
+get_device_ids(UserId) ->
+    ReadFun = fun() ->
+        lists:append(
+            qlc:e(qlc:q([{"shared", D#dev_device.device_id} || D <- mnesia:table(dev_device), 
+                          U <- mnesia:table(dev_device_user), 
+                          U#dev_device_user.device_id =:= D#dev_device.device_id,
+                          U#dev_device_user.user_id =:= UserId])),
+            qlc:e(qlc:q([{"owner", D#dev_device.device_id} || D <- mnesia:table(dev_device), 
+                          D#dev_device.user_id =:= UserId]))
+        )
+    end,
+    
+    {atomic, DeviceIds} = mnesia:transaction(ReadFun),
+    DeviceIds.
 
 
 %% ===================================================================

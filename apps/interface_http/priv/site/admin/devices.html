@@ -51,15 +51,20 @@
 				        {{else}}
 				        	<option value="main_mqtt_client">main mqtt client</option>
 				        {{/if}}	
-				        {{if type == 'controller'}}
-				        	<option value="controller" selected="selected">controller</option>
+				        {{if type == 'arduino'}}
+				        	<option value="arduino" selected="selected">arduino</option>
 				        {{else}}
-				        	<option value="controller">controller</option>
+				        	<option value="arduino">arduino</option>
 				        {{/if}}	
-				        {{if type == 'computer'}}
-				        	<option value="computer" selected="selected">computer</option>
+				        {{if type == 'windows'}}
+				        	<option value="windows" selected="selected">windows</option>
 				        {{else}}
-				        	<option value="computer">computer</option>
+				        	<option value="windows">windows</option>
+				        {{/if}}	
+				        {{if type == 'linux'}}
+				        	<option value="linux" selected="selected">linux</option>
+				        {{else}}
+				        	<option value="linux">linux</option>
 				        {{/if}}	
 				        {{if type == 'test'}}
 				        	<option value="test" selected="selected">test</option>

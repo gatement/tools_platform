@@ -16,7 +16,8 @@
 		record_to_list/2,
 		is_pid_alive/1,
 		debug_log/1,
-		debug_log/2]).
+		debug_log/2,
+		show_table/1]).
 		
 -vsn("0.1.3").
 
@@ -184,6 +185,11 @@ debug_log(Formater, Data) ->
 	end,
 	ok.
 
+
+show_table(TableName) ->
+	AllKeys = mnesia:dirty_all_keys(TableName),
+	Records = [mnesia:dirty_read(TableName, Key) || Key <- AllKeys],
+	io:format("Records:~n~p~n", [Records]).
 
 %% ===================================================================
 %% Local Functions

@@ -16,8 +16,6 @@ handle_message({text, Request}) ->
 
     {ok, {struct, [{"cmd", Cmd}, {"sid", SessionId}, {"data", Data}]}} = json2:decode_string(Text),
 
-    model_usr_session:update_last_active(SessionId),
-
     Response = case model_usr_session:get(SessionId) of
         error ->
             [{"success", false}, {"data", "Bad session, please re-login."}];
@@ -25,8 +23,16 @@ handle_message({text, Request}) ->
             [{"success", false}, {"data", "Bad session, please re-login."}];
         [UserSession] ->
             UserId = UserSession#usr_session.user_id,
-            Function = erlang:list_to_atom(Cmd),
-            erlang:apply(?MODULE, Function, [Data, UserId, UserSession])
+            DeviceEnabled = model_usr_preference:get(UserId, ?USR_PREFERENCE_DEVICE_ENABLED),
+            case DeviceEnabled of
+                true ->
+                    model_usr_session:update_last_active(SessionId),
+                    Function = erlang:list_to_atom(Cmd),
+                    erlang:apply(?MODULE, Function, [Data, UserId, UserSession]);
+
+                false -> 
+                    [{"success", false}, {"data", "user has no device subscription."}]
+            end
     end,
 
     %io:format("Function result: ~p~n", [Response]),
@@ -77,7 +83,7 @@ update_socket(_Data, _UserId, UserSession) ->
 
 
 list_devices(_Data, UserId, _UserSession) ->
-    DeviceIds = model_dev_status:get_device_ids(UserId),
+    DeviceIds = model_dev_device_user:get_device_ids(UserId),
 
     Fun = fun({Permission, DeviceId}) ->
         case DeviceId of

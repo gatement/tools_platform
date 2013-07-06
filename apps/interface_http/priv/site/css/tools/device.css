@@ -15,10 +15,13 @@ body {
 .test{
 	height: 85px;
 }
-.computer{
+.windows{
 	height: 85px;	
 }
-.controller{
+.linux{
+	height: 85px;	
+}
+.arduino{
 	height: 120px;	
 }
 .deviceName{
