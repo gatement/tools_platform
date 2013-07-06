@@ -142,7 +142,8 @@ reconnect(ServerHost, ServerPort, ClientId, Reason) ->
 
 get_status_data(ClientId) ->
     Status = 2#00000001,
-    mqtt_cmd:switch_status(ClientId, Status).
+	{_, Data} = mqtt_cmd:switch_status(ClientId, Status),
+	Data.
 
 
 handle_packages(Socket, ServerHost, ServerPort, ClientId, DataSendingInterval, <<>>) ->

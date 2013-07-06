@@ -14,14 +14,6 @@
 -define(PINGRESP,    13).
 -define(DISCONNECT,  14).
 
-%% COMMAND
--define(CMD_ONLINE,          1).
--define(CMD_OFFLINE,         2).
--define(CMD_SWITCH_STATUS,   3).
--define(CMD_SWITCH_CONTROL,  4).
--define(CMD_SEND_COMMAND,    5).
--define(CMD_UPTIME,          6).
-
 
 %% CONNACK CODE
 -define(ACCEPTED,                    0).
@@ -30,3 +22,14 @@
 -define(SERVER_UNAVAILABLE,          3).
 -define(BAD_USERNAME_OR_PASSWORD,    4).
 -define(NOT_AUTHORIZED,              5).
+
+
+%% COMMAND
+-define(CMD_ONLINE,				1).
+-define(CMD_OFFLINE,			2).
+-define(CMD_SWITCH_STATUS,		3).
+-define(CMD_SWITCH_CONTROL,		4).
+-define(CMD_SEND_COMMAND,		5).
+-define(CMD_UPTIME,				6).
+
+

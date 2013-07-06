@@ -60,8 +60,8 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
                     send_connack(SourcePid, ?ACCEPTED),
 
                     %% publish client online(including IP) notice to subscribers
-                    PublishData = mqtt_cmd:online(ClientId, UserName),
-                    mqtt_broker:publish(ClientId, "#", "000000000000", "", PublishData),
+					{Topic, PublishData} = mqtt_cmd:online(ClientId, UserName),
+                    mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData),
 
                     %% subscribe any PUBLISH starts with "/ClientId/"  
                     subscribe_any_publish_to_me(ClientId)        
@@ -112,8 +112,8 @@ terminate(SourcePid, Socket, ClientId, Reason) ->
         false ->
             do_nothing;
         true ->
-            PublishData = mqtt_cmd:offline(ClientId),
-            mqtt_broker:publish(ClientId, "#", "000000000000", "", PublishData)
+			{Topic, PublishData} = mqtt_cmd:offline(ClientId),
+            mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData)
     end,
 
     ok.
