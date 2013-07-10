@@ -60,16 +60,21 @@ run() ->
     yaws_api:setconf(GCHttp, SCListHttp),
 
 	%% HTTPS
-    IdHttps = "tools_platform_https",
-	Ssl = #ssl{
-		keyfile = KeyFile,
-		certfile = CertFile
-	},
-	GconfListHttps = [{id, IdHttps} | GconfList],
-	SconfListHttps = lists:append([{port, HttpsPort}, {ssl, Ssl}], SconfList), 
+	case KeyFile of
+		[] ->
+			do_not_start;
+		_ ->
+			IdHttps = "tools_platform_https",
+			Ssl = #ssl{
+				keyfile = KeyFile,
+				certfile = CertFile
+			},
+			GconfListHttps = [{id, IdHttps} | GconfList],
+			SconfListHttps = lists:append([{port, HttpsPort}, {ssl, Ssl}], SconfList), 
 
-    {ok, SCListHttps, GCHttps, ChildSpecsHttps} = yaws_api:embedded_start_conf(DocRoot, SconfListHttps, GconfListHttps, IdHttps),
-    [supervisor:start_child(interface_http_sup, Ch) || Ch <- ChildSpecsHttps],
-    yaws_api:setconf(GCHttps, SCListHttps),
+			{ok, SCListHttps, GCHttps, ChildSpecsHttps} = yaws_api:embedded_start_conf(DocRoot, SconfListHttps, GconfListHttps, IdHttps),
+			[supervisor:start_child(interface_http_sup, Ch) || Ch <- ChildSpecsHttps],
+			yaws_api:setconf(GCHttps, SCListHttps)
+	end,
 
 	ok.
