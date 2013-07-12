@@ -484,6 +484,8 @@ if(!tp)
 		{
 			var me = this;
 
+			width = window.parseInt(width);
+			height = window.parseInt(height);
 		    var data = {note_id: noteId, width: width, height: height};
 
 			var successFunc = function(data) { };
