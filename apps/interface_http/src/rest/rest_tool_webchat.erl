@@ -21,8 +21,9 @@ out(Arg) ->
 %% Local Functions
 %% ===================================================================
 out(Arg, ["index"]) ->
-	io:format("/webchat/index:~p~n", [Arg]),
-	{html, "good"};
+	Body = erlang:binary_to_list(Arg#arg.clidata),
+	io:format("/webchat/index:~p~n", [Body]),
+	{html, "good2"};
 	
 out(_Arg, _) ->
 	{status, 404}.
