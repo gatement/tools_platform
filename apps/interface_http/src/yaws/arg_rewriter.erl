@@ -75,7 +75,8 @@ no_auth_paths() ->
 	"/user/login",
 	"/user/add",
 	"/user/password/reset",
-	"/device/socket"
+	"/device/socket",
+	"/webchat/index"
 	 ].
 
 

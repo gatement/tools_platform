@@ -63,7 +63,8 @@ run() ->
 				{"/note/", rest_tool_note},
 				{"/gallery/", rest_tool_gallery},
 				{"/device/", rest_tool_device},
-				{"/device_mgmt/", rest_device_mgmt}
+				{"/device_mgmt/", rest_device_mgmt},
+				{"/webchat/", rest_tool_webchat}
 			]}
 	],
 
