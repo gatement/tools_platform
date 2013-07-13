@@ -42,27 +42,63 @@ out(Arg, ["index"]) ->
 	Content = ContentText#xmlText.value,
 	io:format("Content:~p~n", [Content]),
 
-	case Content of
-		"1" ->
+	case string:to_lower(Content) of
+		"do" ->
 			DeviceId = "000000000010",
 			SwitchId = 1,
 			Val = 1,
 			change_switch_status(DeviceId, SwitchId, Val);
-		"2" ->
+		"df" ->
 			DeviceId = "000000000010",
 			SwitchId = 1,
 			Val = 0,
 			change_switch_status(DeviceId, SwitchId, Val);
-		"5" ->
+		"aao" ->
+			DeviceId = "000000000002",
+			SwitchId = 1,
+			Val = 1,
+			change_switch_status(DeviceId, SwitchId, Val);
+		"aaf" ->
+			DeviceId = "000000000002",
+			SwitchId = 1,
+			Val = 0,
+			change_switch_status(DeviceId, SwitchId, Val);
+		"abo" ->
 			DeviceId = "000000000002",
 			SwitchId = 2,
 			Val = 1,
 			change_switch_status(DeviceId, SwitchId, Val);
-		"6" ->
+		"abf" ->
 			DeviceId = "000000000002",
 			SwitchId = 2,
 			Val = 0,
 			change_switch_status(DeviceId, SwitchId, Val);
+		"aco" ->
+			DeviceId = "000000000002",
+			SwitchId = 3,
+			Val = 1,
+			change_switch_status(DeviceId, SwitchId, Val);
+		"acf" ->
+			DeviceId = "000000000002",
+			SwitchId = 3,
+			Val = 0,
+			change_switch_status(DeviceId, SwitchId, Val);
+		"wf" ->
+			DeviceId = "000000000003",
+			Cmd = "poweroff",
+			send_command(DeviceId, Cmd);
+		"wr" ->
+			DeviceId = "000000000003",
+			Cmd = "restart",
+			send_command(DeviceId, Cmd);
+		"lf" ->
+			DeviceId = "000000000004",
+			Cmd = "poweroff",
+			send_command(DeviceId, Cmd);
+		"lr" ->
+			DeviceId = "000000000004",
+			Cmd = "restart",
+			send_command(DeviceId, Cmd);
 		_ ->
 			do_nothing
 	end,
@@ -80,14 +116,20 @@ change_switch_status(DeviceId, SwitchId, Val) ->
 	mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData).
 
 
+send_command(DeviceId, Cmd) ->
+	UserId = "admin",
+	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
+    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData).
+
+
 get_response_data(FromUserName, ToUserName) ->
 	{ok, TrustList} = application:get_env(webchat_trust_list),
 	Trusted = lists:any(fun(Ele)->  Ele =:= FromUserName end, TrustList),
 
-	Content0 = "Conmand list:\n[0] get status\n[1] demo switch1 on\n[2] demo switch1 off",
+	Content0 = "Conmand list:\n[s] get status\n[do] demo switch1 on\n[df] demo switch1 off",
 	Content1 = case Trusted of
 		true ->
-			"\n[3] windows pc on\n[4] windows pc off\n[5] switch1 on\n[6] switch1 off\n\[7] switch2 on\n[8] switch2 off";
+			"\n[aao] windows pc on\n[aaf] windows pc off\n[abo] switch1 on\n[abf] switch1 off\n\[aco] switch2 on\n[acf] switch2 off\n[wf] windows pc poweroff\n[wr] windows pc reboot\n[lf] linux poweroff\n[lr] linux reboot";
 		false ->
 			""
 	end,	
