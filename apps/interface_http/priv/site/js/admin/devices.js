@@ -105,7 +105,7 @@ function search_by_user_id()
 
 function search_devices(key, field)
 {
-	$devices = $(".device");
+	$devices = $(".device:visible");
 	for(var i = 0; i < $devices.length; i++)
 	{
 		var $device = $($devices[i]);
@@ -192,12 +192,12 @@ $(document).ready(function() {
 		clear_search();
 	});
 
-	$("body").keypress(function(arg){
-		if(arg.keyCode === 27)
+	$(document).keydown(function(event) 
+	{ 
+		if(event.keyCode == 27)
 		{
 			clear_search();
 		}
-
 	});
 
 	load_devices();

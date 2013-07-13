@@ -56,9 +56,9 @@ function add_pub_permission()
 	var clientId = $.trim($("#clientIdAddInput").val());
 	var userId = $.trim($("#userIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
-	if(clientId === "" || topic === "")
+	if(clientId === "" || userId === "" || topic === "")
 	{
-		window.alert("Client Id, Topic, Qos are required to create a subscription.");
+		window.alert("client id, user id and topic are required to create a permission.");
 	}
 	else
 	{
@@ -111,7 +111,7 @@ function search_by_desc()
 
 function search_pub_permissions(key, field)
 {
-	$subPermissions = $(".pubPermission");
+	$subPermissions = $(".pubPermission:visible");
 	for(var i = 0; i < $subPermissions.length; i++)
 	{
 		var $subPermission = $($subPermissions[i]);
@@ -132,7 +132,7 @@ function clear_search()
 	$("#userIdSearchInput").val("");
 	$("#topicSearchInput").val("");
 	$("#descSearchInput").val("");
-	$(".subPermission").show();
+	$(".pubPermission").show();
 }
 
 function delete_pub_permission(event)
@@ -205,16 +205,16 @@ $(document).ready(function() {
 		add_pub_permission();
 	});
 
-	$("body").keypress(function(arg){
-		if(arg.keyCode === 13)
-		{
+	$(document).keydown(function(event) 
+	{ 
+		if(event.keyCode == 13) 
+		{ 
 			add_pub_permission();
 		}
-		else if(arg.keyCode === 27)
+		else if(event.keyCode == 27)
 		{
 			clear_search();
 		}
-
 	});
 
 	load_pub_permissions();

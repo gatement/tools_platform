@@ -56,9 +56,9 @@ function add_subscription()
 	var clientId = $.trim($("#clientIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
 	var qos = $.trim($("#qosAddInput").val());
-	if(clientId === "" || topic === "")
+	if(clientId === "" || topic === "" || qos === "")
 	{
-		window.alert("Client Id, Topic, Qos are required to create a subscription.");
+		window.alert("client id, topic and qos are required to create a subscription.");
 	}
 	else
 	{
@@ -69,8 +69,9 @@ function add_subscription()
 
 		var successFunc = function(result)
 		{
-			$("#clientAddInput").val("");
+			$("#clientIdAddInput").val("");
 			$("#topicAddInput").val("");
+			$("#qosAddInput").val("");
 			$("#descAddInput").val("");
 			load_subscriptions();
 		};
@@ -104,7 +105,7 @@ function search_by_desc()
 
 function search_subscriptions(key, field)
 {
-	$subscriptions = $(".subscription");
+	$subscriptions = $(".subscription:visible");
 	for(var i = 0; i < $subscriptions.length; i++)
 	{
 		var $subscription = $($subscriptions[i]);
@@ -194,16 +195,16 @@ $(document).ready(function() {
 		add_subscription();
 	});
 
-	$("body").keypress(function(arg){
-		if(arg.keyCode === 13)
-		{
+	$(document).keydown(function(event) 
+	{ 
+		if(event.keyCode == 13) 
+		{ 
 			add_subscription();
 		}
-		else if(arg.keyCode === 27)
+		else if(event.keyCode == 27)
 		{
 			clear_search();
 		}
-
 	});
 
 	load_subscriptions();

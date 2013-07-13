@@ -22,7 +22,7 @@
 
     {imagemagick_exe, "C:/dev/ImageMagick-6.8.5-Q16/convert.exe"},
 
-	{webchat_trust_list, [""]}
+	{webchat_user_binding, [{"WebchatOpenId", "userId"}]}
 	]},
   {mod, {interface_http_app, []}}
  ]}.

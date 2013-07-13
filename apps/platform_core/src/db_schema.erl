@@ -65,6 +65,12 @@ init_base_data() ->
 		                        email = "gatement@gmail.com",
 		                        enabled = true,
 		                        admin = true}),
+	model_usr_user:create(#usr_user{id = "anonymous", 
+		                        password = "anonymous", 
+		                        name = "Guest", 
+		                        email = "gatement@gmail.com",
+		                        enabled = true,
+		                        admin = false}),
 
 	% default gbl_setting
 	model_gbl_setting:set(?GBL_SETTING_EMAIL, "gatement@gmail.com"),
