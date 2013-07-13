@@ -502,7 +502,7 @@ if(!tp)
 		{
 			var me = this;
 
-			var left = window.parseInt(left);
+			left = window.parseInt(left);
 		    var data = {note_id: noteId, left: left, top: top};
 
 			var successFunc = function(data) { };
