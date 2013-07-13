@@ -24,6 +24,9 @@ body {
 .arduino{
 	height: 120px;	
 }
+.arduino-wifi{
+	height: 85px;	
+}
 .deviceName{
 	margin-left: 18px;
 }
