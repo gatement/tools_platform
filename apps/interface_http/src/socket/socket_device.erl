@@ -83,52 +83,15 @@ update_socket(_Data, _UserId, UserSession) ->
 
 
 list_devices(_Data, UserId, _UserSession) ->
-    DeviceIds = model_dev_device_user:get_device_ids(UserId),
-
-    Fun = fun({Permission, DeviceId}) ->
-        case DeviceId of
-            "000000000001" ->
-                ignore;
-            _ ->
-                Device = model_dev_device:get(DeviceId),
-                Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
-
-                {struct, [
-                        {"device_id", DeviceId}, 
-                        {"type", Device#dev_device.type}, 
-                        {"name", Device#dev_device.name},
-                        {"online", model_mqtt_session:is_online(DeviceId)},
-                        {"permission", Permission},
-                        {"values", {struct, Values}}
-                ]}
-        end
-    end,
-
-    Devices = [Fun(X) || X <- DeviceIds],
-
-    [{"success", true}, {"data", {array, Devices}}].
+	rest_tool_device:list_devices(UserId).
 
 
 update_switch_status(Data, UserId, _UserSession) ->
-    {struct,[{"device_id", DeviceId},{"switch_id", SwitchId},{"status", Status}]} = Data,
-    %io:format("~ndevice-id|switch|status: ~p|~p|~p~n~n", [DeviceId, Switch, Status]),
-
-    %% publish it
-	{Topic, PublishData} = mqtt_cmd:switch_control(DeviceId, erlang:list_to_integer(SwitchId), Status),
-    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData),
-
-    [{"success", true}, {"data", "ok."}].
+	rest_tool_device:update_switch_status(Data, UserId).
 
 
 send_command(Data, UserId, _UserSession) ->
-    {struct,[{"device_id", DeviceId},{"cmd", Cmd}]} = Data,
-    %io:format("~ndevice-id|cmd: ~p|~p~n~n", [DeviceId, Cmd]),
-
-    %% publish it
-	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
-    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData),
-
-    [{"success", true}, {"data", "ok."}].
+	rest_tool_device:send_command(Data, UserId).
 
 
 load_permissions(Data, UserId, _UserSession) ->
