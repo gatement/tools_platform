@@ -83,7 +83,7 @@ update_socket(_Data, _UserId, UserSession) ->
 
 
 list_devices(_Data, UserId, _UserSession) ->
-	rest_tool_device:list_devices(UserId).
+	rest_tool_device:get_device_list(UserId).
 
 
 update_switch_status(Data, UserId, _UserSession) ->

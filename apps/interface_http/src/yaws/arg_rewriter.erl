@@ -76,6 +76,9 @@ no_auth_paths() ->
 	"/user/add",
 	"/user/password/reset",
 	"/device/socket",
+	"/device/device/list/jsonp",
+	"/device/switch/update/jsonp",
+	"/device/command/send/jsonp",
 	"/webchat/index"
 	 ].
 

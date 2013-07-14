@@ -33,7 +33,7 @@ out(Arg) ->
 							case DeviceEnabled of
 								true ->
 									model_usr_session:update_last_active(SessionId),
-									Data = json2:decode_string(proplists:get_value("data", Vals)),
+									{ok, Data} = json2:decode_string(proplists:get_value("data", Vals)),
 									out(Arg, Paths, Data, UserId);
 								false -> 
 									[{"success", false}, {"data", "user has no device subscription."}]
