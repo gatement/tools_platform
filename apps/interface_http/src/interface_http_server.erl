@@ -52,7 +52,7 @@ run() ->
 		{listen, {0,0,0,0}},
 		{docroot, DocRoot},
 		{arg_rewrite_mod, arg_rewriter},
-		{errormod_404, nofound},
+		{errormod_404, notfound},
 		{ssl, Ssl},
 		{appmods, [
 				{"/user/", rest_usr_user},
