@@ -21,52 +21,58 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
     {_, _, UserName, Password} = mqtt_utils:extract_connect_info(Data),
     %error_logger:info_msg("[~p] process_data_online(~p): ~p, username: ~p, password: ~p~n", [?MODULE, ClientId, SourcePid, UserName, Password]),
 
-    case {UserName, Password} of
+    Result = case {UserName, Password} of
         {undefined, _} ->
-            send_connack(SourcePid, ?NOT_AUTHORIZED),
-            SourcePid ! {stop, bad_connect};
-
+			{true, "anonymous"};
         {_, undefined} ->
-            send_connack(SourcePid, ?NOT_AUTHORIZED),
-            SourcePid ! {stop, bad_connect};
+			{true, "anonymous"};
         _ ->
             case model_usr_user:get(UserName, Password) of        
                 [] ->
                     send_connack(SourcePid, ?BAD_USERNAME_OR_PASSWORD),
-                    SourcePid ! {stop, bad_connect};
+                    SourcePid ! {stop, bad_connect},
+					false;
 
                 [User] when User#usr_user.enabled /= true ->
                     send_connack(SourcePid, ?IDENTIFIER_REJECTED),
-                    SourcePid ! {stop, bad_connect};
+                    SourcePid ! {stop, bad_connect},
+					false;
 
                 [_User] ->
-                    %% kick off the old session with the same ClientId
-                    case model_mqtt_session:get(ClientId) of
-                        undefined ->
-                            do_nothing;
-                        Model ->
-                            Model#mqtt_session.pid ! stop
-                    end,
-
-                    model_mqtt_session:delete(ClientId),
-
-                    model_mqtt_session:create(#mqtt_session{
-                        client_id = ClientId, 
-                        pid = SourcePid, 
-                        created = tools:datetime_string('yyyyMMdd_hhmmss')
-                    }),
-
-                    %% send CONNACK
-                    send_connack(SourcePid, ?ACCEPTED),
-
-                    %% publish client online(including IP) notice to subscribers
-					{Topic, PublishData} = mqtt_cmd:online(ClientId, UserName),
-                    mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData),
-
-                    %% subscribe any PUBLISH starts with "/ClientId/"  
-                    subscribe_any_publish_to_me(ClientId)        
+					{true, UserName}
             end
     end,
+
+	case Result of
+		false ->
+			do_nothing;
+		{true, UserName2} ->
+			%% kick off the old session with the same ClientId
+			case model_mqtt_session:get(ClientId) of
+				undefined ->
+					do_nothing;
+				Model ->
+					Model#mqtt_session.pid ! stop
+			end,
+
+			model_mqtt_session:delete(ClientId),
+
+			model_mqtt_session:create(#mqtt_session{
+				client_id = ClientId, 
+				pid = SourcePid, 
+				created = tools:datetime_string('yyyyMMdd_hhmmss')
+			}),
+
+			%% send CONNACK
+			send_connack(SourcePid, ?ACCEPTED),
+
+			%% publish client online(including IP) notice to subscribers
+			{Topic, PublishData} = mqtt_cmd:online(ClientId, UserName2),
+			mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData),
+
+			%% subscribe any PUBLISH starts with "/ClientId/"  
+			subscribe_any_publish_to_me(ClientId)        
+	end,
 
     ok.
 
