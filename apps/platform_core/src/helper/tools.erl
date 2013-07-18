@@ -17,7 +17,8 @@
 		is_pid_alive/1,
 		debug_log/1,
 		debug_log/2,
-		show_table/1]).
+		show_table/1,
+		binary_to_string/1]).
 		
 -vsn("0.1.3").
 
@@ -190,6 +191,11 @@ show_table(TableName) ->
 	AllKeys = mnesia:dirty_all_keys(TableName),
 	Records = [mnesia:dirty_read(TableName, Key) || Key <- AllKeys],
 	io:format("Records:~n~p~n", [Records]).
+
+
+binary_to_string(Binary) ->
+		lists:flatten([io_lib:format("~2.16.0B", [X]) || <<X:8>> <= Binary]).
+
 
 %% ===================================================================
 %% Local Functions
