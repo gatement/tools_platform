@@ -53,7 +53,9 @@
 %% mqtt --------------------
 -record(mqtt_session, {client_id, pid, created}).
 -record(mqtt_subscription, {id, client_id, topic, qos, desc}).
+%-record(mqtt_subscription, {id, client_id, topic, qos, persistence, ttl, desc}).
 -record(mqtt_pub_permission, {id, client_id, user_id, topic, desc}).
+%-record(mqtt_pub_queue, {id, client_id, expired, data}).
 
 %% runing records ===========================================
 -record(gly_item_upload, {item_id, item_name, album_item_id, mime_type, user_id, path, fd, file_full_name, last}).
