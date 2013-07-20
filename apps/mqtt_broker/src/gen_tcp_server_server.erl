@@ -118,9 +118,9 @@ code_change(_OldVsn, State, _Extra) ->
 dispatch(handle_data, RawData, State) ->
     State2 = case State#state.client_id of
         undefined ->
-            {ClientId, KeepAlivetimer, _, _} = mqtt_utils:extract_connect_info(RawData),
-            %error_logger:info_msg("mqtt client get online(~p), KeepAlivetimer = ~p seconds.~n", [ClientId, KeepAlivetimer]),
-            State#state{client_id = ClientId, keep_alive_timer = KeepAlivetimer * 1000 + ?GRACE};
+            {ClientId, KeepAliveTimer, _, _} = mqtt_utils:extract_connect_info(RawData),
+            error_logger:info_msg("mqtt client get online(~p - ~p), KeepAliveTimer = ~p seconds.~n", [erlang:self(), ClientId, KeepAliveTimer]),
+            State#state{client_id = ClientId, keep_alive_timer = KeepAliveTimer * 1000 + ?GRACE};
         _ ->
             State
     end,
@@ -156,7 +156,7 @@ handle_packages(State, RawData) ->
 
         ?PINGREQ ->
             PingRespData = mqtt:build_pingresp(),
-            %error_logger:info_msg("[~p] is sending PINGRESP: ~p~n", [?MODULE, PingRespData]),
+            error_logger:info_msg("[~p] is sending PINGRESP(~p): ~p~n", [?MODULE, erlang:self(), PingRespData]),
             gen_tcp:send(Socket, PingRespData),
             ok;
 
