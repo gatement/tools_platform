@@ -10,6 +10,6 @@ apps/interface_http/priv/site/rrdtool_img
 apps/interface_http/priv/upload
 priv/log
 priv/data
-local_linux.config
+local_prod.config
 run.sh
 erl_crash.dump
