@@ -56,14 +56,21 @@ function add_subscription()
 	var clientId = $.trim($("#clientIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
 	var qos = $.trim($("#qosAddInput").val());
-	if(clientId === "" || topic === "" || qos === "")
+	var persistence = $.trim($("#persistenceAddInput").val());
+	var ttl = $.trim($("#ttlAddInput").val());
+	var desc = $.trim($("#descAddInput").val());
+	if(clientId === "" || 
+		topic === "" || 
+		qos === "" ||
+		persistence === "" ||
+		ttl === "" ||
+		desc === "")
 	{
-		window.alert("client id, topic and qos are required to create a subscription.");
+		window.alert("can not leave any field be empty.");
 	}
 	else
 	{
-		var desc = $.trim($("#descAddInput").val());
-		var data = {desc: desc, client_id: clientId, topic: topic, qos: qos};
+		var data = {client_id: clientId, topic: topic, qos: qos, persistence: persistence, ttl: ttl,  desc: desc};
 
 		var url = "/mqtt/subscription/add";
 
@@ -72,6 +79,8 @@ function add_subscription()
 			$("#clientIdAddInput").val("");
 			$("#topicAddInput").val("");
 			$("#qosAddInput").val("");
+			$("#persistenceAddInput").val("");
+			$("#ttlAddInput").val("");
 			$("#descAddInput").val("");
 			load_subscriptions();
 		};
@@ -95,6 +104,24 @@ function search_by_topic()
 {
 	var key = $("#topicSearchInput").val().toLowerCase();
 	search_subscriptions(key, ".topic")
+}
+
+function search_by_qos()
+{
+	var key = $("#qosSearchInput").val().toLowerCase();
+	search_subscriptions(key, ".qos")
+}
+
+function search_by_persistence()
+{
+	var key = $("#persistenceSearchInput").val().toLowerCase();
+	search_subscriptions(key, ".persistence")
+}
+
+function search_by_ttl()
+{
+	var key = $("#ttlSearchInput").val().toLowerCase();
+	search_subscriptions(key, ".ttl")
 }
 
 function search_by_desc()
@@ -124,6 +151,9 @@ function clear_search()
 {
 	$("#clientIdSearchInput").val("");
 	$("#topicSearchInput").val("");
+	$("#qosSearchInput").val("");
+	$("#persistenceSearchInput").val("");
+	$("#ttlSearchInput").val("");
 	$("#descSearchInput").val("");
 	$(".subscription").show();
 }
@@ -184,6 +214,15 @@ $(document).ready(function() {
 	});
 	$("#topicSearchInput").keyup(function(){
 		search_by_topic();
+	});
+	$("#qosSearchInput").keyup(function(){
+		search_by_qos();
+	});
+	$("#persistenceSearchInput").keyup(function(){
+		search_by_persistence();
+	});
+	$("#ttlSearchInput").keyup(function(){
+		search_by_ttl();
 	});
 	$("#descSearchInput").keyup(function(){
 		search_by_desc();

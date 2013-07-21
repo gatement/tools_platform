@@ -161,6 +161,7 @@ handle_packages(State, RawData) ->
             ok;
 
         ?DISCONNECT ->
+            error_logger:info_msg("[~p] received DISCONNECT(~p): ~p~n", [?MODULE, erlang:self(), ClientId]),
             disconnect            
     end,
 

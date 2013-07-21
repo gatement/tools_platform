@@ -5,7 +5,8 @@
 		exist/2,
 		list/0,
 		delete/1,
-		get_online_subscription_client_pids/2]).
+		get_online_subscription_client_pids/2,
+		get_subscription_client_ids/2]).
 
 %% ===================================================================
 %% API functions
@@ -78,6 +79,30 @@ get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
 	{atomic, Pids} = mnesia:transaction(Fun),
 
 	Pids.
+
+
+get_subscription_client_ids(ExclusiveClientId, Topic) ->
+	Topics = case Topic of
+		"#" ->
+			["#"];
+
+		_ ->
+			ClientId = lists:nth(1, string:tokens(Topic, "/")),
+			TempTopic = lists:flatten(io_lib:format("/~s/+", [ClientId])),
+
+			[Topic, "#", TempTopic]
+	end,
+
+	Fun = fun() -> 
+		qlc:e(qlc:q([X || X <- mnesia:table(mqtt_subscription), 
+						X#mqtt_subscription.client_id =/= ExclusiveClientId,
+						lists:any(fun(Elem) -> 
+							Elem =:= X#mqtt_subscription.topic
+						end, Topics)]))
+	end,
+
+	{atomic, Models} = mnesia:transaction(Fun),
+	Models.
 
 
 %% ===================================================================

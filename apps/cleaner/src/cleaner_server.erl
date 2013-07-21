@@ -32,6 +32,8 @@ clean_up() ->
     %error_logger:info_msg("Start cleaning - UserSessionTimeout: ~p~n", [UserSessionTimeout]),
     model_usr_session:clear_old(UserSessionTimeout),
 
+	model_mqtt_pub_queue:clear_old(),
+
     {ok, RrdtoolImgTimeout} = application:get_env(cleaner, rrdtool_img_timeout), 
     %error_logger:info_msg("Start cleaning - RrdtoolImgTimeout: ~p~n", [RrdtoolImgTimeout]),
     clean_rrdtool_img(RrdtoolImgTimeout),

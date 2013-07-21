@@ -9,16 +9,8 @@
 %% ===================================================================
 
 up() ->
-	mnesia:delete_table(mqtt_session),
-	mnesia:delete_table(mqtt_subscription),
-	mnesia:delete_table(mqtt_pub_permission),
-	mnesia:delete_table(dev_device),
-	mnesia:delete_table(dev_device_user),
-	mnesia:delete_table(dev_status),
-	mnesia:delete_table(dev_data),
-
-	create_mqtt_schema(),
-	create_device_schema(),
+	add_persistence_ttl_to_mqtt_subscription(),
+	create_mqtt_pub_queue(),
 	
 	ok.
 
@@ -35,7 +27,6 @@ setup() ->
 	create_gallery_schema(),
 
 	create_mqtt_schema(),
-
 	create_device_schema(),
 
 	ok.
@@ -106,6 +97,7 @@ create_mqtt_schema() ->
 	mnesia:create_table(mqtt_session, [{attributes, record_info(fields, mqtt_session)}, {ram_copies, [node()]}]),
 	mnesia:create_table(mqtt_subscription, [{attributes, record_info(fields, mqtt_subscription)}, {disc_copies, [node()]}]),
 	mnesia:create_table(mqtt_pub_permission, [{attributes, record_info(fields, mqtt_pub_permission)}, {disc_copies, [node()]}]),
+	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]),
 
 	model_mqtt_subscription:create(#mqtt_subscription{
 		id = uuid:to_string(uuid:uuid1()), 
@@ -149,6 +141,25 @@ add_socket_to_usr_session() ->
 	end,
 
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
+
+
+add_persistence_ttl_to_mqtt_subscription() ->
+	%% add column persistence, ttl to table mqtt_subscription
+	Fun = fun({mqtt_subscription, Id, ClientId, Topic, Qos, Desc}) ->
+		#mqtt_subscription{id = Id, 
+			client_id = ClientId, 
+			topic = Topic, 
+			qos = Qos,
+			persistence = false,
+			ttl = 0,
+			desc = Desc}
+	end,
+
+	mnesia:transform_table(mqtt_subscription, Fun, record_info(fields, mqtt_subscription)).
+
+
+create_mqtt_pub_queue() ->
+	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]).
 
 
 %% ===================================================================
