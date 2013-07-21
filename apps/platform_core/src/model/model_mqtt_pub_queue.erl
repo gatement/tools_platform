@@ -2,7 +2,8 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1,
-		clear_old/0]).
+		clear_old/0,
+		get_by_clientId/1]).
 
 %% ===================================================================
 %% API functions
@@ -34,6 +35,18 @@ clear_old() ->
 	mnesia:transaction(Fun),
 
 	ok.
+
+
+get_by_clientId(ClientId) ->
+	Fun = fun() -> 
+		Models = qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_queue),
+					X#mqtt_pub_queue.client_id =:= ClientId ])),
+		[mnesia:delete({mqtt_pub_queue, X#mqtt_pub_queue.id}) || X <- Models],
+		Models
+	end,
+
+	{atomic, Models} = mnesia:transaction(Fun),
+	Models.
 
 
 %% ===================================================================

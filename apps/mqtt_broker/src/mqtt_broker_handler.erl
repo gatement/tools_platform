@@ -71,7 +71,10 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 			mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData),
 
 			%% subscribe any PUBLISH starts with "/ClientId/"  
-			subscribe_any_publish_to_me(ClientId)        
+			subscribe_any_publish_to_me(ClientId),
+
+			%% send stored publishments which are sent while I was offline
+			send_pub_queues(SourcePid, ClientId)
 	end,
 
     ok.
@@ -142,9 +145,19 @@ subscribe_any_publish_to_me(ClientId) ->
                     client_id = ClientId, 
                     topic = Topic,
                     qos = 0,
+					persistence = false,
+					ttl = 0,
                     desc = "Publish to me"
             })
     end.
+
+
+send_pub_queues(SourcePid, ClientId) ->
+	PubQueues = model_mqtt_pub_queue:get_by_clientId(ClientId),
+    error_logger:info_msg("[~p] send_pub_queues(~p): ~p~n", [?MODULE, ClientId, PubQueues]), 
+	[SourcePid ! {send_tcp_data, X#mqtt_pub_queue.data} || X <- PubQueues],
+
+	ok.
 
 
 send_connack(SourcePid, Result) ->
