@@ -56,13 +56,11 @@ function add_subscription()
 	var clientId = $.trim($("#clientIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
 	var qos = $.trim($("#qosAddInput").val());
-	var persistence = $.trim($("#persistenceAddInput").val());
 	var ttl = $.trim($("#ttlAddInput").val());
 	var desc = $.trim($("#descAddInput").val());
 	if(clientId === "" || 
 		topic === "" || 
 		qos === "" ||
-		persistence === "" ||
 		ttl === "" ||
 		desc === "")
 	{
@@ -70,7 +68,7 @@ function add_subscription()
 	}
 	else
 	{
-		var data = {client_id: clientId, topic: topic, qos: qos, persistence: persistence, ttl: ttl,  desc: desc};
+		var data = {client_id: clientId, topic: topic, qos: qos, ttl: ttl,  desc: desc};
 
 		var url = "/mqtt/subscription/add";
 
@@ -79,7 +77,6 @@ function add_subscription()
 			$("#clientIdAddInput").val("");
 			$("#topicAddInput").val("");
 			$("#qosAddInput").val("");
-			$("#persistenceAddInput").val("");
 			$("#ttlAddInput").val("");
 			$("#descAddInput").val("");
 			load_subscriptions();
@@ -110,12 +107,6 @@ function search_by_qos()
 {
 	var key = $("#qosSearchInput").val().toLowerCase();
 	search_subscriptions(key, ".qos")
-}
-
-function search_by_persistence()
-{
-	var key = $("#persistenceSearchInput").val().toLowerCase();
-	search_subscriptions(key, ".persistence")
 }
 
 function search_by_ttl()
@@ -152,7 +143,6 @@ function clear_search()
 	$("#clientIdSearchInput").val("");
 	$("#topicSearchInput").val("");
 	$("#qosSearchInput").val("");
-	$("#persistenceSearchInput").val("");
 	$("#ttlSearchInput").val("");
 	$("#descSearchInput").val("");
 	$(".subscription").show();
@@ -217,9 +207,6 @@ $(document).ready(function() {
 	});
 	$("#qosSearchInput").keyup(function(){
 		search_by_qos();
-	});
-	$("#persistenceSearchInput").keyup(function(){
-		search_by_persistence();
 	});
 	$("#ttlSearchInput").keyup(function(){
 		search_by_ttl();

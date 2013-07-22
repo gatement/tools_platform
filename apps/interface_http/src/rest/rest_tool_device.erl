@@ -1,6 +1,7 @@
 -module(rest_tool_device).
 -include("yaws_api.hrl").
 -include("../../platform_core/include/tools_platform.hrl").
+-include("../../mqtt_broker/include/mqtt.hrl").
 -export([out/1,
 		get_device_list/1,
 		update_switch_status/2,
@@ -109,7 +110,14 @@ update_switch_status(Data, UserId) ->
 
     %% publish it
 	{Topic, PublishData} = mqtt_cmd:switch_control(DeviceId, erlang:list_to_integer(SwitchId), Status),
-    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData),
+    mqtt_broker:publish(#publish_msg{
+		from_client_id = DeviceId,
+		from_user_id = UserId,
+		exclusive_client_id = "000000000001", 
+		topic = Topic, 
+		qos = 0,
+		data = PublishData
+	}),
 
     [{"success", true}, {"data", "ok."}].
 
@@ -120,7 +128,14 @@ send_command(Data, UserId) ->
 
     %% publish it
 	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
-    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData),
+    mqtt_broker:publish(#publish_msg{
+		from_client_id = DeviceId,
+		from_user_id = UserId,
+		exclusive_client_id = "000000000001", 
+		topic = Topic, 
+		qos = 0,
+		data = PublishData
+	}),
 
     [{"success", true}, {"data", "ok."}].
 

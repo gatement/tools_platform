@@ -9,8 +9,8 @@
 %% ===================================================================
 
 up() ->
-	add_persistence_ttl_to_mqtt_subscription(),
-	create_mqtt_pub_queue(),
+	remove_persistence_from_mqtt_subscription(),
+	create_mqtt_message_id(),
 	
 	ok.
 
@@ -98,6 +98,7 @@ create_mqtt_schema() ->
 	mnesia:create_table(mqtt_subscription, [{attributes, record_info(fields, mqtt_subscription)}, {disc_copies, [node()]}]),
 	mnesia:create_table(mqtt_pub_permission, [{attributes, record_info(fields, mqtt_pub_permission)}, {disc_copies, [node()]}]),
 	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]),
+	mnesia:create_table(mqtt_message_id, [{attributes, record_info(fields, mqtt_message_id)}, {disc_copies, [node()]}]),
 
 	model_mqtt_subscription:create(#mqtt_subscription{
 		id = uuid:to_string(uuid:uuid1()), 
@@ -143,23 +144,22 @@ add_socket_to_usr_session() ->
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
 
 
-add_persistence_ttl_to_mqtt_subscription() ->
-	%% add column persistence, ttl to table mqtt_subscription
-	Fun = fun({mqtt_subscription, Id, ClientId, Topic, Qos, Desc}) ->
+remove_persistence_from_mqtt_subscription() ->
+	%% remove column persistence from table mqtt_subscription
+	Fun = fun({mqtt_subscription, Id, ClientId, Topic, Qos, _Persistence, Ttl, Desc}) ->
 		#mqtt_subscription{id = Id, 
 			client_id = ClientId, 
 			topic = Topic, 
 			qos = Qos,
-			persistence = false,
-			ttl = 0,
+			ttl = Ttl,
 			desc = Desc}
 	end,
 
 	mnesia:transform_table(mqtt_subscription, Fun, record_info(fields, mqtt_subscription)).
 
 
-create_mqtt_pub_queue() ->
-	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]).
+create_mqtt_message_id() ->
+	mnesia:create_table(mqtt_message_id, [{attributes, record_info(fields, mqtt_message_id)}, {disc_copies, [node()]}]).
 
 
 %% ===================================================================

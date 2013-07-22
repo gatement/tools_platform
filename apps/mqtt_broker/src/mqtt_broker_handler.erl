@@ -68,7 +68,14 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
 			%% publish client online(including IP) notice to subscribers
 			{Topic, PublishData} = mqtt_cmd:online(ClientId, UserName2),
-			mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData),
+			mqtt_broker:publish(#publish_msg{
+				from_client_id = "000000000000",
+				from_user_id = "",
+				exclusive_client_id = ClientId, 
+				topic = Topic, 
+				qos = 1,
+				data = PublishData
+			}),
 
 			%% subscribe any PUBLISH starts with "/ClientId/"  
 			subscribe_any_publish_to_me(ClientId),
@@ -86,6 +93,14 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
 
     %% publish it to subscribers
     mqtt_broker:publish(ClientId, Topic, "000000000000", "", Data),
+	mqtt_broker:publish(#publish_msg{
+		from_client_id = "000000000000",
+		from_user_id = "",
+		exclusive_client_id = ClientId, 
+		topic = Topic, 
+		qos = 1,
+		data = Data
+	}),
 
     ok.
 
@@ -122,7 +137,14 @@ terminate(SourcePid, Socket, ClientId, Reason) ->
             do_nothing;
         true ->
 			{Topic, PublishData} = mqtt_cmd:offline(ClientId),
-            mqtt_broker:publish(ClientId, Topic, "000000000000", "", PublishData)
+			mqtt_broker:publish(#publish_msg{
+				from_client_id = "000000000000",
+				from_user_id = "",
+				exclusive_client_id = ClientId, 
+				topic = Topic, 
+				qos = 1,
+				data = PublishData
+			})
     end,
 
     ok.
@@ -145,7 +167,6 @@ subscribe_any_publish_to_me(ClientId) ->
                     client_id = ClientId, 
                     topic = Topic,
                     qos = 0,
-					persistence = false,
 					ttl = 0,
                     desc = "Publish to me"
             })

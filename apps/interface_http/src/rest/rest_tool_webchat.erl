@@ -2,6 +2,7 @@
 -include("yaws_api.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 -include("../../platform_core/include/tools_platform.hrl").
+-include("../../mqtt_broker/include/mqtt.hrl").
 -export([out/1]).
 
 %% ===================================================================
@@ -120,12 +121,26 @@ out(_Arg, _) ->
 
 change_switch_status(UserId, DeviceId, SwitchId, Val) ->
 	{Topic, PublishData} = mqtt_cmd:switch_control(DeviceId, SwitchId, Val),
-	mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData).
+    mqtt_broker:publish(#publish_msg{
+		from_client_id = DeviceId,
+		from_user_id = UserId,
+		exclusive_client_id = "000000000001", 
+		topic = Topic, 
+		qos = 0,
+		data = PublishData
+	}).
 
 
 send_command(UserId, DeviceId, Cmd) ->
 	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
-    mqtt_broker:publish("000000000001", Topic, DeviceId, UserId, PublishData).
+    mqtt_broker:publish(#publish_msg{
+		from_client_id = DeviceId,
+		from_user_id = UserId,
+		exclusive_client_id = "000000000001", 
+		topic = Topic, 
+		qos = 0,
+		data = PublishData
+	}).
 
 
 get_status(UserId, FromUserName, ToUserName) ->

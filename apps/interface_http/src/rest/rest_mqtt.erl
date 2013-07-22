@@ -27,17 +27,12 @@ out(_Arg, ["subscription", "list"], _UserId) ->
 	Subscriptions = model_mqtt_subscription:list(),	
 	MapFunc = fun(Sub) ->
 		Ttl = erlang:round(Sub#mqtt_subscription.ttl / 24 / 3600),
-		Persistence = case Sub#mqtt_subscription.persistence of
-			true -> "1";
-			false -> "0"
-		end,
 		
 		{struct, [
 			{"id", Sub#mqtt_subscription.id}, 
 			{"client_id", Sub#mqtt_subscription.client_id}, 
 			{"topic", Sub#mqtt_subscription.topic}, 
 			{"qos", Sub#mqtt_subscription.qos}, 
-			{"persistence", Persistence}, 
 			{"ttl", Ttl}, 
 			{"desc", Sub#mqtt_subscription.desc}
 		]}
@@ -54,14 +49,9 @@ out(Arg, ["subscription", "add"], _UserId) ->
 	ClientId = proplists:get_value("client_id", Vals),
 	Topic = proplists:get_value("topic", Vals),
 	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
-	Persistence = proplists:get_value("persistence", Vals),
 	Ttl = erlang:list_to_integer(proplists:get_value("ttl", Vals)),
 	Desc = proplists:get_value("desc", Vals),
 
-	Persistence2 = case Persistence of
-		"1" -> true;
-		_ -> false
-	end,
 	Ttl2 = Ttl * 24  * 3600, % days to seconds 
 
 	case model_mqtt_subscription:exist(ClientId, Topic) of
@@ -73,7 +63,6 @@ out(Arg, ["subscription", "add"], _UserId) ->
 					client_id = ClientId, 
 					topic = Topic,
 					qos = Qos,
-					persistence = Persistence2,
 					ttl = Ttl2,
 					desc = Desc
 				})
