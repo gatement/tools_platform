@@ -61,9 +61,11 @@ function save_device(event)
 	var name = $(event.target).parent().parent().find(".name").val();
 	var userId = $(event.target).parent().parent().find(".userId").val();
 	var type = $(event.target).parent().parent().find(".type").val();
-	if(name === "" || userId === "")
+	if(name === "" || 
+		userId === "" ||
+		type === "")
 	{
-		window.alert("Name, User Id are required.");
+		window.alert("name, userId, type are required.");
 	}
 	else
 	{

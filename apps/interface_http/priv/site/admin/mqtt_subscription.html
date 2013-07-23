@@ -26,7 +26,7 @@
 		            <tr>
 		                <td><input type="text" id="clientIdSearchInput" class="textbox" placeholder="input to search client" /></td>
 		                <td><input type="text" id="topicSearchInput" class="textbox" placeholder="input to search topic" /></td>
-		                <td><input type="text" id="qosSearchInput" class="textbox" placeholder="input to search qos" /></td>
+		                <td><input type="text" id="qosSearchInput" class="textbox" placeholder="qos" /></td>
 		                <td><input type="text" id="ttlSearchInput" class="textbox" placeholder="input to search TTL" /></td>
 		                <td><input type="text" id="descSearchInput" class="textbox" placeholder="input to search desc" /></td>
 		                <td><input id="clearSerachBtn" type="button" value="clear" /></td>
@@ -35,7 +35,13 @@
 		            <tr>
 		                <td><input type="text" id="clientIdAddInput" class="textbox" placeholder="client id" /></td>
 		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="topic(#=all)" /></td>
-		                <td><input type="text" id="qosAddInput" class="textbox" placeholder="qos(0,1,2)" /></td>
+						<td>
+							<select id="qosAddInput">
+								<option value="0" selected="selected">0</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+							</select>
+						</td>
 		                <td><input type="text" id="ttlAddInput" class="textbox" placeholder="TTL(in days)" /></td>
 		                <td><input type="text" id="descAddInput" class="textbox" placeholder="desc" /></td>
 		                <td><input id="addBtn" type="button" value="add" /></td>
@@ -46,12 +52,29 @@
 		
 			<script id="subscriptionTemplate" type="text/x-jquery-tmpl">
 				<tr class="subscription">
-					<td><span class="clientId">${client_id}</span><input type="hidden" class="subscriptionId" value="${id}"/></td>
-					<td><span class="topic">${topic}</span></td>
-					<td><span class="qos">${qos}</span></td>
-					<td><span class="ttl">${ttl}</span></td>
-					<td><span class="desc">${desc}</span></td>
-					<td><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
+					<td><input type="hidden" class="id" value="${id}"/><input type="text" class="clientId textbox" value="${client_id}" /></td>
+					<td><input type="text" class="topic textbox" value="${topic}" /></td>
+					<td>
+	                	<select class="qos">
+				        {{if qos == '0'}}
+				        	<option value="0" selected="selected">0</option>
+				        {{else}}
+				        	<option value="0">0</option>
+				        {{/if}}
+				        {{if qos == '1'}}
+				        	<option value="1" selected="selected">1</option>
+				        {{else}}
+				        	<option value="1">1</option>
+				        {{/if}}	
+				        {{if qos == '2'}}
+				        	<option value="2" selected="selected">2</option>
+				        {{else}}
+				        	<option value="2">2</option>
+				        {{/if}}	
+	                	</select></td>
+					<td><input type="text" class="ttl textbox" value="${ttl}" /></td>
+					<td><input type="text" class="desc textbox" value="${desc}" /></td>
+					<td><input class="saveBtn" type="button" value="save" /><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
 				</tr>
 			</script>
 		</body>

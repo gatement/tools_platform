@@ -4,6 +4,7 @@
 			<title>Register - Tools</title>
 			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 			<link type="text/css" rel="stylesheet" href="/css/register.css" />
+			<link type="text/css" rel="stylesheet" href="/css/lib/bootstrap.min.css" />
 			<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
 			<script type="text/javascript" src="/js/lib/jquery.validate.min.js"></script>
 			<script type="text/javascript" src="/js/register.js"></script>
@@ -60,7 +61,7 @@
 							</erl> />
 					</div>
 					<div class="padding">
-						<input id="submit" type="submit" value="Register" />
+						<input id="submit" type="submit" class="btn btn-primary" value="Register" />
 					</div>
 					<div class="padding">
 						<span class="msg">

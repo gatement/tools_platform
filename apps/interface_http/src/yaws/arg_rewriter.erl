@@ -61,6 +61,7 @@ no_auth_paths() ->
 	[
 	"/js/lib/jquery-1.10.0.min.js",
 	"/js/lib/jquery.validate.min.js", 
+	"/css/lib/bootstrap.min.css",
 	"/login.yaws",
 	"/css/login.css", 
 	"/js/login.js",

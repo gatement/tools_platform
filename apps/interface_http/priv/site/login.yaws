@@ -4,6 +4,7 @@
 			<title>Login - Tools</title>
 			<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 			<link type="text/css" rel="stylesheet" href="/css/login.css" />
+			<link type="text/css" rel="stylesheet" href="/css/lib/bootstrap.min.css" />
 			<script type="text/javascript" src="/js/lib/jquery-1.10.0.min.js"></script>
 			<script type="text/javascript" src="/js/lib/jquery.validate.min.js"></script>
 			<script type="text/javascript" src="/js/login.js"></script>
@@ -40,7 +41,7 @@
 						<input class="textbox required" type="password" id="pwd" name="pwd" value="" />
 					</div>
 					<div class="padding">
-						<input id="submit" type="submit" value="Login" />
+						<input id="submit" type="submit" class="btn btn-primary" value="Login" />
 					</div>
 					<div class="padding">
 						<span class="msg">

@@ -34,6 +34,10 @@ function load_subscriptions()
 			$("#subscriptionTemplate").tmpl(result.data[i]).appendTo($subscriptions);
 		}
 
+		$(".saveBtn").unbind().click(function(event){
+			save_subscription(event);
+		});
+
 		$(".deleteBtn").unbind().click(function(event){
 			delete_subscription(event);
 		});
@@ -50,6 +54,43 @@ function load_subscriptions()
 
 	ajax(url, data, successFunc, errorFunc);
 }
+
+function save_subscription(event)
+{
+	var id = $(event.target).parent().parent().find(".id").val();
+	var clientId = $(event.target).parent().parent().find(".clientId").val();
+	var topic = $(event.target).parent().parent().find(".topic").val();
+	var qos = $(event.target).parent().parent().find(".qos").val();
+	var ttl = $(event.target).parent().parent().find(".ttl").val();
+	var desc = $(event.target).parent().parent().find(".desc").val();
+	if(clientId === "" || 
+		topic === "" || 
+		qos === "" ||
+		ttl === "" || 
+		desc === "")
+	{
+		window.alert("clientId, topic, qos, ttl and desc are required.");
+	}
+	else
+	{
+		var data = {id: id, client_id: clientId, topic: topic, qos: qos, ttl: ttl, desc: desc};
+
+		var url = "/mqtt/subscription/update";
+
+		var successFunc = function(result)
+		{
+			load_subscriptions();
+		};
+		
+		var errorFunc = function()
+		{
+			window.alert("saving error!");
+		};
+
+		ajax(url, data, successFunc, errorFunc);
+	}
+}
+
 
 function add_subscription()
 {
@@ -127,7 +168,7 @@ function search_subscriptions(key, field)
 	for(var i = 0; i < $subscriptions.length; i++)
 	{
 		var $subscription = $($subscriptions[i]);
-		if($subscription.find(field).text().toLowerCase().indexOf(key) == -1)
+		if($subscription.find(field).val().toLowerCase().indexOf(key) == -1)
 		{
 			$subscription.hide();
 		}
@@ -152,7 +193,7 @@ function delete_subscription(event)
 {
 	if(window.confirm("Confirm deleting the subscription?"))
 	{
-		var subscriptionId = $(event.target).parent().parent().find(".subscriptionId").val();
+		var subscriptionId = $(event.target).parent().parent().find(".id").val();
 		var data = {subscription_id: subscriptionId};
 
 		var url = "/mqtt/subscription/delete";

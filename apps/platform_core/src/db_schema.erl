@@ -105,14 +105,15 @@ create_mqtt_schema() ->
 		client_id = "000000000001", 
 		topic = "#",
 		qos = 0,
+		ttl = 0,
 		desc = "MQTT main client"
 	}),
 
 	model_mqtt_pub_permission:create(#mqtt_pub_permission{
 		id = uuid:to_string(uuid:uuid1()), 
-		topic = "#",
 		client_id = "000000000000", 
 		user_id = "",
+		topic = "#",
 		desc = "MQTT broker"
 	}),
 

@@ -72,6 +72,30 @@ out(Arg, ["subscription", "add"], _UserId) ->
 	{content, "application/json", json2:encode({struct, Result})};
 
 
+out(Arg, ["subscription", "update"], _UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	Id = proplists:get_value("id", Vals),
+	ClientId = proplists:get_value("client_id", Vals),
+	Topic = proplists:get_value("topic", Vals),
+	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
+	Ttl = erlang:list_to_integer(proplists:get_value("ttl", Vals)),
+	Desc = proplists:get_value("desc", Vals),
+
+	Ttl2 = Ttl * 24  * 3600, % days to seconds 
+
+	model_mqtt_subscription:create(#mqtt_subscription{
+		id = Id, 
+		client_id = ClientId, 
+		topic = Topic,
+		qos = Qos,
+		ttl = Ttl2,
+		desc = Desc
+	}),
+
+    Result = [{"success", true}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+
 out(Arg, ["subscription", "delete"], _UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
 	SubscriptionId = proplists:get_value("subscription_id", Vals),
