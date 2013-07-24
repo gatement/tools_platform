@@ -43,11 +43,11 @@
 		
 			<script id="pubPermissionTemplate" type="text/x-jquery-tmpl">
 				<tr class="pubPermission">
-					<td><span class="clientId">${client_id}</span><input type="hidden" class="pubPermissionId" value="${id}"/></td>
-					<td><span class="userId">${user_id}</span></td>
-					<td><span class="topic">${topic}</span></td>
-					<td><span class="desc">${desc}</span></td>
-					<td><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
+					<td><input type="hidden" class="id" value="${id}"/><input type="text" class="clientId textbox" value="${client_id}" /></td>
+					<td><input type="text" class="userId textbox" value="${user_id}" /></td>
+					<td><input type="text" class="topic textbox" value="${topic}" /></td>
+					<td><input type="text" class="desc textbox" value="${desc}" /></td>
+					<td><input class="saveBtn" type="button" value="save" /><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
 				</tr>
 			</script>
 		</body>

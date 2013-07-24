@@ -58,11 +58,11 @@ function load_subscriptions()
 function save_subscription(event)
 {
 	var id = $(event.target).parent().parent().find(".id").val();
-	var clientId = $(event.target).parent().parent().find(".clientId").val();
-	var topic = $(event.target).parent().parent().find(".topic").val();
-	var qos = $(event.target).parent().parent().find(".qos").val();
-	var ttl = $(event.target).parent().parent().find(".ttl").val();
-	var desc = $(event.target).parent().parent().find(".desc").val();
+	var clientId = $.trim($(event.target).parent().parent().find(".clientId").val());
+	var topic = $.trim($(event.target).parent().parent().find(".topic").val());
+	var qos = $.trim($(event.target).parent().parent().find(".qos").val());
+	var ttl = $.trim($(event.target).parent().parent().find(".ttl").val());
+	var desc = $.trim($(event.target).parent().parent().find(".desc").val());
 	if(clientId === "" || 
 		topic === "" || 
 		qos === "" ||

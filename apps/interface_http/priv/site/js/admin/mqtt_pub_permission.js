@@ -34,6 +34,10 @@ function load_pub_permissions()
 			$("#pubPermissionTemplate").tmpl(result.data[i]).appendTo($pubPermissions);
 		}
 
+		$(".saveBtn").unbind().click(function(event){
+			save_pub_permission(event);
+		});
+
 		$(".deleteBtn").unbind().click(function(event){
 			delete_pub_permission(event);
 		});
@@ -56,13 +60,15 @@ function add_pub_permission()
 	var clientId = $.trim($("#clientIdAddInput").val());
 	var userId = $.trim($("#userIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
-	if(clientId === "" || userId === "" || topic === "")
+	var desc = $.trim($("#descAddInput").val());
+	if(clientId === "" || 
+		topic === "" || 
+		desc === "")
 	{
-		window.alert("client id, user id and topic are required to create a permission.");
+		window.alert("clientId, topic and desc are required to create a permission.");
 	}
 	else
 	{
-		var desc = $.trim($("#descAddInput").val());
 		var data = {client_id: clientId, user_id: userId, topic: topic, desc: desc};
 
 		var url = "/mqtt/pub_permission/add";
@@ -79,6 +85,62 @@ function add_pub_permission()
 		var errorFunc = function()
 		{
 			window.alert("adding error!");
+		};
+
+		ajax(url, data, successFunc, errorFunc);
+	}
+}
+
+function save_pub_permission(event)
+{
+	var id = $(event.target).parent().parent().find(".id").val();
+	var clientId = $.trim($(event.target).parent().parent().find(".clientId").val());
+	var userId = $.trim($(event.target).parent().parent().find(".userId").val());
+	var topic = $.trim($(event.target).parent().parent().find(".topic").val());
+	var desc = $.trim($(event.target).parent().parent().find(".desc").val());
+	if(clientId === "" || 
+		topic === "" || 
+		desc === "")
+	{
+		window.alert("clientId, topic and desc are required.");
+	}
+	else
+	{
+		var data = {id: id, client_id: clientId, user_id: userId, topic: topic, desc: desc};
+
+		var url = "/mqtt/pub_permission/update";
+
+		var successFunc = function(result)
+		{
+			load_pub_permissions();
+		};
+		
+		var errorFunc = function()
+		{
+			window.alert("saving error!");
+		};
+
+		ajax(url, data, successFunc, errorFunc);
+	}
+}
+
+function delete_pub_permission(event)
+{
+	if(window.confirm("Confirm deleting the permission?"))
+	{
+		var pubPermissionId = $(event.target).parent().parent().find(".id").val();
+		var data = {pub_permission_id: pubPermissionId};
+
+		var url = "/mqtt/pub_permission/delete";
+
+		var successFunc = function(result)
+		{
+			load_pub_permissions();
+		};
+		
+		var errorFunc = function()
+		{
+			window.alert("deleting error!");
 		};
 
 		ajax(url, data, successFunc, errorFunc);
@@ -115,7 +177,7 @@ function search_pub_permissions(key, field)
 	for(var i = 0; i < $subPermissions.length; i++)
 	{
 		var $subPermission = $($subPermissions[i]);
-		if($subPermission.find(field).text().toLowerCase().indexOf(key) == -1)
+		if($subPermission.find(field).val().toLowerCase().indexOf(key) == -1)
 		{
 			$subPermission.hide();
 		}
@@ -133,29 +195,6 @@ function clear_search()
 	$("#topicSearchInput").val("");
 	$("#descSearchInput").val("");
 	$(".pubPermission").show();
-}
-
-function delete_pub_permission(event)
-{
-	if(window.confirm("Confirm deleting the permission?"))
-	{
-		var pubPermissionId = $(event.target).parent().parent().find(".pubPermissionId").val();
-		var data = {pub_permission_id: pubPermissionId};
-
-		var url = "/mqtt/pub_permission/delete";
-
-		var successFunc = function(result)
-		{
-			load_pub_permissions();
-		};
-		
-		var errorFunc = function()
-		{
-			window.alert("deleting error!");
-		};
-
-		ajax(url, data, successFunc, errorFunc);
-	}
 }
 
 function check_client(event)

@@ -138,6 +138,26 @@ out(Arg, ["pub_permission", "add"], _UserId) ->
 	{content, "application/json", json2:encode({struct, Result})};
 
 
+out(Arg, ["pub_permission", "update"], _UserId) -> 
+	Vals = yaws_api:parse_post(Arg),
+	Id = proplists:get_value("id", Vals),
+	ClientId = proplists:get_value("client_id", Vals),
+	UserId = proplists:get_value("user_id", Vals),
+	Topic = proplists:get_value("topic", Vals),
+	Desc = proplists:get_value("desc", Vals),
+
+	model_mqtt_pub_permission:create(#mqtt_pub_permission{
+		id = Id, 
+		client_id = ClientId,  
+		user_id = UserId, 
+		topic = Topic,
+		desc = Desc
+	}),
+
+    Result = [{"success", true}],
+	{content, "application/json", json2:encode({struct, Result})};
+
+
 out(Arg, ["pub_permission", "delete"], _UserId) -> 
 	Vals = yaws_api:parse_post(Arg),
 	PubPermissionId = proplists:get_value("pub_permission_id", Vals),

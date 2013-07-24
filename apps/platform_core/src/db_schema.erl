@@ -10,6 +10,7 @@
 
 up() ->
 	remove_persistence_from_mqtt_subscription(),
+	recreate_mqtt_pub_queue(),
 	create_mqtt_message_id(),
 	
 	ok.
@@ -161,6 +162,11 @@ remove_persistence_from_mqtt_subscription() ->
 
 create_mqtt_message_id() ->
 	mnesia:create_table(mqtt_message_id, [{attributes, record_info(fields, mqtt_message_id)}, {disc_copies, [node()]}]).
+
+
+recreate_mqtt_pub_queue() ->
+	mnesia:delete_table(mqtt_pub_queue),
+	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]).
 
 
 %% ===================================================================
