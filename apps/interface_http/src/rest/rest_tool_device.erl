@@ -109,14 +109,11 @@ update_switch_status(Data, UserId) ->
     %io:format("~ndevice-id|switch|status: ~p|~p|~p~n~n", [DeviceId, Switch, Status]),
 
     %% publish it
-	{Topic, PublishData} = mqtt_cmd:switch_control(DeviceId, erlang:list_to_integer(SwitchId), Status),
     mqtt_broker:publish(#publish_msg{
 		from_client_id = DeviceId,
 		from_user_id = UserId,
 		exclusive_client_id = "000000000001", 
-		topic = Topic, 
-		qos = 0,
-		data = PublishData
+		data = {switch_control, {DeviceId, erlang:list_to_integer(SwitchId), Status}}
 	}),
 
     [{"success", true}, {"data", "ok."}].
@@ -127,14 +124,11 @@ send_command(Data, UserId) ->
     %io:format("~ndevice-id|cmd: ~p|~p~n~n", [DeviceId, Cmd]),
 
     %% publish it
-	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
     mqtt_broker:publish(#publish_msg{
 		from_client_id = DeviceId,
 		from_user_id = UserId,
 		exclusive_client_id = "000000000001", 
-		topic = Topic, 
-		qos = 0,
-		data = PublishData
+		data = {send_command, {DeviceId, Cmd}}
 	}),
 
     [{"success", true}, {"data", "ok."}].

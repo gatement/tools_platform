@@ -3,6 +3,7 @@
 		build_connect/4,
 		build_connack/1,
 		build_publish/2,
+		build_publish/4,
 		build_pingreq/0,
 		build_pingresp/0,
 		build_disconnect/0]).
@@ -80,8 +81,17 @@ build_connack(ReturnCode) ->
 	erlang:list_to_binary([FixedHeader, VariableHeader]).
 
 
-%% only Qos = 0 is supported
 build_publish(Topic, Payload) ->
+	VariableHeader = get_publish_variable_header(Topic),
+	
+	Length = erlang:byte_size(VariableHeader) + erlang:byte_size(Payload),
+	FixedHeader = get_fixed_header(?PUBLISH, ?DUP0, ?QOS0, ?RETAIN0, Length),
+
+	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
+
+
+build_publish(Topic, Payload, _Qos, _MsgId) ->
+	% TODO: implement the Qos
 	VariableHeader = get_publish_variable_header(Topic),
 	
 	Length = erlang:byte_size(VariableHeader) + erlang:byte_size(Payload),

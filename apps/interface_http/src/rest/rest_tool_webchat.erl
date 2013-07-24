@@ -120,26 +120,20 @@ out(_Arg, _) ->
 
 
 change_switch_status(UserId, DeviceId, SwitchId, Val) ->
-	{Topic, PublishData} = mqtt_cmd:switch_control(DeviceId, SwitchId, Val),
     mqtt_broker:publish(#publish_msg{
 		from_client_id = DeviceId,
 		from_user_id = UserId,
 		exclusive_client_id = "000000000001", 
-		topic = Topic, 
-		qos = 0,
-		data = PublishData
+		data = {switch_control, {DeviceId, SwitchId, Val}}
 	}).
 
 
 send_command(UserId, DeviceId, Cmd) ->
-	{Topic, PublishData} = mqtt_cmd:send_command(DeviceId, Cmd),
     mqtt_broker:publish(#publish_msg{
 		from_client_id = DeviceId,
 		from_user_id = UserId,
 		exclusive_client_id = "000000000001", 
-		topic = Topic, 
-		qos = 0,
-		data = PublishData
+		data = {send_command, {DeviceId, Cmd}}
 	}).
 
 

@@ -33,5 +33,5 @@
 -define(CMD_UPTIME,				6).
 
 
--record(publish_msg, {from_client_id, from_user_id, exclusive_client_id, topic, qos, data}).
+-record(publish_msg, {from_client_id, from_user_id, exclusive_client_id, data}).
 
