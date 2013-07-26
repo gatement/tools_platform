@@ -142,17 +142,22 @@ handle_packages(State, RawData) ->
         socket = Socket, 
         callback = Callback, 
         client_id = ClientId} = State,
+
     {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
-    Data = binary:part(RawData, 0, FixedLength + RestLength), 
-    <<TypeCode:4/integer, _:4/integer, _/binary>> = Data,
+    PackData = binary:part(RawData, 0, FixedLength + RestLength), 
+    <<TypeCode:4/integer, _:4/integer, _/binary>> = PackData,
 
     Result = case TypeCode of
         ?CONNECT -> 
-            Callback:process_data_online(erlang:self(), Socket, Data, ClientId),
+            Callback:process_data_online(erlang:self(), Socket, PackData, ClientId),
             ok;
 
         ?PUBLISH ->     
-            Callback:process_data_publish(erlang:self(), Socket, Data, ClientId),
+            Callback:process_data_publish(erlang:self(), Socket, PackData, ClientId),
+            ok;
+
+		?PUBACK ->
+            Callback:process_data_publish_ack(erlang:self(), Socket, PackData, ClientId),
             ok;
 
         ?PINGREQ ->

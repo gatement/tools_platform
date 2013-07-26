@@ -90,12 +90,17 @@ build_publish(Topic, Payload) ->
 	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
 
 
-build_publish(Topic, Payload, _Qos, _MsgId) ->
-	% TODO: implement the Qos
-	VariableHeader = get_publish_variable_header(Topic),
+build_publish(Topic, Payload, Qos, MsgId) ->
+	QosVal = case Qos of
+		0 -> ?QOS0;
+		1 -> ?QOS1;
+		2 -> ?QOS2
+	end,
+
+	VariableHeader = get_publish_variable_header(Topic, MsgId),
 	
 	Length = erlang:byte_size(VariableHeader) + erlang:byte_size(Payload),
-	FixedHeader = get_fixed_header(?PUBLISH, ?DUP0, ?QOS0, ?RETAIN0, Length),
+	FixedHeader = get_fixed_header(?PUBLISH, ?DUP0, QosVal, ?RETAIN0, Length),
 
 	erlang:list_to_binary([FixedHeader, VariableHeader, Payload]).
 
@@ -175,3 +180,12 @@ get_connect_variable_header(KeepAliveTimer, ConnectFlags) ->
 get_publish_variable_header(Topic) ->
 	TopicBin = mqtt_utils:get_utf8_bin(Topic),
 	TopicBin.
+
+
+get_publish_variable_header(Topic, MsgId) ->
+	TopicList = mqtt_utils:get_utf8_list(Topic),
+
+	MsgIdH = MsgId div 256,
+	MsgIdL = MsgId rem 256,
+
+	erlang:list_to_binary([TopicList, MsgIdH, MsgIdL]).
