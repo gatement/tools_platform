@@ -34,7 +34,8 @@ out(_Arg, ["subscription", "list"], _UserId) ->
 			{"topic", Sub#mqtt_subscription.topic}, 
 			{"qos", Sub#mqtt_subscription.qos}, 
 			{"ttl", Ttl}, 
-			{"desc", Sub#mqtt_subscription.desc}
+			{"desc", Sub#mqtt_subscription.desc},
+			{"enabled", Sub#mqtt_subscription.enabled}
 		]}
 	end,
 
@@ -51,6 +52,7 @@ out(Arg, ["subscription", "add"], _UserId) ->
 	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
 	Ttl = erlang:list_to_integer(proplists:get_value("ttl", Vals)),
 	Desc = proplists:get_value("desc", Vals),
+	Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals)),
 
 	Ttl2 = Ttl * 24  * 3600, % days to seconds 
 
@@ -64,7 +66,8 @@ out(Arg, ["subscription", "add"], _UserId) ->
 					topic = Topic,
 					qos = Qos,
 					ttl = Ttl2,
-					desc = Desc
+					desc = Desc,
+					enabled = Enabled
 				})
 	end,
 
@@ -80,6 +83,7 @@ out(Arg, ["subscription", "update"], _UserId) ->
 	Qos = erlang:list_to_integer(proplists:get_value("qos", Vals)),
 	Ttl = erlang:list_to_integer(proplists:get_value("ttl", Vals)),
 	Desc = proplists:get_value("desc", Vals),
+	Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals)),
 
 	Ttl2 = Ttl * 24  * 3600, % days to seconds 
 
@@ -89,7 +93,8 @@ out(Arg, ["subscription", "update"], _UserId) ->
 		topic = Topic,
 		qos = Qos,
 		ttl = Ttl2,
-		desc = Desc
+		desc = Desc,
+		enabled = Enabled
 	}),
 
     Result = [{"success", true}],
@@ -120,8 +125,9 @@ out(Arg, ["pub_permission", "add"], _UserId) ->
 	UserId = proplists:get_value("user_id", Vals),
 	Topic = proplists:get_value("topic", Vals),
 	Desc = proplists:get_value("desc", Vals),
+	Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals)),
 
-	case model_mqtt_pub_permission:exist(ClientId, UserId, Topic) of
+	case model_mqtt_pub_permission:exist(ClientId, UserId, Topic, false) of
 		true ->
 			do_nothing;
 		false ->
@@ -130,7 +136,8 @@ out(Arg, ["pub_permission", "add"], _UserId) ->
 					client_id = ClientId,  
 					user_id = UserId, 
 					topic = Topic,
-					desc = Desc
+					desc = Desc,
+					enabled = Enabled
 				})
 	end,
 
@@ -145,13 +152,15 @@ out(Arg, ["pub_permission", "update"], _UserId) ->
 	UserId = proplists:get_value("user_id", Vals),
 	Topic = proplists:get_value("topic", Vals),
 	Desc = proplists:get_value("desc", Vals),
+	Enabled = erlang:list_to_atom(proplists:get_value("enabled", Vals)),
 
 	model_mqtt_pub_permission:create(#mqtt_pub_permission{
 		id = Id, 
 		client_id = ClientId,  
 		user_id = UserId, 
 		topic = Topic,
-		desc = Desc
+		desc = Desc,
+		enabled = Enabled
 	}),
 
     Result = [{"success", true}],

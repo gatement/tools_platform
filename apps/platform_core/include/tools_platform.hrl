@@ -52,8 +52,8 @@
 
 %% mqtt --------------------
 -record(mqtt_session, {client_id, pid, created}).
--record(mqtt_subscription, {id, client_id, topic, qos, ttl, desc}).
--record(mqtt_pub_permission, {id, client_id, user_id, topic, desc}).
+-record(mqtt_subscription, {id, client_id, topic, qos, ttl, desc, enabled}).
+-record(mqtt_pub_permission, {id, client_id, user_id, topic, desc, enabled}).
 -record(mqtt_pub_queue, {id, client_id, msg_id, expired, data}).
 -record(mqtt_message_id, {client_id, last_msg_id}).
 

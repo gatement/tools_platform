@@ -72,6 +72,7 @@ get_online_subscription_client_pids(ExclusiveClientId, Topic) ->
 						Sub <- mnesia:table(mqtt_subscription), 
 						Sub#mqtt_subscription.client_id =/= ExclusiveClientId,
 						Sub#mqtt_subscription.client_id =:= Session#mqtt_session.client_id,
+						Sub#mqtt_subscription.enabled =:= true,
 						lists:any(fun(Elem) -> 
 							Elem =:= Sub#mqtt_subscription.topic
 						end, Topics)]))
@@ -96,6 +97,7 @@ get_subscription_client_ids(ExclusiveClientId, Topic) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(mqtt_subscription), 
 						X#mqtt_subscription.client_id =/= ExclusiveClientId,
+						X#mqtt_subscription.enabled =:= true,
 						lists:any(fun(Elem) -> 
 							Elem =:= X#mqtt_subscription.topic
 						end, Topics)]))

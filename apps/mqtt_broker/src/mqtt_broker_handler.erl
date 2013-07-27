@@ -169,7 +169,8 @@ subscribe_any_publish_to_me(ClientId) ->
                     topic = Topic,
                     qos = 0,
 					ttl = 0,
-                    desc = "Publish to me"
+                    desc = "Publish to me",
+					enabled = true
             })
     end.
 

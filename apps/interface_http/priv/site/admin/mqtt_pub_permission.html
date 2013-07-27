@@ -19,6 +19,7 @@
 			                <td class="userId">User Id</td>
 			                <td class="topic">Topic</td>
 			                <td class="desc">Desc</td>
+			                <td class="enabled">Enabled</td>
 			                <td class="action">Action</td>
 			            </tr>
 			        </thead>
@@ -27,6 +28,7 @@
 		                <td><input type="text" id="userIdSearchInput" class="textbox" placeholder="input to search user" /></td>
 		                <td><input type="text" id="topicSearchInput" class="textbox" placeholder="input to search topic" /></td>
 		                <td><input type="text" id="descSearchInput" class="textbox" placeholder="input to search desc" /></td>
+		                <td><label><input type="checkbox" id="enabledSearchInput" value="true" />enabled</label></td>
 		                <td><input id="clearSerachBtn" type="button" value="clear" /></td>
 		            </tr>
 			        <tbody id="pubPermissions"></tbody>			        
@@ -35,6 +37,7 @@
 		                <td><input type="text" id="userIdAddInput" class="textbox" placeholder="user id" /></td>
 		                <td><input type="text" id="topicAddInput" class="textbox" placeholder="topic(#=all)" /></td>
 		                <td><input type="text" id="descAddInput" class="textbox" placeholder="desc" /></td>
+		                <td><label><input type="checkbox" id="enabledAddInput" value="true" />enabled</label></td>
 		                <td><input id="addBtn" type="button" value="add" /></td>
 		            </tr>
 			    </table>
@@ -47,6 +50,13 @@
 					<td><input type="text" class="userId textbox" value="${user_id}" /></td>
 					<td><input type="text" class="topic textbox" value="${topic}" /></td>
 					<td><input type="text" class="desc textbox" value="${desc}" /></td>
+					<td><label>
+						{{if enabled == true}}
+						<input type="checkbox" class="enabled" value="${enabled}" checked="checked" value="true" />
+						{{else}}
+						<input type="checkbox" class="enabled" value="${enabled}" value="true" />
+						{{/if}}
+						enabled</label></td>
 					<td><input class="saveBtn" type="button" value="save" /><input class="deleteBtn" type="button" value="delete" /><input class="checkClientBtn" type="button" value="check client" /></td>
 				</tr>
 			</script>

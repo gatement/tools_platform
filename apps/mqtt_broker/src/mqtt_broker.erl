@@ -30,7 +30,7 @@ publish(#publish_msg{
 	end,
 
 	%% does sender have permission or not
-	case model_mqtt_pub_permission:exist(FromClientId, FromUserId, Topic) of
+	case model_mqtt_pub_permission:exist(FromClientId, FromUserId, Topic, true) of
 		false ->
 			no_permission;
 

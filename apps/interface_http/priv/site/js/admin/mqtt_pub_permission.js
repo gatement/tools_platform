@@ -61,6 +61,7 @@ function add_pub_permission()
 	var userId = $.trim($("#userIdAddInput").val());
 	var topic = $.trim($("#topicAddInput").val());
 	var desc = $.trim($("#descAddInput").val());
+	var enabled = $("#enabledAddInput")[0].checked;
 	if(clientId === "" || 
 		topic === "" || 
 		desc === "")
@@ -69,7 +70,7 @@ function add_pub_permission()
 	}
 	else
 	{
-		var data = {client_id: clientId, user_id: userId, topic: topic, desc: desc};
+		var data = {client_id: clientId, user_id: userId, topic: topic, desc: desc, enabled:enabled};
 
 		var url = "/mqtt/pub_permission/add";
 
@@ -98,6 +99,7 @@ function save_pub_permission(event)
 	var userId = $.trim($(event.target).parent().parent().find(".userId").val());
 	var topic = $.trim($(event.target).parent().parent().find(".topic").val());
 	var desc = $.trim($(event.target).parent().parent().find(".desc").val());
+	var enabled = $(event.target).parent().parent().find(".enabled")[0].checked;
 	if(clientId === "" || 
 		topic === "" || 
 		desc === "")
@@ -106,7 +108,7 @@ function save_pub_permission(event)
 	}
 	else
 	{
-		var data = {id: id, client_id: clientId, user_id: userId, topic: topic, desc: desc};
+		var data = {id: id, client_id: clientId, user_id: userId, topic: topic, desc: desc, enabled: enabled};
 
 		var url = "/mqtt/pub_permission/update";
 
@@ -169,6 +171,27 @@ function search_by_desc()
 {
 	var key = $("#descSearchInput").val().toLowerCase();
 	search_pub_permissions(key, ".desc")
+}
+
+function search_by_enabled()
+{
+	clear_search();
+
+	var value = $("#enabledSearchInput")[0].checked;
+
+	$subPermissions = $(".pubPermission");
+	for(var i = 0; i < $subPermissions.length; i++)
+	{
+		var $subPermission = $($subPermissions[i]);
+		if($subPermission.find(".enabled")[0].checked != value)
+		{
+			$subPermission.hide();
+		}
+		else
+		{
+			$subPermission.show();
+		}
+	}
 }
 
 function search_pub_permissions(key, field)
@@ -236,6 +259,9 @@ $(document).ready(function() {
 	});
 	$("#descSearchInput").keyup(function(){
 		search_by_desc();
+	});
+	$("#enabledSearchInput").change(function(){
+		search_by_enabled();
 	});
 	$("#clearSerachBtn").click(function(){
 		clear_search();

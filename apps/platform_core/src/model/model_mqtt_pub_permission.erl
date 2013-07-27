@@ -2,7 +2,7 @@
 -include("tools_platform.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 -export([create/1,
-		exist/3,
+		exist/4,
 		list/0,
 		delete/1]).
 
@@ -21,18 +21,23 @@ create(Model) ->
 	end.
 
 
-exist(ClientId, UserId, Topic) ->
+exist(ClientId, UserId, Topic, WildcardMatch) ->
 	Fun = fun() ->
-		lists:append(
-			qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_permission), 
+		Result = qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_permission), 
 						X#mqtt_pub_permission.topic =:= Topic, 
 						X#mqtt_pub_permission.client_id =:= ClientId, 
 						X#mqtt_pub_permission.user_id =:= UserId])),
-			qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_permission), 
+
+		Result2 = case WildcardMatch of
+			false -> [];
+			true ->
+				qlc:e(qlc:q([X || X <- mnesia:table(mqtt_pub_permission), 
 						X#mqtt_pub_permission.topic =:= "#", 
 						X#mqtt_pub_permission.client_id =:= ClientId, 
 						X#mqtt_pub_permission.user_id =:= UserId]))
-		)
+		end,
+
+		lists:append(Result, Result2)
 	end,
 
 	case mnesia:transaction(Fun) of

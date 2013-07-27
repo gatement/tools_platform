@@ -63,6 +63,7 @@ function save_subscription(event)
 	var qos = $.trim($(event.target).parent().parent().find(".qos").val());
 	var ttl = $.trim($(event.target).parent().parent().find(".ttl").val());
 	var desc = $.trim($(event.target).parent().parent().find(".desc").val());
+	var enabled = $(event.target).parent().parent().find(".enabled")[0].checked;
 	if(clientId === "" || 
 		topic === "" || 
 		qos === "" ||
@@ -73,7 +74,7 @@ function save_subscription(event)
 	}
 	else
 	{
-		var data = {id: id, client_id: clientId, topic: topic, qos: qos, ttl: ttl, desc: desc};
+		var data = {id: id, client_id: clientId, topic: topic, qos: qos, ttl: ttl, desc: desc, enabled:enabled};
 
 		var url = "/mqtt/subscription/update";
 
@@ -99,6 +100,7 @@ function add_subscription()
 	var qos = $.trim($("#qosAddInput").val());
 	var ttl = $.trim($("#ttlAddInput").val());
 	var desc = $.trim($("#descAddInput").val());
+	var enabled = $("#enabledAddInput")[0].checked;
 	if(clientId === "" || 
 		topic === "" || 
 		qos === "" ||
@@ -109,7 +111,7 @@ function add_subscription()
 	}
 	else
 	{
-		var data = {client_id: clientId, topic: topic, qos: qos, ttl: ttl,  desc: desc};
+		var data = {client_id: clientId, topic: topic, qos: qos, ttl: ttl, desc: desc, enabled:enabled};
 
 		var url = "/mqtt/subscription/add";
 
@@ -160,6 +162,27 @@ function search_by_desc()
 {
 	var key = $("#descSearchInput").val().toLowerCase();
 	search_subscriptions(key, ".desc")
+}
+
+function search_by_enabled()
+{
+	clear_search();
+
+	var value = $("#enabledSearchInput")[0].checked;
+
+	$subscriptions = $(".subscription");
+	for(var i = 0; i < $subscriptions.length; i++)
+	{
+		var $subscription = $($subscriptions[i]);
+		if($subscription.find(".enabled")[0].checked != value)
+		{
+			$subscription.hide();
+		}
+		else
+		{
+			$subscription.show();
+		}
+	}
 }
 
 function search_subscriptions(key, field)
@@ -254,6 +277,9 @@ $(document).ready(function() {
 	});
 	$("#descSearchInput").keyup(function(){
 		search_by_desc();
+	});
+	$("#enabledSearchInput").change(function(){
+		search_by_enabled();
 	});
 	$("#clearSerachBtn").click(function(){
 		clear_search();

@@ -9,10 +9,9 @@
 %% ===================================================================
 
 up() ->
-	remove_persistence_from_mqtt_subscription(),
-	recreate_mqtt_pub_queue(),
-	create_mqtt_message_id(),
-	
+	add_enabled_to_mqtt_subscription(),
+	add_enabled_to_mqtt_pub_permission(),
+
 	ok.
 
 
@@ -107,7 +106,8 @@ create_mqtt_schema() ->
 		topic = "#",
 		qos = 0,
 		ttl = 0,
-		desc = "MQTT main client"
+		desc = "MQTT main client",
+		enabled = true
 	}),
 
 	model_mqtt_pub_permission:create(#mqtt_pub_permission{
@@ -115,7 +115,8 @@ create_mqtt_schema() ->
 		client_id = "000000000000", 
 		user_id = "",
 		topic = "#",
-		desc = "MQTT broker"
+		desc = "MQTT broker",
+		enabled = true
 	}),
 
 	ok.
@@ -146,27 +147,33 @@ add_socket_to_usr_session() ->
 	mnesia:transform_table(usr_session, Fun, record_info(fields, usr_session)).
 
 
-remove_persistence_from_mqtt_subscription() ->
-	%% remove column persistence from table mqtt_subscription
-	Fun = fun({mqtt_subscription, Id, ClientId, Topic, Qos, _Persistence, Ttl, Desc}) ->
+add_enabled_to_mqtt_subscription() ->
+	%% add column enabled to table mqtt_subscription
+	Fun = fun({mqtt_subscription, Id, ClientId, Topic, Qos, Ttl, Desc}) ->
 		#mqtt_subscription{id = Id, 
 			client_id = ClientId, 
 			topic = Topic, 
 			qos = Qos,
 			ttl = Ttl,
-			desc = Desc}
+			desc = Desc,
+			enabled = true}
 	end,
 
 	mnesia:transform_table(mqtt_subscription, Fun, record_info(fields, mqtt_subscription)).
 
 
-create_mqtt_message_id() ->
-	mnesia:create_table(mqtt_message_id, [{attributes, record_info(fields, mqtt_message_id)}, {disc_copies, [node()]}]).
+add_enabled_to_mqtt_pub_permission() ->
+	%% add column enabled to table mqtt_pub_permission
+	Fun = fun({mqtt_pub_permission, Id, ClientId, UserId, Topic, Desc}) ->
+		#mqtt_pub_permission{id = Id, 
+			client_id = ClientId, 
+			user_id = UserId,
+			topic = Topic, 
+			desc = Desc,
+			enabled = true}
+	end,
 
-
-recreate_mqtt_pub_queue() ->
-	mnesia:delete_table(mqtt_pub_queue),
-	mnesia:create_table(mqtt_pub_queue, [{attributes, record_info(fields, mqtt_pub_queue)}, {disc_copies, [node()]}]).
+	mnesia:transform_table(mqtt_pub_permission, Fun, record_info(fields, mqtt_pub_permission)).
 
 
 %% ===================================================================
