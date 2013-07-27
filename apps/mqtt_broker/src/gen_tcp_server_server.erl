@@ -162,12 +162,12 @@ handle_packages(State, RawData) ->
 
         ?PINGREQ ->
             PingRespData = mqtt:build_pingresp(),
-            error_logger:info_msg("[~p] is sending PINGRESP(~p): ~p~n", [?MODULE, erlang:self(), PingRespData]),
+            %error_logger:info_msg("[~p] is sending PINGRESP(~p): ~p~n", [?MODULE, erlang:self(), PingRespData]),
             gen_tcp:send(Socket, PingRespData),
             ok;
 
         ?DISCONNECT ->
-            error_logger:info_msg("[~p] received DISCONNECT(~p): ~p~n", [?MODULE, erlang:self(), ClientId]),
+            %error_logger:info_msg("[~p] received DISCONNECT(~p): ~p~n", [?MODULE, erlang:self(), ClientId]),
             disconnect            
     end,
 

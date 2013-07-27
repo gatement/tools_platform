@@ -1,5 +1,6 @@
 -module(iptracker_server).
 -include("../../platform_core/include/tools_platform.hrl").
+-include("../../mqtt_broker/include/mqtt.hrl").
 -export([start_link/0, 
 		 run/0,
 		 do/1, 
@@ -55,7 +56,7 @@ doing(TableId) ->
 
 	case ets:lookup(TableId, ?IP_TABLE_KEY) of
 		[] ->
-			Reason = "Starting",
+			Reason = "starting",
 			ip_changed(Ip, Reason, TableId);
 
 		[{?IP_TABLE_KEY, Val}] ->
@@ -63,7 +64,7 @@ doing(TableId) ->
 				Ip -> 
 					no_change;
 				_  ->
-					Reason = "Changed",
+					Reason = "changed",
 					ip_changed(Ip, Reason, TableId)
 			end
 	end,
@@ -81,9 +82,16 @@ ip_changed(Ip, Reason, TableId) ->
 		{ok, false} -> "disabled"
 	end,
 
-	send_success_email(Ip, Reason, PeanuthullResult),
+	%send_success_email(Ip, Reason, PeanuthullResult),
+	send_push_notification(Ip, Reason, PeanuthullResult),
 
 	ets:insert(TableId, {?IP_TABLE_KEY, Ip}).
+
+
+send_push_notification(Ip, Reason, _PeanuthullResult) ->
+	Msg = lists:flatten(io_lib:format("~s(~s)", [Ip, Reason])),
+    mqtt_broker:send_persistence_msg(Msg),
+	ok.
 
 
 send_success_email(Ip, Reason, PeanuthullResult) ->
@@ -107,3 +115,4 @@ send_email(Subject, Content) ->
 	smtp_client:send_email(Sender, SenderPassword, [Receiver], Subject, Content),
 
 	ok.
+

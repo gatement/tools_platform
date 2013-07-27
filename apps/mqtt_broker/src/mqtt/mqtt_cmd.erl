@@ -2,6 +2,7 @@
 -include("mqtt.hrl").
 -export([online/4,
 		offline/3,
+		send_msg/4,
         send_command/4,
         switch_control/5,
 		switch_status/2,
@@ -20,6 +21,11 @@ online(ClientId, Topic, Qos, UserName) ->
 
 offline(ClientId, Topic, Qos) ->
     Payload = <<?CMD_OFFLINE>>,
+	build_publish(ClientId, Topic, Payload, Qos).
+
+
+send_msg(ClientId, Topic, Qos, Msg) ->
+    Payload = erlang:list_to_binary(Msg),
 	build_publish(ClientId, Topic, Payload, Qos).
 
 

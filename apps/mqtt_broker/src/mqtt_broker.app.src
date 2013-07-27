@@ -6,7 +6,9 @@
   {env, [
     {connection_timout, 20000}, % in milliseconds
     {init_worker_count, 3},
-    {tcp_port, 1883}
+    {tcp_port, 1883},
+
+    {default_push_notification_user, "admin"}
   ]},
   {mod, {mqtt_broker_app, []}}
  ]}.

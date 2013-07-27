@@ -87,7 +87,7 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     {Topic, Payload} = mqtt_utils:extract_publish_info(Data),
-    error_logger:info_msg("[~p] process_data_publish(~p) topic: ~p, payload: ~p~n", [?MODULE, ClientId, Topic, Payload]),    
+    error_logger:info_msg("[~p] process_data_publish(~p) topic: ~p, payload: <<~s>>~n", [?MODULE, ClientId, Topic, tools:binary_to_string(Payload)]),    
     %% publish it to subscribers
 	mqtt_broker:publish(#publish_msg{
 		from_client_id = "000000000000",
@@ -101,7 +101,7 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish_ack(_SourcePid, _Socket, Data, ClientId) ->
     {MsgId} = mqtt_utils:extract_publish_ack_info(Data),
-    error_logger:info_msg("[~p] process_data_publish_ack(~p) msg id: ~p~n", [?MODULE, ClientId, MsgId]),    
+    %error_logger:info_msg("[~p] process_data_publish_ack(~p) msg id: ~p~n", [?MODULE, ClientId, MsgId]),    
 	
     %% delete the corresponding mqtt_pub_queue record
 	model_mqtt_pub_queue:delete_by_client_id_msg_id(ClientId, MsgId),
@@ -177,7 +177,7 @@ subscribe_any_publish_to_me(ClientId) ->
 
 send_pub_queues(SourcePid, ClientId) ->
 	PubQueues = model_mqtt_pub_queue:get_by_clientId(ClientId),
-    error_logger:info_msg("[~p] send_pub_queues(~p): ~p~n", [?MODULE, ClientId, PubQueues]), 
+    %error_logger:info_msg("[~p] send_pub_queues(~p): ~p~n", [?MODULE, ClientId, PubQueues]), 
 	[SourcePid ! {send_tcp_data, X#mqtt_pub_queue.data} || X <- PubQueues],
 
 	ok.
