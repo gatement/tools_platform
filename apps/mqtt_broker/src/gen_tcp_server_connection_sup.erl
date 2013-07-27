@@ -32,7 +32,7 @@ start_child(SupervisorPid) ->
 
 
 init([Callback, IP, Port, UserArgs]) ->
-    BasicSocketOpts = [binary, {active, true}],
+	BasicSocketOpts = [binary, {active, true}, {reuseaddr, true}],
     SocketOpts = case IP of
         undefined -> BasicSocketOpts;
         _         -> [{ip, IP} | BasicSocketOpts]
