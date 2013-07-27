@@ -33,6 +33,16 @@ switch_control(ClientId, Topic, Qos, SwitchId, Value) ->
 	build_publish(ClientId, Topic, Payload, Qos).
 
 
+build_publish(ClientId, Topic, Payload, Qos) ->
+	case Qos of
+		0 ->
+			{0, mqtt:build_publish(Topic, Payload)};
+		_ ->
+			MsgId = model_mqtt_message_id:get_msg_id(ClientId),
+			{MsgId, mqtt:build_publish(Topic, Payload, Qos, MsgId)}
+	end.
+
+
 %% ===================================================================
 %% API functions 2 (Client side)
 %% ===================================================================
@@ -51,16 +61,6 @@ uptime(ClientId, Uptime) ->
     Uptime1 = Uptime rem 256,
     Payload = erlang:list_to_binary([?CMD_UPTIME, Uptime4, Uptime3, Uptime2, Uptime1]),
 	{Topic, mqtt:build_publish(Topic, Payload)}.
-
-
-build_publish(ClientId, Topic, Payload, Qos) ->
-	case Qos of
-		0 ->
-			{0, mqtt:build_publish(Topic, Payload)};
-		_ ->
-			MsgId = model_mqtt_message_id:get_msg_id(ClientId),
-			{MsgId, mqtt:build_publish(Topic, Payload, Qos, MsgId)}
-	end.
 
 
 %% ===================================================================
