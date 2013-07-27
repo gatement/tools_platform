@@ -29,7 +29,9 @@ get_msg_id(ClientId) ->
 			end,
 
 			Model2 = Model#mqtt_message_id{last_msg_id = MsgId},
-			mnesia:write(Model2)	  
+			mnesia:write(Model2),
+
+			MsgId
 	end,
 
 	{atomic, MsgId} = mnesia:transaction(Fun),

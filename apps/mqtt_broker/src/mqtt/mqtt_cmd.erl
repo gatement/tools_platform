@@ -5,7 +5,8 @@
         send_command/4,
         switch_control/5,
 		switch_status/2,
-        uptime/2]).
+        uptime/2,
+		build_publish/4]).
 
 
 %% ===================================================================
@@ -52,9 +53,6 @@ uptime(ClientId, Uptime) ->
 	{Topic, mqtt:build_publish(Topic, Payload)}.
 
 
-%% ===================================================================
-%% Local Functions
-%% ===================================================================
 build_publish(ClientId, Topic, Payload, Qos) ->
 	case Qos of
 		0 ->
@@ -63,3 +61,8 @@ build_publish(ClientId, Topic, Payload, Qos) ->
 			MsgId = model_mqtt_message_id:get_msg_id(ClientId),
 			{MsgId, mqtt:build_publish(Topic, Payload, Qos, MsgId)}
 	end.
+
+
+%% ===================================================================
+%% Local Functions
+%% ===================================================================
