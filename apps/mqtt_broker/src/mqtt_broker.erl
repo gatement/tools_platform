@@ -82,7 +82,7 @@ publish(#publish_msg{
 							client_id = ToClientId,
 							msg_id = MsgId,
 							expired = Expired,
-							data = Data
+							data = PublishData
 						})
 				end
 			end,
