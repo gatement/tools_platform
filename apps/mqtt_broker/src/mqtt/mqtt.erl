@@ -183,9 +183,7 @@ get_publish_variable_header(Topic) ->
 
 
 get_publish_variable_header_qos(Topic, MsgId) ->
-	error_logger:info_msg("lgh-----~n"),
 	TopicList = mqtt_utils:get_utf8_list(Topic),
-	error_logger:info_msg("lgh2:~p-----~n", [MsgId]),
 
 	MsgIdH = MsgId div 256,
 	MsgIdL = MsgId rem 256,
