@@ -252,7 +252,6 @@ out(Arg, ["item", "list"], UserId) ->
 	Result = [{"success", true}, {"data", {array, ItemList}}],
 	{content, "application/json", json2:encode({struct, Result})};
 
-
 out(_Arg, ["item", "preview", ItemId, Height0], UserId) ->
 	Height = erlang:list_to_integer(Height0), 
     Item = model_gly_item:get(ItemId, UserId),
@@ -343,8 +342,8 @@ get_thumbnail(OriginalDir, OriginalPath, MimeType, Height) ->
 	case Height of
 		0 ->
 			%% return original
-			{ok, Binary} = file:read_file(OriginalFile),
-			{content, MimeType, Binary};
+			return_thumbnail_content(OriginalFile, MimeType);
+
 		_ ->
 			%% thumbnail path
 			{ok, ThumbnailDir} = application:get_env(tool_gallery_thumbnail_dir),
@@ -361,8 +360,34 @@ get_thumbnail(OriginalDir, OriginalPath, MimeType, Height) ->
 			end,
 
 			%% return thumbnail
-			{ok, Binary} = file:read_file(ThumbnailFile),
-			{content, MimeType, Binary}
+			return_thumbnail_content(ThumbnailFile, MimeType)
+	end.
+
+
+return_thumbnail_content(FileFullName, MimeType) ->
+	%% no chunck
+	%{ok, Binary} = file:read_file(FileFullName),
+	%{content, MimeType, Binary}.
+
+	%% return by chunks
+	YawsPid = erlang:self(),
+	erlang:spawn(fun() ->
+		ChunkSize = 10240,
+		{ok, IoDevice} = file:open(FileFullName, [raw]),
+		return_thumbnail_content_chunk(YawsPid, IoDevice, ChunkSize),
+		file:close(IoDevice)
+	end),
+	{streamcontent, MimeType, <<>>}.
+
+
+return_thumbnail_content_chunk(YawsPid, IoDevice, ChunkSize) ->
+	case file:read(IoDevice, ChunkSize) of
+		{ok, BinData} ->
+			yaws_api:stream_chunk_deliver(YawsPid, BinData),			
+			return_thumbnail_content_chunk(YawsPid, IoDevice, ChunkSize);
+		eof ->
+			yaws_api:stream_chunk_end(YawsPid),	
+			erlang:exit(normal)
 	end.
 
 
