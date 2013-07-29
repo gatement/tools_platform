@@ -96,7 +96,9 @@ datetime_string(Format, {{Year, Month, Day}, {Hour, Minute, Second}}) ->
 		'yyyy/MM/dd/hh/mm' ->
 			erlang:integer_to_list(Year) ++ "/" ++ MonthText ++ "/" ++ DayText ++ "/" ++ HourText ++ "/" ++ MinuteText;
 		'yyyyMMdd' ->
-			erlang:integer_to_list(Year) ++ MonthText ++ DayText
+			erlang:integer_to_list(Year) ++ MonthText ++ DayText;
+		'hh:mm' ->
+			HourText ++ ":" ++ MinuteText
 	end,
 
 	lists:flatten(Result).

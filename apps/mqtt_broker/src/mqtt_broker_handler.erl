@@ -75,6 +75,14 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 				data = {online, {ClientId, UserName2}}
 			}),
 
+			%% send online push notification
+			case get_client_name(ClientId) of
+				false -> do_nothing;
+				ClientName ->
+					Msg = lists:flatten(io_lib:format("~s is online [~s]", [ClientName, tools:datetime_string('hh:mm')])),
+					mqtt_broker:send_msg(Msg)
+			end,
+
 			%% subscribe any PUBLISH starts with "/ClientId/"  
 			subscribe_any_publish_to_me(ClientId),
 
@@ -87,7 +95,7 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
     {Topic, Payload} = mqtt_utils:extract_publish_info(Data),
-    error_logger:info_msg("[~p] process_data_publish(~p) topic: ~p, payload: <<~s>>~n", [?MODULE, ClientId, Topic, tools:binary_to_string(Payload)]),    
+    %error_logger:info_msg("[~p] process_data_publish(~p) topic: ~p, payload: <<~s>>~n", [?MODULE, ClientId, Topic, tools:binary_to_string(Payload)]),    
     %% publish it to subscribers
 	mqtt_broker:publish(#publish_msg{
 		from_client_id = "000000000000",
@@ -101,7 +109,7 @@ process_data_publish(_SourcePid, _Socket, Data, ClientId) ->
 
 process_data_publish_ack(_SourcePid, _Socket, Data, ClientId) ->
     {MsgId} = mqtt_utils:extract_publish_ack_info(Data),
-    %error_logger:info_msg("[~p] process_data_publish_ack(~p) msg id: ~p~n", [?MODULE, ClientId, MsgId]),    
+    error_logger:info_msg("[~p] process_data_publish_ack(~p) msg id: ~p~n", [?MODULE, ClientId, MsgId]),    
 	
     %% delete the corresponding mqtt_pub_queue record
 	model_mqtt_pub_queue:delete_by_client_id_msg_id(ClientId, MsgId),
@@ -135,7 +143,7 @@ terminate(SourcePid, Socket, ClientId, Reason) ->
             gen_tcp:send(Socket, DisconnectMsg)
     end,
 
-    %% pubish a offline notice to subscriber
+    %% pubish an offline notice to subscriber
     case PublishOffline of
         false ->
             do_nothing;
@@ -145,7 +153,15 @@ terminate(SourcePid, Socket, ClientId, Reason) ->
 				from_user_id = "",
 				exclusive_client_id = ClientId, 
 				data = {offline, {ClientId}}
-			})
+			}),
+
+			%% send offline push notification
+			case get_client_name(ClientId) of
+				false -> do_nothing;
+				ClientName ->
+					Msg = lists:flatten(io_lib:format("~s is offline [~s]", [ClientName, tools:datetime_string('hh:mm')])),
+					mqtt_broker:send_msg(Msg)
+			end
     end,
 
     ok.
@@ -186,3 +202,12 @@ send_pub_queues(SourcePid, ClientId) ->
 send_connack(SourcePid, Result) ->
     ConnackData = mqtt:build_connack(Result),
     SourcePid ! {send_tcp_data, ConnackData}.
+
+
+get_client_name(ClientId) ->
+	case ClientId of
+		"000000000002" -> "Arduino";
+		"000000000003" -> "Windows";
+		"000000000004" -> "Linux";
+		_ -> false
+	end.

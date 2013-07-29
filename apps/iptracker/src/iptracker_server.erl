@@ -89,7 +89,7 @@ ip_changed(Ip, Reason, TableId) ->
 
 
 send_push_notification(Ip, Reason, _PeanuthullResult) ->
-	Msg = lists:flatten(io_lib:format("~s(~s)", [Ip, Reason])),
+	Msg = lists:flatten(io_lib:format("~s(~s) [~s]", [Ip, Reason, tools:datetime_string('hh:mm')])),
     mqtt_broker:send_persistence_msg(Msg),
 	ok.
 
