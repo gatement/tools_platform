@@ -5,6 +5,7 @@
 		update/4,
 		get/1,
 		get/2,
+		get_info/1,
 		list/0,
 		all_keys/0,
 		update_user_id/2,
@@ -69,6 +70,18 @@ get(DeviceId, UserId) ->
         {atomic, []} -> undefined;
 		{atomic, [Model]} -> Model;
 		_ -> error
+	end.
+
+
+get_info(DeviceId) ->
+	Fun = fun() ->
+		mnesia:read(dev_device, DeviceId)
+	end,
+
+	case mnesia:transaction(Fun) of
+        {atomic, []} -> {undefined, non_exist};
+		{atomic, [Model]} -> {Model#dev_device.type, Model#dev_device.name};
+		_ -> {undefined, non_exist}
 	end.
 
 

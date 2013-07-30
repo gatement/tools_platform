@@ -47,7 +47,7 @@ process_data_online(ClientId, UserName) ->
                 device_id = ClientId,
                 user_id = UserName,
                 name = "undefined",
-                type = "undefined",
+                type = undefined,
                 created = tools:datetime_string('yyyyMMdd_hhmmss')
             });
         error ->

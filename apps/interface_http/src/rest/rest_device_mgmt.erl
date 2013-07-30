@@ -25,7 +25,8 @@ out(Arg) ->
 
 out(_Arg, ["list"], _UserId) ->
 	Devices = model_dev_device:list(),	
-    DeviceList = [{struct, tools:record_to_list(Device, record_info(fields, dev_device))} || Device <- Devices],
+	Devices2 = [X#dev_device{type=erlang:atom_to_list(X#dev_device.type)} || X <- Devices],
+    DeviceList = [{struct, tools:record_to_list(Device, record_info(fields, dev_device))} || Device <- Devices2],
     Result = [{"success", true}, {"data", {array, DeviceList}}],
 
 	{content, "application/json", json2:encode({struct, Result})};
@@ -36,7 +37,7 @@ out(Arg, ["update"], _UserId) ->
 	DeviceId = proplists:get_value("device_id", Vals),
 	Name = proplists:get_value("name", Vals),
 	UserId = proplists:get_value("user_id", Vals),
-	Type = proplists:get_value("type", Vals),
+	Type = erlang:list_to_atom(proplists:get_value("type", Vals)),
 
 	model_dev_device:update(DeviceId, Name, UserId, Type),
 

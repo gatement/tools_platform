@@ -55,7 +55,7 @@ device_status_changed_notification(DeviceId) ->
             {"success", true},
             {"data", {struct, [
                 {"device_id", DeviceId}, 
-                {"type", Device#dev_device.type}, 
+                {"type", erlang:atom_to_list(Device#dev_device.type)}, 
                 {"name", Device#dev_device.name},
                 {"online", model_mqtt_session:is_online(DeviceId)},
                 {"permission", "shared"},

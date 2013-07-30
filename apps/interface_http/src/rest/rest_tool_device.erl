@@ -81,22 +81,17 @@ get_device_list(UserId) ->
     DeviceIds = model_dev_device_user:get_device_ids(UserId),
 
     Fun = fun({Permission, DeviceId}) ->
-        case DeviceId of
-            "000000000001" ->
-                ignore;
-            _ ->
-                Device = model_dev_device:get(DeviceId),
-                Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
+		Device = model_dev_device:get(DeviceId),
+		Values = model_dev_status:get_all_values_by_deviceId(DeviceId),
 
-                {struct, [
-                        {"device_id", DeviceId}, 
-                        {"type", Device#dev_device.type}, 
-                        {"name", Device#dev_device.name},
-                        {"online", model_mqtt_session:is_online(DeviceId)},
-                        {"permission", Permission},
-                        {"values", {struct, Values}}
-                ]}
-        end
+		{struct, [
+				{"device_id", DeviceId}, 
+				{"type", erlang:atom_to_list(Device#dev_device.type)}, 
+				{"name", Device#dev_device.name},
+				{"online", model_mqtt_session:is_online(DeviceId)},
+				{"permission", Permission},
+				{"values", {struct, Values}}
+		]}
     end,
 
     Devices = [Fun(X) || X <- DeviceIds],

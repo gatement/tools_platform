@@ -76,10 +76,10 @@ process_data_online(SourcePid, _Socket, Data, ClientId) ->
 			}),
 
 			%% send online push notification
-			case get_client_name(ClientId) of
-				false -> do_nothing;
-				ClientName ->
-					Msg = lists:flatten(io_lib:format("~s is online [~s]", [ClientName, tools:datetime_string('hh:mm')])),
+			case model_dev_device:get_info(ClientId) of
+				{undefined, _} -> do_nothing;
+				{_, DeviceName} ->
+					Msg = lists:flatten(io_lib:format("~s is online [~s]", [DeviceName, tools:datetime_string('hh:mm')])),
 					mqtt_broker:send_msg(Msg)
 			end,
 
@@ -156,10 +156,10 @@ terminate(SourcePid, Socket, ClientId, Reason) ->
 			}),
 
 			%% send offline push notification
-			case get_client_name(ClientId) of
-				false -> do_nothing;
-				ClientName ->
-					Msg = lists:flatten(io_lib:format("~s is offline [~s]", [ClientName, tools:datetime_string('hh:mm')])),
+			case model_dev_device:get_info(ClientId) of
+				{undefined, _} -> do_nothing;
+				{_, DeviceName} ->
+					Msg = lists:flatten(io_lib:format("~s is offline [~s]", [DeviceName, tools:datetime_string('hh:mm')])),
 					mqtt_broker:send_msg(Msg)
 			end
     end,
@@ -203,11 +203,3 @@ send_connack(SourcePid, Result) ->
     ConnackData = mqtt:build_connack(Result),
     SourcePid ! {send_tcp_data, ConnackData}.
 
-
-get_client_name(ClientId) ->
-	case ClientId of
-		"000000000002" -> "Arduino";
-		"000000000003" -> "Windows";
-		"000000000004" -> "Linux";
-		_ -> false
-	end.
