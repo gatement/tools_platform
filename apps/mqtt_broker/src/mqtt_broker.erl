@@ -90,7 +90,7 @@ publish(#publish_msg{
 						Expired = tools:epoch_seconds() + Sub#mqtt_subscription.ttl, 
 						SubQueueId = tools:generate_id(ToClientId),
 
-						error_logger:info_msg("[~p] create sub_queue, topic: ~p, queueId: ~p, clientId: ~p, msgId: ~p, expired: ~p.~n", [?MODULE, Topic, SubQueueId, ToClientId, MsgId, Expired]),
+						%error_logger:info_msg("[~p] create sub_queue, topic: ~p, queueId: ~p, clientId: ~p, msgId: ~p, expired: ~p.~n", [?MODULE, Topic, SubQueueId, ToClientId, MsgId, Expired]),
 
 						model_mqtt_pub_queue:create(#mqtt_pub_queue{
 							id = SubQueueId,
