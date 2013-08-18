@@ -31,6 +31,7 @@
 -define(CMD_SWITCH_CONTROL,		4).
 -define(CMD_SEND_COMMAND,		5).
 -define(CMD_UPTIME,				6).
+-define(CMD_HUMAN_STATUS,		7).
 
 
 -record(publish_msg, {from_client_id, from_user_id, exclusive_client_id, data}).

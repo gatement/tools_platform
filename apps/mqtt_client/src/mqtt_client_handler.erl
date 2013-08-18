@@ -29,7 +29,11 @@ process_data_publish(_SourcePid, _Socket, RawData) ->
 
         ?CMD_SWITCH_STATUS ->
             <<_:1/binary, SwitchStatus:8/integer, _/binary>> = Payload,
-            process_data_switch_status(ClientId, SwitchStatus)
+            process_data_switch_status(ClientId, SwitchStatus);
+
+        ?CMD_HUMAN_STATUS ->
+            <<_:1/binary, HumanStatus:8/integer, _/binary>> = Payload,
+            process_data_human_status(ClientId, HumanStatus)
     end.
 
 
@@ -115,3 +119,13 @@ process_data_switch_status(ClientId, SwitchStatus) ->
     socket_device:device_status_changed_notification(ClientId),
 
     ok.
+
+process_data_human_status(_ClientId, HumanStatus) ->
+    %error_logger:info_msg("[~p] received [human status] data: ~p - ~p~n", [?MODULE, _ClientId, HumanStatus]),
+	case HumanStatus of
+		1 -> 
+			Msg = lists:flatten(io_lib:format("Activity was deteced [~s]", [tools:datetime_string('hh:mm:ss')])),
+			mqtt_broker:send_msg(Msg);
+			
+		_ -> do_nothing
+	end.

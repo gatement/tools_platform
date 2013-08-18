@@ -119,6 +119,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 handle_packages(State, <<>>) ->
     {noreply, State, ?KEEP_ALIVE_TIMER};
+
 handle_packages(State, RawData) ->
     {FixedLength, RestLength} = mqtt_utils:get_msg_length(RawData),
     Data = binary:part(RawData, 0, FixedLength + RestLength), 
@@ -143,3 +144,4 @@ handle_packages(State, RawData) ->
             RestRawData = binary:part(RawData, FixedLength + RestLength, erlang:byte_size(RawData) - FixedLength - RestLength),
             handle_packages(State, RestRawData)
     end.
+
