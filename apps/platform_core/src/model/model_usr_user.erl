@@ -207,9 +207,7 @@ search(ContainStr) ->
 			last_login= case User#usr_user.last_login of undefined -> ""; LastLogin -> tools:datetime_string('yyyy-MM-dd hh:mm:ss', LastLogin) end,
 			note = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_NOTE_ENABLED),
 			word = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_WORD_ENABLED),
-			gallery = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_GALLERY_ENABLED),
-			monitor = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_MONITOR_ENABLED),
-			device = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_DEVICE_ENABLED)
+			gallery = model_usr_preference:get(User#usr_user.id, ?USR_PREFERENCE_GALLERY_ENABLED)
 		} || User <- Users].
 
 

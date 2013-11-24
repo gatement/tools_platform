@@ -11,8 +11,6 @@
 -define(USR_PREFERENCE_NOTE_ENABLED, "note").
 -define(USR_PREFERENCE_WORD_ENABLED, "word").
 -define(USR_PREFERENCE_GALLERY_ENABLED, "gallery").
--define(USR_PREFERENCE_MONITOR_ENABLED, "monitor").
--define(USR_PREFERENCE_DEVICE_ENABLED, "device").
 
 %% default note parameters ----------
 -define(NOTE_DEFAULT_LEFT, 5).

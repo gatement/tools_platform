@@ -55,17 +55,11 @@ run() ->
 		{errormod_404, notfound},
 		{ssl, Ssl},
 		{appmods, [
-				{"/user/", rest_usr_user},
 				{"/setting/", rest_gbl_setting},
-				{"/mqtt/", rest_mqtt},
-				{"/mqtt_svc/", rest_mqtt_service},
-				{"/monitor/", rest_tool_monitor},
+				{"/user/", rest_usr_user},
 				{"/word/", rest_tool_word},
 				{"/note/", rest_tool_note},
-				{"/gallery/", rest_tool_gallery},
-				{"/device/", rest_tool_device},
-				{"/device_mgmt/", rest_device_mgmt},
-				{"/webchat/", rest_tool_webchat}
+				{"/gallery/", rest_tool_gallery}
 			]}
 	],
 
