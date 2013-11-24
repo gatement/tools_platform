@@ -55,7 +55,7 @@ get(Id, Pwd) ->
 	Fun = fun() -> 
 		qlc:e(qlc:q([X || X <- mnesia:table(usr_user), 
 						X#usr_user.id =:= Id, 
-						X#usr_user.password =:= crypto:md5(Pwd)]))
+						X#usr_user.password =:= crypto:hash(md5, Pwd)]))
 	end,
 	{atomic, User} = mnesia:transaction(Fun),
 	User.
@@ -84,7 +84,7 @@ get_name(Id) ->
 
 
 create(User) ->
-	Pwd = crypto:md5(User#usr_user.password),
+	Pwd = crypto:hash(md5, User#usr_user.password),
 
 	% get default values	
 	Enabled = case User#usr_user.enabled of
@@ -114,7 +114,7 @@ change_password(UserId, NewPwd) ->
 				[] -> 
 					error;
 				[User] -> 
-					case mnesia:write(User#usr_user{password=crypto:md5(NewPwd)}) of
+					case mnesia:write(User#usr_user{password=crypto:hash(md5, NewPwd)}) of
 						ok -> ok;
 						_ -> error
 					end
@@ -130,12 +130,12 @@ change_password(UserId, OldPwd, NewPwd) ->
 				[] -> 
 					error;
 				[User] -> 
-					EncryptedOldPwd = crypto:md5(OldPwd),
+					EncryptedOldPwd = crypto:hash(md5, OldPwd),
 					if
 						User#usr_user.password /= EncryptedOldPwd -> 
 							error;
 						true ->
-							case mnesia:write(User#usr_user{password=crypto:md5(NewPwd)}) of
+							case mnesia:write(User#usr_user{password=crypto:hash(md5, NewPwd)}) of
 								ok -> ok;
 								_ -> error
 							end

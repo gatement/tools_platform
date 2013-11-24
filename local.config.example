@@ -1,4 +1,7 @@
 [
+{kernel, [
+    {error_logger, {file, "/app/tools_platform/priv/log/kernel.log"}}
+]},
 {sasl, [
     {sasl_error_logger, {file, "/app/tools_platform/priv/log/sasl.log" }},
     {errlog_type, error}
@@ -8,8 +11,7 @@
 ]},
 {cleaner, [
     {run_interval, 60}, % in seconds
-    {user_session_timeout, 57600}, % in seconds, = 16hr
-    {rrdtool_img_timeout, 60} % in seconds
+    {user_session_timeout, 57600} % in seconds, = 16hr
 ]},
 {db_backup, [
     {database_backup_dir, "/app/tools_platform/priv/data"},

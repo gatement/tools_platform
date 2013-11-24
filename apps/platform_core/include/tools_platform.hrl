@@ -44,19 +44,6 @@
 -record(gly_item, {id, user_id, parent_id, name, path, type, mime_type, display_order, created}).
 -record(gly_share, {id, item_id, user_id, share_type}).
 
-%% device --------------------
--record(dev_device, {device_id, name, user_id, type, created}).
--record(dev_device_user, {id, device_id, user_id}).
--record(dev_status, {id, device_id, key, value, updated}).
--record(dev_data, {id, device_id, key, value, datetime}).
-
-%% mqtt --------------------
--record(mqtt_session, {client_id, pid, created}).
--record(mqtt_subscription, {id, client_id, topic, qos, ttl, desc, enabled}).
--record(mqtt_pub_permission, {id, client_id, user_id, topic, desc, enabled}).
--record(mqtt_pub_queue, {id, client_id, msg_id, expired, data}).
--record(mqtt_message_id, {client_id, last_msg_id}).
-
 %% runing records ===========================================
 -record(gly_item_upload, {item_id, item_name, album_item_id, mime_type, user_id, path, fd, file_full_name, last}).
 -record(arg_state, {session_id, user_id, user_name}).

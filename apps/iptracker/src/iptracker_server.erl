@@ -1,6 +1,5 @@
 -module(iptracker_server).
 -include("../../platform_core/include/tools_platform.hrl").
--include("../../mqtt_broker/include/mqtt.hrl").
 -export([start_link/0, 
 		 run/0,
 		 do/1, 

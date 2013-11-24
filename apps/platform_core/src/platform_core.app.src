@@ -10,7 +10,6 @@
   {env, [
   	{debug_mode, false},
     
-    {enable_monitor, true},
     {enable_cleaner, true},
     {enable_db_backup, true},
     {enable_iptracker, true}

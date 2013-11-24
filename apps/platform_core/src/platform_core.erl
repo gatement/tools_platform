@@ -12,13 +12,6 @@ start() ->
     
 	application:start(platform_core),
 
-	case application:get_env(platform_core, enable_monitor) of
-		{ok, true} ->
-			monitor:start();
-		_ ->
-			no_start
-	end,
-
 	case application:get_env(platform_core, enable_cleaner) of
 		{ok, true} ->
 			cleaner:start();
@@ -39,11 +32,6 @@ start() ->
 		_ ->
 			no_start
 	end,
-
-    application:start(mqtt_broker),
-    timer:sleep(3000),
-
-    application:start(mqtt_client),
 
 	interface_http:start(),
 

@@ -9,9 +9,7 @@
                  ]},
   {env, [
     {run_interval, 60}, % in seconds
-    
-    {user_session_timeout, 57600}, % in seconds, = 16hr
-    {rrdtool_img_timeout, 60} % in seconds
+    {user_session_timeout, 57600} % in seconds, = 16hr
   ]},
   {mod, {cleaner_app, []}}
  ]}.
