@@ -19,6 +19,8 @@
 -define(GC_PICK_FIRST_VIRTHOST_ON_NOMATCH,  64).
 -define(GC_USE_FDSRV,                      128).
 -define(GC_USE_OLD_SSL,                    256).
+-define(GC_USE_ERLANG_SENDFILE,            512).
+-define(GC_USE_YAWS_SENDFILE,             1024).
 
 
 
@@ -38,6 +40,10 @@
         ((GC#gconf.flags band ?GC_PICK_FIRST_VIRTHOST_ON_NOMATCH) /= 0)).
 -define(gc_use_old_ssl(GC),
         ((GC#gconf.flags band ?GC_USE_OLD_SSL) /= 0)).
+-define(gc_use_erlang_sendfile(GC),
+        ((GC#gconf.flags band ?GC_USE_ERLANG_SENDFILE) /= 0)).
+-define(gc_use_yaws_sendfile(GC),
+        ((GC#gconf.flags band ?GC_USE_YAWS_SENDFILE) /= 0)).
 
 -define(gc_set_tty_trace(GC, Bool),
         GC#gconf{flags = yaws:flag(GC#gconf.flags,?GC_TTY_TRACE, Bool)}).
@@ -55,7 +61,10 @@
                                    ?GC_PICK_FIRST_VIRTHOST_ON_NOMATCH,Bool)}).
 -define(gc_set_use_old_ssl(GC, Bool),
         GC#gconf{flags = yaws:flag(GC#gconf.flags,?GC_USE_OLD_SSL,Bool)}).
-
+-define(gc_set_use_erlang_sendfile(GC, Bool),
+        GC#gconf{flags = yaws:flag(GC#gconf.flags,?GC_USE_ERLANG_SENDFILE,Bool)}).
+-define(gc_set_use_yaws_sendfile(GC, Bool),
+        GC#gconf{flags = yaws:flag(GC#gconf.flags,?GC_USE_YAWS_SENDFILE,Bool)}).
 
 
 %% global conf
@@ -65,6 +74,7 @@
           flags = ?GC_DEF,                % boolean flags
           logdir,
           ebin_dir = [],
+          src_dir  = [],
           runmods  = [],                  % runmods for entire server
           keepalive_timeout    = 30000,
           keepalive_maxuses    = nolimit, % nolimit or non negative integer
@@ -208,6 +218,7 @@
           xtra_docroots = [],           % if we have additional pseudo docroots
           listen = [{127,0,0,1}],       % bind to this IP, {0,0,0,0} is possible
           servername = "localhost",     % servername is what Host: header is
+          serveralias = [],             % Alternate names for this vhost
           yaws,                         % server string for this vhost
           ets,                          % local store for this server
           ssl,                          % undefined | #ssl{}
@@ -233,7 +244,7 @@
           tilde_allowed_scripts = [],
           index_files = ["index.yaws", "index.html", "index.php"],
           revproxy = [],
-          soptions = [],
+          soptions = [{listen_opts, [{backlog, 1024}, {recbuf, 8192}]}],
           extra_cgi_vars = [],
           stats,                        % raw traffic statistics
           fcgi_app_server,              % FastCGI application server {host,port}
