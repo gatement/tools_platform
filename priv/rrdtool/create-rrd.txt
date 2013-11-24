@@ -1,1 +1,0 @@
-rrdtool create monitor.rrd --start N --step 60 DS:mem:GAUGE:120:0:100 DS:cpu_load:GAUGE:120:0:U DS:cpu_util:GAUGE:120:0:100 RRA:AVERAGE:0.5:5:12 RRA:AVERAGE:0.5:60:24 RRA:AVERAGE:0.5:1140:90

@@ -1,3 +1,4 @@
+-- windows --
 set BASE_DIR=C:/app/tools_platform
 set YAWS_EBIN=C:/dev/Yaws/ebin
 set CONFIG_FILE=local

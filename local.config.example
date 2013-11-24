@@ -6,11 +6,6 @@
 {mnesia, [
     {dir, "/app/tools_platform/priv/data/mnesia"}
 ]},
-{monitor, [
-    {log_file_name, "/app/tools_platform/priv/log/monitor.csv"},
-    {rrdtool_exe, "C:/dev/rrdtool144-bin/rrdtool.exe"},
-    {rrd_file_name, "/app/tools_platform/priv/data/monitor.rrd"}
-]},
 {cleaner, [
     {run_interval, 60}, % in seconds
     {user_session_timeout, 57600}, % in seconds, = 16hr
@@ -20,14 +15,9 @@
     {database_backup_dir, "/app/tools_platform/priv/data"},
     {database_backup_interval, 3600} % in seconds
 ]},
-{mqtt_client, [
-    {username, "admin"},
-    {password, "admin"}
-]},
 {platform_core, [
     {debug_mode, true},
     
-    {enable_monitor, false},
     {enable_cleaner, false},
     {enable_db_backup, false},
     {enable_iptracker, false}

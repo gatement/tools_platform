@@ -6,10 +6,11 @@
 *.swp
 ebin
 deps
-apps/interface_http/priv/site/rrdtool_img
 apps/interface_http/priv/upload
 priv/log
 priv/data
-local_prod.config
-run.sh
 erl_crash.dump
+
+local.config
+run.sh
+run.bat
