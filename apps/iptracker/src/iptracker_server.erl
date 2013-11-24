@@ -81,16 +81,9 @@ ip_changed(Ip, Reason, TableId) ->
 		{ok, false} -> "disabled"
 	end,
 
-	%send_success_email(Ip, Reason, PeanuthullResult),
-	send_push_notification(Ip, Reason, PeanuthullResult),
+	send_success_email(Ip, Reason, PeanuthullResult),
 
 	ets:insert(TableId, {?IP_TABLE_KEY, Ip}).
-
-
-send_push_notification(Ip, Reason, _PeanuthullResult) ->
-	Msg = lists:flatten(io_lib:format("~s(~s) [~s]", [Ip, Reason, tools:datetime_string('hh:mm')])),
-    mqtt_broker:send_persistence_msg(Msg),
-	ok.
 
 
 send_success_email(Ip, Reason, PeanuthullResult) ->
