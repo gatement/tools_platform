@@ -7,8 +7,8 @@
 %% ===================================================================
 
 start() ->   
-	ok = application:start(sasl),
-    ok = mnesia:start(),
+	application:start(sasl),
+    mnesia:start(),
     
 	ok = application:start(platform_core),
 

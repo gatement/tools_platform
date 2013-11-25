@@ -7,10 +7,10 @@
 %% ===================================================================
 
 start() ->    
-	ok = application:start(crypto),
-	ok = application:start(asn1),
-	ok = application:start(public_key),
-	ok = application:start(ssl),
+	application:start(crypto),
+	application:start(asn1),
+	application:start(public_key),
+	application:start(ssl),
 	ok = application:start(interface_http),
 
 	ok.
