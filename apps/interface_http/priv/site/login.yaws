@@ -1,3 +1,7 @@
+<erl>
+    out(_Arg) ->							
+        {header, {cache_control, "no-cache"}}.
+</erl>
 <!DOCTYPE html>
 	<html>
 		<head>
