@@ -104,7 +104,7 @@ send_email(Subject, Content) ->
 
  	{ok, Receiver} = application:get_env(iptracker, receiver_email),
 
-	smtp_client:send_email(Sender, SenderPassword, [Receiver], Subject, Content),
+	%smtp_client:send_email(Sender, SenderPassword, [Receiver], Subject, Content),
 
 	ok.
 
