@@ -7,10 +7,10 @@
 ebin
 deps
 apps/interface_http/priv/upload
-priv/log
-priv/data
+priv
 erl_crash.dump
-
+.rebar
 local.config
 run.sh
 run.bat
+.DS_Store
